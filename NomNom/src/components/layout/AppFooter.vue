@@ -22,6 +22,7 @@ const currentYear = new Date().getFullYear()
         <nav class="footer-links" aria-label="Footer navigation">
           <h2>Explore</h2>
           <RouterLink to="/">Discover food</RouterLink>
+          <RouterLink to="/search">Search</RouterLink>
           <RouterLink to="/saved">Saved places</RouterLink>
         </nav>
 

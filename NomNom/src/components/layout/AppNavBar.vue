@@ -64,15 +64,8 @@ onBeforeUnmount(() => {
       </RouterLink>
 
       <!-- Mobile menu button -->
-      <button
-        class="menu-toggle"
-        type="button"
-        :aria-expanded="menuOpen"
-        aria-controls="mobile-menu"
-        aria-haspopup="dialog"
-        aria-label="Open navigation menu"
-        @click="openMenu"
-      >
+      <button class="menu-toggle" type="button" :aria-expanded="menuOpen" aria-controls="mobile-menu"
+        aria-haspopup="dialog" aria-label="Open navigation menu" @click="openMenu">
         <span aria-hidden="true">☰</span>
       </button>
 
@@ -82,6 +75,10 @@ onBeforeUnmount(() => {
           Discover
         </RouterLink>
 
+        <RouterLink class="nav-link" to="/search" active-class="is-active" @click="closeMenu">
+          Search
+        </RouterLink>
+
         <RouterLink class="nav-link" to="/saved" active-class="is-active">
           Saved places
         </RouterLink>
@@ -89,11 +86,7 @@ onBeforeUnmount(() => {
         <template v-if="isLoggedIn">
           <RouterLink class="nav-link" to="/profile"> My profile </RouterLink>
 
-          <button
-            class="login-link logout-button"
-            type="button"
-            @click="handleLogout"
-          >
+          <button class="login-link logout-button" type="button" @click="handleLogout">
             Log out
           </button>
         </template>
@@ -107,46 +100,24 @@ onBeforeUnmount(() => {
   </header>
 
   <!-- Mobile drawer -->
-  <dialog
-    id="mobile-menu"
-    ref="drawer"
-    class="mobile-drawer"
-    aria-labelledby="drawer-title"
-    @close="onMenuClosed"
-    @click.self="closeMenu"
-  >
+  <dialog id="mobile-menu" ref="drawer" class="mobile-drawer" aria-labelledby="drawer-title" @close="onMenuClosed"
+    @click.self="closeMenu">
     <div class="drawer-panel">
       <div class="drawer-header">
         <h2 id="drawer-title">Explore NomNom</h2>
 
-        <button
-          class="drawer-close"
-          type="button"
-          aria-label="Close navigation menu"
-          autofocus
-          @click="closeMenu"
-        >
+        <button class="drawer-close" type="button" aria-label="Close navigation menu" autofocus @click="closeMenu">
           <span aria-hidden="true">✕</span>
         </button>
       </div>
 
       <nav class="drawer-links" aria-label="Mobile navigation">
-        <RouterLink
-          class="nav-link"
-          to="/"
-          exact-active-class="is-active"
-          @click="closeMenu"
-        >
+        <RouterLink class="nav-link" to="/" exact-active-class="is-active" @click="closeMenu">
           <i class="bi bi-compass" aria-hidden="true"></i>
           Discover
         </RouterLink>
 
-        <RouterLink
-          class="nav-link"
-          to="/saved"
-          active-class="is-active"
-          @click="closeMenu"
-        >
+        <RouterLink class="nav-link" to="/saved" active-class="is-active" @click="closeMenu">
           <i class="bi bi-bookmark" aria-hidden="true"></i>
           Saved places
         </RouterLink>
@@ -157,11 +128,7 @@ onBeforeUnmount(() => {
             My profile
           </RouterLink>
 
-          <button
-            class="login-link logout-button"
-            type="button"
-            @click="handleLogout"
-          >
+          <button class="login-link logout-button" type="button" @click="handleLogout">
             Log out
           </button>
         </template>
@@ -185,6 +152,7 @@ onBeforeUnmount(() => {
   border: none;
   cursor: pointer;
 }
+
 .site-header {
   background: #fffcf3;
   border-bottom: 1px solid rgb(72 57 52 / 12%);
