@@ -1,0 +1,67 @@
+/* src/assets/css/post-filters.css */
+
+.post-filters {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px;
+  border: 1px solid rgb(72 57 52 / 12%);
+  border-radius: 20px;
+  background: #f4f2c2;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.filter-label {
+  color: #483934;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.filter-select {
+  padding: 10px 14px;
+  border: 1px solid rgb(72 57 52 / 20%);
+  border-radius: 12px;
+  background: #fffcf3;
+  color: #483934;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.filter-select:focus-visible {
+  outline: 3px solid #cd4639;
+  outline-offset: 2px;
+}
+
+.filter-clear {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 8px;
+  padding: 10px;
+  border: 1px solid rgb(205 70 57 / 40%);
+  border-radius: 999px;
+  background: none;
+  color: #cd4639;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.filter-clear:hover {
+  background: #cd4639;
+  color: #fffcf3;
+}
+
+@media (min-width: 992px) {
+  .post-filters {
+    position: sticky;
+    top: 24px;
+  }
+}
