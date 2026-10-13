@@ -1,0 +1,137 @@
+/* src/assets/css/comment-list.css */
+
+.comment-list {
+  margin-top: 48px;
+}
+
+.comment-heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 20px;
+  color: #483934;
+  font-size: 1.25rem;
+  font-weight: 800;
+}
+
+.comment-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  height: 32px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: #ffd77d;
+  color: #483934;
+  font-size: 0.9rem;
+}
+
+.comment-empty {
+  margin: 0;
+  padding: 32px;
+  border-radius: 16px;
+  background: #f4f2c2;
+  color: #483934;
+  text-align: center;
+}
+
+.comment-items {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.comment-item {
+  display: flex;
+  gap: 14px;
+  padding: 18px;
+  border: 1px solid rgb(72 57 52 / 10%);
+  border-radius: 16px;
+  background: #fffcf3;
+}
+
+.comment-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.comment-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.comment-header {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.comment-author {
+  color: #483934;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.comment-author:hover {
+  color: #cd4639;
+}
+
+.comment-time {
+  color: #483934;
+  font-size: 0.8rem;
+  opacity: 0.6;
+}
+
+.comment-text {
+  margin: 0 0 10px;
+  color: #483934;
+  line-height: 1.6;
+}
+
+.comment-images {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 10px;
+  padding: 0;
+  list-style: none;
+}
+
+.comment-images img {
+  width: 96px;
+  height: 96px;
+  border-radius: 12px;
+  object-fit: cover;
+}
+
+.comment-delete {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid rgb(205 70 57 / 30%);
+  border-radius: 999px;
+  background: none;
+  color: #cd4639;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.comment-delete:hover {
+  background: #cd4639;
+  color: #fffcf3;
+}
+
+.comment-delete:focus-visible {
+  outline: 3px solid #cd4639;
+  outline-offset: 3px;
+}
