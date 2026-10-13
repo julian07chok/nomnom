@@ -1,6 +1,7 @@
-<!-- src/components/Pagination.vue -->
 <script setup>
+import { nextTick } from 'vue'                       // ✅ 1. Import nextTick
 import Paginate from 'vuejs-paginate-next'
+import '../../assets/css/pagination.css'
 
 const props = defineProps({
   currentPage: { type: Number, required: true },
@@ -12,16 +13,23 @@ const props = defineProps({
 
 const emit = defineEmits(['update:currentPage'])
 
-// clickCallback — receives the clicked page number as parameter
-// (Lecture 09, page 9: "Use clicked page number as parameter")
-function clickCallback(pageNum) {
+async function clickCallback(pageNum) {              // ✅ 2. Mark async
   const page = Number(pageNum)
   if (page < 1 || page > props.totalPages || page === props.currentPage) return
 
+  // 1. Tell parent to change page
   emit('update:currentPage', page)
 
+  // 2. Wait for Vue to re-render the new list
+  await nextTick()                                   // ✅ 3. Wait
+
+  // 3. Now scroll
+  if (!props.scrollTargetId) return
   const target = document.getElementById(props.scrollTargetId)
-  target?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  if (target) {
+    const y = target.getBoundingClientRect().top + window.scrollY - 20
+    window.scrollTo({ top: y, behavior: 'smooth' })
+  }
 }
 </script>
 
@@ -49,75 +57,3 @@ function clickCallback(pageNum) {
     />
   </nav>
 </template>
-
-<style scoped>
-.pagination-nav {
-  display: flex;
-  justify-content: center;
-  margin-top: 40px;
-}
-
-/* The library renders a <ul class="pagination">. We style it
-   to match the NomNom palette. Use :deep() because these elements
-   are generated inside the child component. */
-.pagination-nav :deep(.pagination) {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.pagination-nav :deep(.page-item) {
-  display: inline-flex;
-}
-
-.pagination-nav :deep(.page-link) {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 42px;
-  height: 42px;
-  padding: 0 14px;
-  border: 1px solid rgb(72 57 52 / 20%);
-  border-radius: 12px;
-  background: #fffcf3;
-  color: #483934;
-  font-weight: 700;
-  text-decoration: none;
-  cursor: pointer;
-  transition: background-color 150ms ease, color 150ms ease,
-    border-color 150ms ease;
-}
-
-.pagination-nav :deep(.page-link:hover) {
-  background: #f4f2c2;
-}
-
-.pagination-nav :deep(.currentPage .page-link) {
-  background: #483934;
-  color: #fffcf3;
-  border-color: #483934;
-}
-
-.pagination-nav :deep(.disabled .page-link) {
-  opacity: 0.4;
-  cursor: not-allowed;
-  pointer-events: none;
-}
-
-.pagination-nav :deep(.page-link:focus-visible) {
-  outline: 3px solid #cd4639;
-  outline-offset: 3px;
-}
-
-@media (max-width: 480px) {
-  .pagination-nav :deep(.page-link) {
-    min-width: 36px;
-    height: 36px;
-    padding: 0 10px;
-    font-size: 0.9rem;
-  }
-}
-</style>

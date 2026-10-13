@@ -1,0 +1,49 @@
+/* Global Styles */
+:root {
+  --background: #fffcf3;
+  --text: #483934;
+  --orange: #f1613e;
+  --light-blue: #dce9fc;
+  --blue: #adcada;
+  --light-yellow: #f4f2c2;
+  --yellow: #ffd77d;
+  --pink: #ffb6bf;
+  --red: #cd4639;
+
+  font-family: 'Segoe UI', Arial, sans-serif;
+  color: var(--text);
+  background: var(--background);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  color: var(--text);
+  background: var(--background);
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+html {
+  scrollbar-gutter: stable;
+}

@@ -1,0 +1,69 @@
+/* src/assets/css/pagination.css */
+
+.pagination-nav {
+  display: flex;
+  justify-content: center;
+  margin-top: 40px;
+}
+
+/* The library renders <ul class="pagination">. Style it directly. */
+.pagination-nav .pagination {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pagination-nav .page-item {
+  display: inline-flex;
+}
+
+.pagination-nav .page-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 42px;
+  height: 42px;
+  padding: 0 14px;
+  border: 1px solid rgb(72 57 52 / 20%);
+  border-radius: 12px;
+  background: #fffcf3;
+  color: #483934;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 150ms ease, color 150ms ease,
+    border-color 150ms ease;
+}
+
+.pagination-nav .page-link:hover {
+  background: #f4f2c2;
+}
+
+.pagination-nav .currentPage .page-link {
+  background: #483934;
+  color: #fffcf3;
+  border-color: #483934;
+}
+
+.pagination-nav .disabled .page-link {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.pagination-nav .page-link:focus-visible {
+  outline: 3px solid #cd4639;
+  outline-offset: 3px;
+}
+
+@media (max-width: 480px) {
+  .pagination-nav .page-link {
+    min-width: 36px;
+    height: 36px;
+    padding: 0 10px;
+    font-size: 0.9rem;
+  }
+}
