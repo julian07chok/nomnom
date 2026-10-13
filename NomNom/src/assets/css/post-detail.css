@@ -1,0 +1,145 @@
+/* src/assets/css/post-detail.css */
+
+.post-detail {
+  padding: 32px 0 64px;
+  background: #fffcf3;
+}
+
+.post-detail-inner {
+  max-width: 760px;
+}
+
+.post-article {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.post-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.post-author {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  color: #483934;
+  text-decoration: none;
+}
+
+.post-author-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.post-author-name {
+  margin: 0;
+  font-weight: 700;
+}
+
+.post-date {
+  margin: 0;
+  font-size: 0.8rem;
+  opacity: 0.6;
+}
+
+.post-cuisine {
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: #dce9fc;
+  color: #483934;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.post-title {
+  margin: 0;
+  color: #483934;
+  font-size: clamp(1.5rem, 4vw, 2.25rem);
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.5px;
+}
+
+.post-info {
+  padding: 20px;
+  border-radius: 16px;
+  background: #f4f2c2;
+}
+
+.post-restaurant {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 10px;
+  color: #483934;
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+
+.post-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: #483934;
+}
+
+.post-meta li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.95rem;
+}
+
+.post-description h2 {
+  margin: 0 0 10px;
+  color: #483934;
+  font-size: 1.15rem;
+  font-weight: 800;
+}
+
+.post-description p {
+  margin: 0;
+  color: #483934;
+  line-height: 1.75;
+}
+
+.not-found {
+  padding: 64px 24px;
+  text-align: center;
+}
+
+.not-found h1 {
+  margin: 0 0 12px;
+  color: #483934;
+}
+
+.not-found-link {
+  display: inline-block;
+  margin-top: 20px;
+  padding: 12px 24px;
+  border-radius: 999px;
+  background: #483934;
+  color: #fffcf3;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.not-found-link:hover {
+  background: #cd4639;
+}
+
+@media (min-width: 768px) {
+  .post-detail {
+    padding: 48px 0 80px;
+  }
+}
