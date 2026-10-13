@@ -138,7 +138,7 @@ function onSearch() {
       <div class="container">
         <header class="feed-header">
           <div>
-            <h2 class="feed-title">
+            <h2 id="feed-title" class="feed-title">
               {{ activeCuisine === 'All' ? 'Latest discoveries' : activeCuisine }}
             </h2>
             <p class="feed-count">
@@ -181,6 +181,7 @@ function onSearch() {
           v-if="totalPages > 1"
           v-model:currentPage="currentPage"
           :total-pages="totalPages"
+          scroll-target-id="feed-title"
         />
       </div>
     </section>
@@ -426,6 +427,10 @@ input:focus-visible,
 select:focus-visible {
   outline: 3px solid #cd4639;
   outline-offset: 3px;
+}
+
+#feed-title {
+  scroll-margin-top: 24px;
 }
 
 /* Responsive — mobile-first breakpoints */

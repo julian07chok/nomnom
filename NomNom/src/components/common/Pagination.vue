@@ -1,15 +1,32 @@
+<!-- src/components/Pagination.vue -->
 <script setup>
+import { nextTick } from 'vue'
+
 const props = defineProps({
   currentPage: { type: Number, required: true },
   totalPages: { type: Number, required: true },
+  scrollTargetId: { type: String, default: '' },
 })
 
 const emit = defineEmits(['update:currentPage'])
 
-function goTo(page) {
-  if (page < 1 || page > props.totalPages || page === props.currentPage) return
+async function goTo(page) {
+  if (
+    page < 1 ||
+    page > props.totalPages ||
+    page === props.currentPage
+  ) return
+
   emit('update:currentPage', page)
-  window.scrollTo({ top: 0, behavior: 'smooth' })
+
+  await nextTick()
+
+  const target = document.getElementById(props.scrollTargetId)
+
+  target?.scrollIntoView({
+    behavior: 'smooth',
+    block: 'start',
+  })
 }
 </script>
 

@@ -1,44 +1,129 @@
 <script setup>
-import { ref } from 'vue'
+import { onBeforeUnmount, onMounted, ref } from 'vue'
 
 const menuOpen = ref(false)
+const drawer = ref(null)
+
+let previousOverflow = ''
+let desktopQuery
+
+function openMenu() {
+  if (menuOpen.value || desktopQuery?.matches) return
+
+  previousOverflow = document.body.style.overflow
+  document.body.style.overflow = 'hidden'
+  drawer.value.showModal()
+  menuOpen.value = true
+}
 
 function closeMenu() {
+  drawer.value?.close()
+}
+
+function onMenuClosed() {
+  document.body.style.overflow = previousOverflow
   menuOpen.value = false
 }
+
+function onBreakpointChange(event) {
+  if (event.matches && menuOpen.value) {
+    closeMenu()
+  }
+}
+
+onMounted(() => {
+  desktopQuery = window.matchMedia('(min-width: 768px)')
+  desktopQuery.addEventListener('change', onBreakpointChange)
+})
+
+onBeforeUnmount(() => {
+  desktopQuery?.removeEventListener('change', onBreakpointChange)
+
+  if (menuOpen.value) {
+    document.body.style.overflow = previousOverflow
+  }
+})
 </script>
 
 <template>
   <header class="site-header">
     <nav class="navbar-inner" aria-label="Main navigation">
-      <RouterLink class="brand" to="/" @click="closeMenu">
+      <RouterLink class="brand" to="/">
         <span class="brand-icon" aria-hidden="true">✦</span>
         NomNom<span class="brand-dot">.</span>
       </RouterLink>
 
+      <!-- Mobile menu button -->
       <button
         class="menu-toggle"
         type="button"
         :aria-expanded="menuOpen"
-        aria-controls="main-menu"
-        :aria-label="menuOpen ? 'Close menu' : 'Open menu'"
-        @click="menuOpen = !menuOpen"
+        aria-controls="mobile-menu"
+        aria-haspopup="dialog"
+        aria-label="Open navigation menu"
+        @click="openMenu"
       >
-        <span aria-hidden="true">{{ menuOpen ? '✕' : '☰' }}</span>
+        <span aria-hidden="true">☰</span>
       </button>
 
-      <div
-        id="main-menu"
-        class="nav-menu"
-        :class="{ 'is-open': menuOpen }"
-        @keydown.esc="closeMenu"
-      >
+      <!-- Desktop navigation -->
+      <div class="nav-menu">
+        <RouterLink
+          class="nav-link"
+          to="/"
+          exact-active-class="is-active"
+        >
+          Discover
+        </RouterLink>
+
+        <RouterLink
+          class="nav-link"
+          to="/saved"
+          active-class="is-active"
+        >
+          Saved places
+        </RouterLink>
+
+        <RouterLink class="login-link" to="/login">
+          Log in
+          <span aria-hidden="true">↗</span>
+        </RouterLink>
+      </div>
+    </nav>
+  </header>
+
+  <!-- Mobile drawer -->
+  <dialog
+    id="mobile-menu"
+    ref="drawer"
+    class="mobile-drawer"
+    aria-labelledby="drawer-title"
+    @close="onMenuClosed"
+    @click.self="closeMenu"
+  >
+    <div class="drawer-panel">
+      <div class="drawer-header">
+        <h2 id="drawer-title">Explore NomNom</h2>
+
+        <button
+          class="drawer-close"
+          type="button"
+          aria-label="Close navigation menu"
+          autofocus
+          @click="closeMenu"
+        >
+          <span aria-hidden="true">✕</span>
+        </button>
+      </div>
+
+      <nav class="drawer-links" aria-label="Mobile navigation">
         <RouterLink
           class="nav-link"
           to="/"
           exact-active-class="is-active"
           @click="closeMenu"
         >
+          <i class="bi bi-compass" aria-hidden="true"></i>
           Discover
         </RouterLink>
 
@@ -48,6 +133,7 @@ function closeMenu() {
           active-class="is-active"
           @click="closeMenu"
         >
+          <i class="bi bi-bookmark" aria-hidden="true"></i>
           Saved places
         </RouterLink>
 
@@ -59,9 +145,14 @@ function closeMenu() {
           Log in
           <span aria-hidden="true">↗</span>
         </RouterLink>
+      </nav>
+
+      <div class="drawer-bottom">
+        <span class="drawer-tag">Made for food lovers</span>
+        <p>Your next favourite bite is waiting.</p>
       </div>
-    </nav>
-  </header>
+    </div>
+  </dialog>
 </template>
 
 <style scoped>
@@ -77,7 +168,6 @@ function closeMenu() {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  flex-wrap: wrap;
   gap: 16px;
 }
 
@@ -94,6 +184,7 @@ function closeMenu() {
 .brand-icon {
   display: grid;
   place-items: center;
+  flex-shrink: 0;
   width: 38px;
   height: 38px;
   margin-right: 10px;
@@ -106,9 +197,11 @@ function closeMenu() {
   color: #f1613e;
 }
 
+/* Mobile navigation */
 .menu-toggle {
   display: grid;
   place-items: center;
+  flex-shrink: 0;
   width: 44px;
   height: 44px;
   border: 1px solid rgb(72 57 52 / 20%);
@@ -121,15 +214,9 @@ function closeMenu() {
 
 .nav-menu {
   display: none;
-  width: 100%;
-  flex-direction: column;
-  gap: 8px;
 }
 
-.nav-menu.is-open {
-  display: flex;
-}
-
+/* Shared links */
 .nav-link,
 .login-link {
   padding: 12px 18px;
@@ -142,6 +229,7 @@ function closeMenu() {
 
 .nav-link:hover {
   background: #f4f2c2;
+  color: #483934;
 }
 
 .nav-link.is-active {
@@ -159,6 +247,132 @@ function closeMenu() {
 
 .login-link:hover {
   background: #cd4639;
+  color: #fffcf3;
+}
+
+/* Full-screen transparent area for outside clicks */
+.mobile-drawer {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  max-width: none;
+  height: 100dvh;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #483934;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+.mobile-drawer::backdrop {
+  background: rgb(72 57 52 / 25%);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+/* Card sits flush against the right edge */
+.drawer-panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(360px, max(240px, 55vw));
+  max-width: 100vw;
+  box-sizing: border-box;
+  padding: 24px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  overflow-y: auto;
+  overscroll-behavior: none;
+  border-radius: 24px 0 0 24px;
+  background: #fffcf3;
+  box-shadow: -8px 0 40px rgb(72 57 52 / 18%);
+  transition: none;
+}
+
+/* Constant-speed opening slide */
+.mobile-drawer[open] .drawer-panel {
+  animation: drawer-slide-in 300ms linear both;
+}
+
+@keyframes drawer-slide-in {
+  from {
+    transform: translateX(100%);
+  }
+
+  to {
+    transform: translateX(0);
+  }
+}
+
+.drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.drawer-header h2 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.drawer-close {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: 50%;
+  background: #f4f2c2;
+  color: #483934;
+  cursor: pointer;
+}
+
+.drawer-links {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.drawer-links .nav-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 12px;
+  border-radius: 14px;
+}
+
+.drawer-links .login-link {
+  margin-top: 12px;
+}
+
+.drawer-bottom {
+  margin-top: auto;
+  padding-top: 24px;
+  border-top: 1px solid rgb(72 57 52 / 12%);
+}
+
+.drawer-tag {
+  display: inline-block;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: #ffb6bf;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.drawer-bottom p {
+  margin: 14px 0 0;
+  font-size: 0.85rem;
+  line-height: 1.6;
 }
 
 a:focus-visible,
@@ -167,6 +381,7 @@ button:focus-visible {
   outline-offset: 4px;
 }
 
+/* Normal navigation on tablet and desktop */
 @media (min-width: 768px) {
   .menu-toggle {
     display: none;
@@ -174,8 +389,6 @@ button:focus-visible {
 
   .nav-menu {
     display: flex;
-    width: auto;
-    flex-direction: row;
     align-items: center;
     gap: 12px;
   }
@@ -184,6 +397,12 @@ button:focus-visible {
 @media (min-width: 1200px) {
   .navbar-inner {
     padding: 22px 32px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mobile-drawer[open] .drawer-panel {
+    animation: none;
   }
 }
 </style>
