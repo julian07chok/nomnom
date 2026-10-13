@@ -1,0 +1,64 @@
+/* src/assets/css/post-actions.css */
+
+.post-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border: 1px solid rgb(72 57 52 / 20%);
+  border-radius: 999px;
+  background: #fffcf3;
+  color: #483934;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 150ms ease, color 150ms ease,
+    border-color 150ms ease;
+}
+
+.action-btn:hover {
+  background: #f4f2c2;
+}
+
+.action-like.is-active {
+  background: #ffb6bf;
+  border-color: #cd4639;
+  color: #cd4639;
+}
+
+.action-save.is-active {
+  background: #dce9fc;
+  border-color: #483934;
+}
+
+.owner-actions {
+  display: inline-flex;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.action-edit {
+  background: #ffd77d;
+  border-color: #ffd77d;
+}
+
+.action-delete {
+  color: #cd4639;
+  border-color: rgb(205 70 57 / 40%);
+}
+
+.action-delete:hover {
+  background: #cd4639;
+  color: #fffcf3;
+}
+
+.action-btn:focus-visible {
+  outline: 3px solid #cd4639;
+  outline-offset: 3px;
+}
