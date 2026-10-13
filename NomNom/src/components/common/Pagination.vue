@@ -1,5 +1,6 @@
+<!-- src/components/common/Pagination.vue -->
 <script setup>
-import { nextTick } from 'vue'                       // ✅ 1. Import nextTick
+import { nextTick } from 'vue'
 import Paginate from 'vuejs-paginate-next'
 import '../../assets/css/pagination.css'
 
@@ -13,22 +14,20 @@ const props = defineProps({
 
 const emit = defineEmits(['update:currentPage'])
 
-async function clickCallback(pageNum) {              // ✅ 2. Mark async
+async function clickCallback(pageNum) {
   const page = Number(pageNum)
   if (page < 1 || page > props.totalPages || page === props.currentPage) return
 
-  // 1. Tell parent to change page
   emit('update:currentPage', page)
 
-  // 2. Wait for Vue to re-render the new list
-  await nextTick()                                   // ✅ 3. Wait
+  await nextTick()
 
-  // 3. Now scroll
-  if (!props.scrollTargetId) return
-  const target = document.getElementById(props.scrollTargetId)
-  if (target) {
-    const y = target.getBoundingClientRect().top + window.scrollY - 20
-    window.scrollTo({ top: y, behavior: 'smooth' })
+  if (props.scrollTargetId) {
+    const target = document.getElementById(props.scrollTargetId)
+    if (target) {
+      const y = target.getBoundingClientRect().top + window.scrollY - 20
+      window.scrollTo({ top: y, behavior: 'smooth' })
+    }
   }
 }
 </script>
@@ -36,6 +35,7 @@ async function clickCallback(pageNum) {              // ✅ 2. Mark async
 <template>
   <nav class="pagination-nav" aria-label="Pagination">
     <Paginate
+      :key="currentPage"
       :page-count="totalPages"
       :page-range="3"
       :margin-pages="1"
