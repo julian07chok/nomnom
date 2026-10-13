@@ -134,7 +134,7 @@ function onSearch() {
     </section>
 
     <!-- Feed -->
-    <section class="feed-section">
+    <section id="feed-top" section class="feed-section">
       <div class="container">
         <header class="feed-header">
           <div>
@@ -178,11 +178,13 @@ function onSearch() {
 
         <!-- Pagination -->
         <PaginationControls
-          v-if="totalPages > 1"
-          v-model:currentPage="currentPage"
-          :total-pages="totalPages"
-          scroll-target-id="feed-title"
-        />
+  v-if="totalPages > 1"
+  v-model:currentPage="currentPage"
+  :total-pages="totalPages"
+  :total-items="filteredPosts.length"
+  :per-page="POSTS_PER_PAGE"
+  scroll-target-id="feed-top"
+/>
       </div>
     </section>
   </main>
