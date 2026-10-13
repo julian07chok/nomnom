@@ -1,48 +1,58 @@
 <script setup>
-import { onBeforeUnmount, onMounted, ref } from 'vue'
+import { onBeforeUnmount, onMounted, ref } from "vue";
+import { useRouter } from "vue-router";
+import { useAuth } from "../../services/auth";
 
-const menuOpen = ref(false)
-const drawer = ref(null)
+const menuOpen = ref(false);
+const drawer = ref(null);
+const router = useRouter();
+const { isLoggedIn, logout } = useAuth();
 
-let previousOverflow = ''
-let desktopQuery
+function handleLogout() {
+  closeMenu();
+  logout();
+  router.push("/");
+}
+
+let previousOverflow = "";
+let desktopQuery;
 
 function openMenu() {
-  if (menuOpen.value || desktopQuery?.matches) return
+  if (menuOpen.value || desktopQuery?.matches) return;
 
-  previousOverflow = document.body.style.overflow
-  document.body.style.overflow = 'hidden'
-  drawer.value.showModal()
-  menuOpen.value = true
+  previousOverflow = document.body.style.overflow;
+  document.body.style.overflow = "hidden";
+  drawer.value.showModal();
+  menuOpen.value = true;
 }
 
 function closeMenu() {
-  drawer.value?.close()
+  drawer.value?.close();
 }
 
 function onMenuClosed() {
-  document.body.style.overflow = previousOverflow
-  menuOpen.value = false
+  document.body.style.overflow = previousOverflow;
+  menuOpen.value = false;
 }
 
 function onBreakpointChange(event) {
   if (event.matches && menuOpen.value) {
-    closeMenu()
+    closeMenu();
   }
 }
 
 onMounted(() => {
-  desktopQuery = window.matchMedia('(min-width: 768px)')
-  desktopQuery.addEventListener('change', onBreakpointChange)
-})
+  desktopQuery = window.matchMedia("(min-width: 768px)");
+  desktopQuery.addEventListener("change", onBreakpointChange);
+});
 
 onBeforeUnmount(() => {
-  desktopQuery?.removeEventListener('change', onBreakpointChange)
+  desktopQuery?.removeEventListener("change", onBreakpointChange);
 
   if (menuOpen.value) {
-    document.body.style.overflow = previousOverflow
+    document.body.style.overflow = previousOverflow;
   }
-})
+});
 </script>
 
 <template>
@@ -68,23 +78,27 @@ onBeforeUnmount(() => {
 
       <!-- Desktop navigation -->
       <div class="nav-menu">
-        <RouterLink
-          class="nav-link"
-          to="/"
-          exact-active-class="is-active"
-        >
+        <RouterLink class="nav-link" to="/" exact-active-class="is-active">
           Discover
         </RouterLink>
 
-        <RouterLink
-          class="nav-link"
-          to="/saved"
-          active-class="is-active"
-        >
+        <RouterLink class="nav-link" to="/saved" active-class="is-active">
           Saved places
         </RouterLink>
 
-        <RouterLink class="login-link" to="/login">
+        <template v-if="isLoggedIn">
+          <RouterLink class="nav-link" to="/profile"> My profile </RouterLink>
+
+          <button
+            class="login-link logout-button"
+            type="button"
+            @click="handleLogout"
+          >
+            Log out
+          </button>
+        </template>
+
+        <RouterLink v-else class="login-link" to="/login">
           Log in
           <span aria-hidden="true">↗</span>
         </RouterLink>
@@ -137,11 +151,22 @@ onBeforeUnmount(() => {
           Saved places
         </RouterLink>
 
-        <RouterLink
-          class="login-link"
-          to="/login"
-          @click="closeMenu"
-        >
+        <template v-if="isLoggedIn">
+          <RouterLink class="nav-link" to="/profile" @click="closeMenu">
+            <i class="bi bi-person" aria-hidden="true"></i>
+            My profile
+          </RouterLink>
+
+          <button
+            class="login-link logout-button"
+            type="button"
+            @click="handleLogout"
+          >
+            Log out
+          </button>
+        </template>
+
+        <RouterLink v-else class="login-link" to="/login" @click="closeMenu">
           Log in
           <span aria-hidden="true">↗</span>
         </RouterLink>
@@ -156,6 +181,10 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
+.logout-button {
+  border: none;
+  cursor: pointer;
+}
 .site-header {
   background: #fffcf3;
   border-bottom: 1px solid rgb(72 57 52 / 12%);

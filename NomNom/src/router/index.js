@@ -1,6 +1,7 @@
 //router/index.js
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
+import { useAuth } from '../services/auth'
 
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
@@ -66,6 +67,21 @@ const router = createRouter({
             component: () => import('../views/NotFoundView.vue')
         },
     ],
+})
+
+router.beforeEach((to) => {
+    const { isLoggedIn } = useAuth()
+
+    if (to.meta.requiresAuth && !isLoggedIn.value) {
+        return {
+            name: 'login',
+            query: { redirect: to.fullPath },
+        }
+    }
+
+    if (to.name === 'login' && isLoggedIn.value) {
+        return { name: 'home' }
+    }
 })
 
 export default router
