@@ -1,0 +1,74 @@
+/* src/assets/css/comment-form.css */
+
+.comment-form-wrap {
+  margin-top: 32px;
+}
+
+.comment-form-login {
+  padding: 20px;
+  border-radius: 16px;
+  background: #dce9fc;
+  color: #483934;
+  text-align: center;
+}
+
+.comment-form-login a {
+  color: #cd4639;
+  font-weight: 700;
+}
+
+.comment-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.comment-label {
+  color: #483934;
+  font-weight: 700;
+}
+
+.comment-input {
+  padding: 14px;
+  border: 1px solid rgb(72 57 52 / 20%);
+  border-radius: 14px;
+  background: #fffcf3;
+  color: #483934;
+  font: inherit;
+  resize: vertical;
+}
+
+.comment-input:focus-visible {
+  outline: 3px solid #cd4639;
+  outline-offset: 2px;
+}
+
+.comment-help {
+  margin: 0;
+  color: #483934;
+  font-size: 0.8rem;
+  opacity: 0.6;
+  text-align: right;
+}
+
+.comment-error {
+  margin: 0;
+  color: #cd4639;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.comment-submit {
+  align-self: flex-end;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 999px;
+  background: #483934;
+  color: #fffcf3;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.comment-submit:hover {
+  background: #cd4639;
+}
