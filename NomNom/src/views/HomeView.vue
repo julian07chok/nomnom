@@ -1,9 +1,12 @@
 <script setup>
 import { computed, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import posts from '../data/posts.json'
 import PostCard from '../components/post/PostCard.vue'
 import PaginationControls from '../components/common/Pagination.vue'
 import '../assets/css/home.css'
+
+const router = useRouter()
 
 const POSTS_PER_PAGE = 6
 
@@ -29,21 +32,9 @@ const cuisines = [
 const filteredPosts = computed(() => {
   let result = [...posts]
 
-  // Filter by cuisine
+  // Filter by cuisine only — search is now handled on the Search page
   if (activeCuisine.value !== 'All') {
     result = result.filter((post) => post.cuisine === activeCuisine.value)
-  }
-
-  // Filter by search query
-  const query = searchQuery.value.trim().toLowerCase()
-  if (query) {
-    result = result.filter(
-      (post) =>
-        post.title.toLowerCase().includes(query) ||
-        post.restaurantName.toLowerCase().includes(query) ||
-        post.location.toLowerCase().includes(query) ||
-        post.cuisine.toLowerCase().includes(query),
-    )
   }
 
   // Sort
@@ -77,9 +68,14 @@ function clearFilters() {
   currentPage.value = 1
 }
 
-// Reset to page 1 when the search changes
+// Redirect to the Search page with the typed query
 function onSearch() {
-  currentPage.value = 1
+  const q = searchQuery.value.trim()
+  if (q) {
+    router.push({ name: 'search', query: { q } })
+  } else {
+    router.push({ name: 'search' })
+  }
 }
 </script>
 
@@ -101,8 +97,13 @@ function onSearch() {
 
           <form class="home-hero-search" role="search" @submit.prevent="onSearch">
             <i class="bi bi-search search-icon" aria-hidden="true"></i>
-            <input v-model="searchQuery" type="search" class="home-search-input"
-              placeholder="Search dishes, restaurants, or locations…" aria-label="Search posts" />
+            <input
+              v-model="searchQuery"
+              type="search"
+              class="home-search-input"
+              placeholder="Search dishes, restaurants, or locations…"
+              aria-label="Search posts"
+            />
             <button type="submit" class="home-search-btn">Search</button>
           </form>
         </div>
@@ -114,8 +115,14 @@ function onSearch() {
       <div class="container">
         <ul class="home-category-list" role="tablist" aria-label="Cuisine categories">
           <li v-for="cuisine in cuisines" :key="cuisine">
-            <button type="button" class="home-category-chip" :class="{ 'is-active': activeCuisine === cuisine }"
-              role="tab" :aria-selected="activeCuisine === cuisine" @click="selectCuisine(cuisine)">
+            <button
+              type="button"
+              class="home-category-chip"
+              :class="{ 'is-active': activeCuisine === cuisine }"
+              role="tab"
+              :aria-selected="activeCuisine === cuisine"
+              @click="selectCuisine(cuisine)"
+            >
               {{ cuisine }}
             </button>
           </li>
@@ -124,7 +131,7 @@ function onSearch() {
     </section>
 
     <!-- Feed -->
-    <section id="home-feed-top" section class="home-feed-section">
+    <section id="home-feed-top" class="home-feed-section">
       <div class="container">
         <header class="home-feed-header">
           <div>
@@ -134,7 +141,6 @@ function onSearch() {
             <p class="home-feed-count">
               {{ filteredPosts.length }}
               {{ filteredPosts.length === 1 ? 'post' : 'posts' }}
-              <span v-if="searchQuery">for "{{ searchQuery }}"</span>
             </p>
           </div>
 
@@ -163,8 +169,14 @@ function onSearch() {
         </div>
 
         <!-- Pagination -->
-        <PaginationControls v-if="totalPages > 1" v-model:currentPage="currentPage" :total-pages="totalPages"
-          :total-items="filteredPosts.length" :per-page="POSTS_PER_PAGE" scroll-target-id="home-feed-top" />
+        <PaginationControls
+          v-if="totalPages > 1"
+          v-model:currentPage="currentPage"
+          :total-pages="totalPages"
+          :total-items="filteredPosts.length"
+          :per-page="POSTS_PER_PAGE"
+          scroll-target-id="home-feed-top"
+        />
       </div>
     </section>
   </main>
