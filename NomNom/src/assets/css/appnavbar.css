@@ -1,0 +1,252 @@
+.logout-button {
+  border: none;
+  cursor: pointer;
+}
+.site-header {
+  background: #fffcf3;
+  border-bottom: 1px solid rgb(72 57 52 / 12%);
+}
+
+.navbar-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 18px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  color: #483934;
+  font-size: 1.8rem;
+  font-weight: 800;
+  letter-spacing: -1px;
+  text-decoration: none;
+}
+
+.brand-icon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  margin-right: 10px;
+  border-radius: 12px;
+  background: #ffd77d;
+  font-size: 1.5rem;
+}
+
+.brand-dot {
+  color: #f1613e;
+}
+
+/* Mobile navigation */
+.menu-toggle {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border: 1px solid rgb(72 57 52 / 20%);
+  border-radius: 12px;
+  background: transparent;
+  color: #483934;
+  font-size: 1.3rem;
+  cursor: pointer;
+}
+
+.nav-menu {
+  display: none;
+}
+
+.profile-avatar-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  line-height: 1;
+  border-radius: 50%;
+  text-decoration: none;
+}
+
+/* Shared links */
+.nav-link,
+.login-link {
+  padding: 12px 18px;
+  border-radius: 999px;
+  color: #483934;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background-color 150ms ease;
+}
+
+.nav-link:hover {
+  background: #f4f2c2;
+  color: #483934;
+}
+
+.nav-link.is-active {
+  background: #dce9fc;
+}
+
+.login-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  background: #483934;
+  color: #fffcf3;
+}
+
+.login-link:hover {
+  background: #cd4639;
+  color: #fffcf3;
+}
+
+/* Full-screen transparent area for outside clicks */
+.mobile-drawer {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  max-width: none;
+  height: 100dvh;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #483934;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+.mobile-drawer::backdrop {
+  background: rgb(72 57 52 / 25%);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+/* Card sits flush against the right edge */
+.drawer-panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(360px, max(240px, 55vw));
+  max-width: 100vw;
+  box-sizing: border-box;
+  padding: 24px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  overflow-y: auto;
+  overscroll-behavior: none;
+  border-radius: 24px 0 0 24px;
+  background: #fffcf3;
+  box-shadow: -8px 0 40px rgb(72 57 52 / 18%);
+  transition: none;
+}
+
+/* Constant-speed opening slide */
+.mobile-drawer[open] .drawer-panel {
+  animation: drawer-slide-in 300ms linear both;
+}
+
+@keyframes drawer-slide-in {
+  from {
+    transform: translateX(100%);
+  }
+
+  to {
+    transform: translateX(0);
+  }
+}
+
+.drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.drawer-header h2 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.drawer-close {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: 50%;
+  background: #f4f2c2;
+  color: #483934;
+  cursor: pointer;
+}
+
+.drawer-links {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.drawer-links .nav-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 12px;
+  border-radius: 14px;
+}
+
+.drawer-bottom {
+  margin-top: auto;
+  padding-top: 24px;
+  border-top: 1px solid rgb(72 57 52 / 12%);
+}
+
+.drawer-bottom .login-link {
+  width: 100%;
+  min-height: 48px;
+}
+
+a:focus-visible,
+button:focus-visible {
+  outline: 3px solid #cd4639;
+  outline-offset: 4px;
+}
+
+/* Normal navigation on tablet and desktop */
+@media (min-width: 768px) {
+  .menu-toggle {
+    display: none;
+  }
+
+  .nav-menu {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+}
+
+@media (min-width: 1200px) {
+  .navbar-inner {
+    padding: 22px 32px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mobile-drawer[open] .drawer-panel {
+    animation: none;
+  }
+}
