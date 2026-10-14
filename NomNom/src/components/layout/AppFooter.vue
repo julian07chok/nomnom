@@ -19,14 +19,17 @@ const currentYear = new Date().getFullYear()
           <span class="footer-tag">Made for food lovers</span>
         </div>
 
-        <nav class="footer-links" aria-label="Footer navigation">
+        <nav
+          class="footer-links footer-divider-end pe-md-4"
+          aria-label="Footer navigation"
+        >
           <h2>Explore</h2>
           <RouterLink to="/">Discover food</RouterLink>
-          <RouterLink to="/search">Search</RouterLink>
+          <RouterLink to="/search">Explore More</RouterLink>
           <RouterLink to="/saved">Saved places</RouterLink>
         </nav>
 
-        <nav class="footer-links" aria-label="Account navigation">
+        <nav class="footer-links ps-md-4" aria-label="Account navigation">
           <h2>Join the table</h2>
           <RouterLink to="/register">Create an account</RouterLink>
           <RouterLink to="/login">Log in</RouterLink>
@@ -117,6 +120,17 @@ const currentYear = new Date().getFullYear()
   outline: 3px solid #cd4639;
   outline-offset: 4px;
   border-radius: 4px;
+}
+
+/* ─── Divider between Explore and Join the table ─── */
+.footer-divider-end {
+  border-right: 0;
+}
+
+@media (min-width: 768px) {
+  .site-footer .footer-divider-end {
+    border-right: 1px solid rgb(72 57 52 / 18%);
+  }
 }
 
 .footer-bottom {

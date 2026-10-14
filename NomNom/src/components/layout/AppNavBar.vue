@@ -76,7 +76,7 @@ onBeforeUnmount(() => {
         </RouterLink>
 
         <RouterLink class="nav-link" to="/search" active-class="is-active" @click="closeMenu">
-          Search
+          Explore
         </RouterLink>
 
         <RouterLink class="nav-link" to="/saved" active-class="is-active">

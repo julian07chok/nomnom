@@ -147,7 +147,7 @@ watch(
     <div class="container search-inner">
       <!-- Search bar -->
       <section class="search-header">
-        <h1 class="search-title">Search</h1>
+        <h1 class="search-title">Explore</h1>
         <form class="search-bar" role="search" @submit.prevent>
           <i class="bi bi-search" aria-hidden="true"></i>
           <input
