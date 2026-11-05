@@ -92,6 +92,10 @@ onBeforeUnmount(() => {
           Explore
         </RouterLink>
 
+        <RouterLink class="nav-link" to="/create" active-class="is-active">
+          Create post
+        </RouterLink>
+
         <RouterLink class="nav-link" to="/saved" active-class="is-active">
           Saved places
         </RouterLink>
@@ -158,6 +162,16 @@ onBeforeUnmount(() => {
         >
           <i class="bi bi-bookmark" aria-hidden="true"></i>
           Saved places
+        </RouterLink>
+
+        <RouterLink
+          class="nav-link"
+          to="/create"
+          active-class="is-active"
+          @click="closeMenu"
+        >
+          <i class="bi bi-plus-circle" aria-hidden="true"></i>
+          Create post
         </RouterLink>
 
         <template v-if="isLoggedIn">

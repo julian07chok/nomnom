@@ -1,80 +1,81 @@
 <script setup>
-import { computed, ref } from 'vue'
-import { useRouter } from 'vue-router'
-import posts from '../data/posts.json'
-import PostCard from '../components/post/PostCard.vue'
-import PaginationControls from '../components/common/Pagination.vue'
-import '../assets/css/home.css'
+import { computed, ref } from "vue";
+import { useRouter } from "vue-router";
+import { usePosts } from "../services/posts";
+import PostCard from "../components/post/PostCard.vue";
+import PaginationControls from "../components/common/Pagination.vue";
+import "../assets/css/home.css";
 
-const router = useRouter()
+const router = useRouter;
 
-const POSTS_PER_PAGE = 6
+const POSTS_PER_PAGE = 6;
 
-const searchQuery = ref('')
-const activeCuisine = ref('All')
-const sortBy = ref('newest')
-const currentPage = ref(1)
+const searchQuery = ref("");
+const activeCuisine = ref("All");
+const sortBy = ref("newest");
+const currentPage = ref(1);
+const { posts } = usePosts();
 
 const cuisines = [
-  'All',
-  'Malaysian',
-  'Chinese',
-  'Indian',
-  'Japanese',
-  'Korean',
-  'Thai',
-  'Vietnamese',
-  'Western',
-  'Cafe',
-  'Dessert',
-]
+  "All",
+  "Malaysian",
+  "Chinese",
+  "Indian",
+  "Japanese",
+  "Korean",
+  "Thai",
+  "Vietnamese",
+  "Western",
+  "Cafe",
+  "Dessert",
+];
 
 const filteredPosts = computed(() => {
-  let result = [...posts]
+  let result = [...posts.value];
 
-  // Filter by cuisine only — search is now handled on the Search page
-  if (activeCuisine.value !== 'All') {
-    result = result.filter((post) => post.cuisine === activeCuisine.value)
+  // Filter by cuisine
+  if (activeCuisine.value !== "All") {
+    result = result.filter((post) => post.cuisine === activeCuisine.value);
   }
 
   // Sort
-  if (sortBy.value === 'newest') {
-    result.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-  } else if (sortBy.value === 'most-liked') {
-    result.sort((a, b) => b.likes - a.likes)
+  if (sortBy.value === "newest") {
+    result.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  } else if (sortBy.value === "most-liked") {
+    result.sort((a, b) => b.likes - a.likes);
   }
 
-  return result
-})
+  return result;
+});
 
 const totalPages = computed(() =>
   Math.max(1, Math.ceil(filteredPosts.value.length / POSTS_PER_PAGE)),
-)
+);
 
 const paginatedPosts = computed(() => {
-  const start = (currentPage.value - 1) * POSTS_PER_PAGE
-  return filteredPosts.value.slice(start, start + POSTS_PER_PAGE)
-})
+  const start = (currentPage.value - 1) * POSTS_PER_PAGE;
+  return filteredPosts.value.slice(start, start + POSTS_PER_PAGE);
+});
 
 function selectCuisine(cuisine) {
-  activeCuisine.value = cuisine
-  currentPage.value = 1
+  activeCuisine.value = cuisine;
+  currentPage.value = 1;
 }
 
 function clearFilters() {
-  searchQuery.value = ''
-  activeCuisine.value = 'All'
-  sortBy.value = 'newest'
-  currentPage.value = 1
+  searchQuery.value = "";
+  activeCuisine.value = "All";
+  sortBy.value = "newest";
+  currentPage.value = 1;
 }
 
 // Redirect to the Search page with the typed query
 function onSearch() {
-  const q = searchQuery.value.trim()
+  const q = searchQuery.value.trim();
   if (q) {
-    router.push({ name: 'search', query: { q } })
+    router.push({ name: "search", query: { q } });
   } else {
-    router.push({ name: 'search' })
+    router.push({ name: "search" });
   }
 }
 </script>
@@ -95,7 +96,11 @@ function onSearch() {
             across Malaysia.
           </p>
 
-          <form class="home-hero-search" role="search" @submit.prevent="onSearch">
+          <form
+            class="home-hero-search"
+            role="search"
+            @submit.prevent="onSearch"
+          >
             <i class="bi bi-search search-icon" aria-hidden="true"></i>
             <input
               v-model="searchQuery"
@@ -113,7 +118,11 @@ function onSearch() {
     <!-- Cuisine categories -->
     <section class="home-categories-section">
       <div class="container">
-        <ul class="home-category-list" role="tablist" aria-label="Cuisine categories">
+        <ul
+          class="home-category-list"
+          role="tablist"
+          aria-label="Cuisine categories"
+        >
           <li v-for="cuisine in cuisines" :key="cuisine">
             <button
               type="button"
@@ -136,11 +145,13 @@ function onSearch() {
         <header class="home-feed-header">
           <div>
             <h2 id="home-feed-title" class="home-feed-title">
-              {{ activeCuisine === 'All' ? 'Latest discoveries' : activeCuisine }}
+              {{
+                activeCuisine === "All" ? "Latest discoveries" : activeCuisine
+              }}
             </h2>
             <p class="home-feed-count">
               {{ filteredPosts.length }}
-              {{ filteredPosts.length === 1 ? 'post' : 'posts' }}
+              {{ filteredPosts.length === 1 ? "post" : "posts" }}
             </p>
           </div>
 
@@ -165,7 +176,11 @@ function onSearch() {
 
         <!-- Post grid -->
         <div v-else class="home-post-grid">
-          <PostCard v-for="post in paginatedPosts" :key="post.id" :post="post" />
+          <PostCard
+            v-for="post in paginatedPosts"
+            :key="post.id"
+            :post="post"
+          />
         </div>
 
         <!-- Pagination -->
