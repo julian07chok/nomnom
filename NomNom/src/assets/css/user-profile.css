@@ -1,0 +1,182 @@
+
+/* ==========================================
+   USER PROFILE PAGE
+   ========================================== */
+
+.profile-page {
+  min-height: 80vh;
+  background: #fffcf3;
+  color: #483934;
+}
+
+/* ==========================================
+   PROFILE HEADER
+   ========================================== */
+
+.profile-page .profile-card {
+  border: 1px solid rgb(72 57 52 / 12%);
+  border-radius: 24px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.profile-page .profile-cover {
+  height: 100px;
+  background: #dce9fc;
+}
+
+/* ==========================================
+   PROFILE INFORMATION
+   ========================================== */
+
+.profile-page .profile-card h1 {
+  color: #483934;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.profile-page .profile-card p {
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+/* ==========================================
+   PROFILE STATISTICS
+   ========================================== */
+
+.profile-page .profile-stats {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 145px;
+  padding: 14px 24px;
+  border-radius: 16px;
+  background: #f4f2c2;
+  text-align: center;
+}
+
+.profile-page .profile-stats strong {
+  color: #483934;
+  font-size: 1.5rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.profile-page .profile-stats span {
+  color: #483934;
+  font-size: 0.85rem;
+}
+
+/* ==========================================
+   PUBLISHED POSTS SECTION
+   ========================================== */
+
+.profile-page #profile-posts {
+  padding-bottom: 48px;
+}
+
+.profile-page #profile-posts h2 {
+  color: #483934;
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+
+/* ==========================================
+   EMPTY STATE
+   ========================================== */
+
+.profile-page #profile-posts .text-center {
+  padding: 48px 24px;
+  border-radius: 20px;
+  background: #f4f2c2;
+}
+
+.profile-page #profile-posts .text-center > i {
+  color: #cd4639;
+}
+
+.profile-page #profile-posts .text-center h3 {
+  color: #483934;
+  font-weight: 800;
+}
+
+.profile-page #profile-posts .text-center p {
+  color: #796e69;
+  line-height: 1.6;
+}
+
+/* ==========================================
+   USER NOT FOUND
+   ========================================== */
+
+.profile-page > .container > .text-center {
+  padding: 60px 24px;
+}
+
+.profile-page > .container > .text-center h1 {
+  color: #483934;
+  font-weight: 800;
+}
+
+.profile-page > .container > .text-center p {
+  color: #796e69;
+}
+
+.profile-page > .container > .text-center .btn {
+  padding: 12px 24px;
+  border-radius: 999px;
+  background: #483934;
+  border-color: #483934;
+}
+
+.profile-page > .container > .text-center .btn:hover {
+  background: #cd4639;
+  border-color: #cd4639;
+}
+
+/* ==========================================
+   RESPONSIVE DESIGN
+   ========================================== */
+
+/* Mobile */
+@media (max-width: 575.98px) {
+  .profile-page .profile-cover {
+    height: 85px;
+  }
+
+  .profile-page .profile-card .p-4 {
+    padding: 20px !important;
+  }
+
+  .profile-page .profile-card h1 {
+    font-size: 1.65rem;
+  }
+
+  .profile-page .profile-stats {
+    width: 100%;
+  }
+
+  .profile-page #profile-posts h2 {
+    font-size: 1.3rem;
+  }
+}
+
+/* Tablet and Desktop */
+@media (min-width: 768px) {
+  .profile-page .profile-cover {
+    height: 120px;
+  }
+
+  .profile-page .profile-card .p-4 {
+    padding: 32px !important;
+  }
+}
+
+/* Large Desktop */
+@media (min-width: 1200px) {
+  .profile-page .profile-card .p-4 {
+    padding: 40px !important;
+  }
+}
