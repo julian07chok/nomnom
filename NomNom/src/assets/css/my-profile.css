@@ -1,0 +1,361 @@
+
+/* ==========================================
+   MY PROFILE PAGE
+   ========================================== */
+
+.my-profile-page {
+  min-height: 80vh;
+  background: #fffcf3;
+  color: #483934;
+}
+
+/* ==========================================
+   PROFILE HEADER
+   ========================================== */
+
+.my-profile-page .profile-card {
+  background: #fff;
+  border: 1px solid rgba(72, 57, 52, 0.12);
+  border-radius: 24px;
+  overflow: hidden;
+}
+
+.my-profile-page .profile-cover {
+  height: 110px;
+  background: linear-gradient(
+    120deg,
+    #dce9fc,
+    #f4f2c2
+  );
+}
+
+.my-profile-page .profile-content {
+  padding: 24px;
+}
+
+/* Avatar and Profile Information */
+
+.my-profile-page .profile-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.my-profile-page .profile-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.my-profile-page .profile-name {
+  margin: 0 0 4px;
+  color: #483934;
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.my-profile-page .profile-username {
+  margin: 0 0 12px;
+  color: #796e69;
+  font-size: 0.9rem;
+  overflow-wrap: anywhere;
+}
+
+.my-profile-page .profile-bio {
+  max-width: 650px;
+  margin: 14px 0;
+  color: #483934;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+  white-space: pre-line;
+}
+
+.my-profile-page .profile-joined {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  color: #796e69;
+  font-size: 0.9rem;
+}
+
+/* ==========================================
+   PROFILE STATISTICS
+   ========================================== */
+
+.my-profile-page .profile-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.my-profile-page .stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 145px;
+  padding: 16px 24px;
+  border-radius: 16px;
+  background: #f4f2c2;
+  text-align: center;
+}
+
+.my-profile-page .stat-item strong {
+  color: #483934;
+  font-size: 1.5rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.my-profile-page .stat-item span {
+  margin-top: 5px;
+  color: #483934;
+  font-size: 0.85rem;
+}
+
+/* ==========================================
+   PROFILE ACTION BUTTONS
+   ========================================== */
+
+.my-profile-page .profile-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.my-profile-page .profile-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: 44px;
+  padding: 11px 20px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 700;
+  line-height: 1.4;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease,
+    color 150ms ease,
+    opacity 150ms ease;
+}
+
+/* Edit Profile button */
+
+.my-profile-page .profile-button.primary {
+  background: #483934;
+  color: #fffcf3;
+}
+
+.my-profile-page .profile-button.primary:hover {
+  background: #cd4639;
+  color: #fffcf3;
+}
+
+/* Create Post and Saved Posts buttons */
+
+.my-profile-page .profile-button.secondary {
+  background: #f4f2c2;
+  color: #483934;
+}
+
+.my-profile-page .profile-button.secondary:hover {
+  background: #e8e5ac;
+  color: #483934;
+}
+
+/* Logout button */
+
+.my-profile-page .profile-button.logout {
+  background: transparent;
+  border-color: #cd4639;
+  color: #cd4639;
+}
+
+.my-profile-page .profile-button.logout:hover {
+  background: #cd4639;
+  color: #fffcf3;
+}
+
+/* Keyboard accessibility */
+
+.my-profile-page .profile-button:focus-visible {
+  outline: 3px solid #cd4639;
+  outline-offset: 3px;
+}
+
+/* ==========================================
+   MY PUBLISHED POSTS SECTION
+   ========================================== */
+
+.my-profile-page .my-posts-section {
+  padding-bottom: 48px;
+}
+
+.my-profile-page .posts-header {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
+.my-profile-page .posts-header h2 {
+  margin: 0 0 8px;
+  color: #483934;
+  font-size: 1.6rem;
+  font-weight: 800;
+  line-height: 1.3;
+}
+
+.my-profile-page .posts-header p {
+  margin: 0;
+  color: #796e69;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.my-profile-page .posts-count {
+  flex-shrink: 0;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: #f4f2c2;
+  color: #483934;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+/* ==========================================
+   EMPTY STATE
+   ========================================== */
+
+.my-profile-page .profile-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 60px 24px;
+  border-radius: 20px;
+  background: #f4f2c2;
+  color: #483934;
+  text-align: center;
+}
+
+.my-profile-page .profile-empty > i {
+  color: #cd4639;
+}
+
+.my-profile-page .profile-empty h3 {
+  margin: 16px 0 8px;
+  font-size: 1.3rem;
+  font-weight: 800;
+}
+
+.my-profile-page .profile-empty p {
+  max-width: 420px;
+  margin: 0 0 16px;
+  color: #483934;
+  line-height: 1.7;
+}
+
+.my-profile-page .profile-empty .profile-button {
+  margin-top: 12px;
+}
+
+/* ==========================================
+   RESPONSIVE DESIGN
+   Mobile-first approach
+   ========================================== */
+
+/* Mobile: below 576px */
+
+@media (max-width: 575.98px) {
+  .my-profile-page .profile-cover {
+    height: 90px;
+  }
+
+  .my-profile-page .profile-content {
+    padding: 20px;
+  }
+
+  .my-profile-page .profile-name {
+    font-size: 1.7rem;
+  }
+
+  .my-profile-page .profile-stats {
+    width: 100%;
+  }
+
+  .my-profile-page .stat-item {
+    width: 100%;
+  }
+
+  .my-profile-page .profile-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .my-profile-page .profile-button {
+    width: 100%;
+  }
+
+  .my-profile-page .posts-header h2 {
+    font-size: 1.4rem;
+  }
+
+  .my-profile-page .profile-empty {
+    padding: 48px 20px;
+  }
+}
+
+/* Tablet: 576px and above */
+
+@media (min-width: 576px) {
+  .my-profile-page .profile-actions {
+    flex-direction: row;
+  }
+}
+
+/* Tablet/Desktop: 768px and above */
+
+@media (min-width: 768px) {
+  .my-profile-page .profile-content {
+    padding: 32px;
+  }
+
+  .my-profile-page .profile-info {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .my-profile-page .posts-header {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+/* Large desktop: 1200px and above */
+
+@media (min-width: 1200px) {
+  .my-profile-page .profile-content {
+    padding: 40px;
+  }
+}
+
+/* Respect reduced-motion preferences */
+
+@media (prefers-reduced-motion: reduce) {
+  .my-profile-page .profile-button {
+    transition: none;
+  }
+}
