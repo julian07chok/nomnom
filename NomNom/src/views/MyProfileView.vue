@@ -5,7 +5,6 @@ import { useAuth } from "../services/auth";
 import { usePosts } from "../services/posts";
 
 import UserAvatar from "../components/user/UserAvatar.vue";
-import PostCard from "../components/post/PostCard.vue";
 import Pagination from "../components/common/Pagination.vue";
 
 import "../assets/css/my-profile.css";
@@ -77,7 +76,7 @@ const displayedPosts = computed(() => {
 // ==========================================
 
 const currentPage = ref(1);
-const perPage = 6;
+const perPage = 12;
 
 const totalPages = computed(() =>
   Math.max(1, Math.ceil(displayedPosts.value.length / perPage)),
@@ -220,15 +219,78 @@ function handleLogout() {
           </div>
         </div>
 
-        <!-- Posts Grid -->
-        <div v-if="paginatedPosts.length" class="row g-4">
-          <div
+        <!-- Compact Photo Grid -->
+        <div v-if="paginatedPosts.length" class="profile-photo-grid">
+          <article
             v-for="post in paginatedPosts"
             :key="post.id"
-            class="col-12 col-sm-6 col-lg-4"
+            class="profile-post-card"
           >
-            <PostCard :post="post" />
-          </div>
+            <!-- Cover Image -->
+            <RouterLink
+              :to="`/posts/${post.id}`"
+              class="profile-photo-link"
+              :aria-label="`View ${post.title}`"
+            >
+              <img
+                :src="post.coverImage"
+                :alt="post.title"
+                class="profile-photo-img"
+                loading="lazy"
+              />
+
+              <!-- Saved Indicator -->
+              <span
+                v-if="activeTab === 'saved'"
+                class="profile-photo-bookmark"
+                aria-hidden="true"
+              >
+                <i class="bi bi-bookmark-fill"></i>
+              </span>
+            </RouterLink>
+
+            <!-- Post Information -->
+            <div class="profile-post-content">
+              <!-- Title and Category -->
+              <div class="profile-post-heading">
+                <h3 class="profile-post-title">
+                  <RouterLink :to="`/posts/${post.id}`">
+                    {{ post.title }}
+                  </RouterLink>
+                </h3>
+
+                <span class="profile-post-category">
+                  {{ post.cuisine }}
+                </span>
+              </div>
+
+              <!-- Author and Likes -->
+              <div class="profile-post-footer">
+                <!-- Author -->
+                <RouterLink
+                  :to="`/users/${post.authorName}`"
+                  class="profile-post-author"
+                >
+                  <img
+                    :src="post.authorAvatar"
+                    :alt="post.authorName"
+                    class="profile-post-avatar"
+                    loading="lazy"
+                  />
+
+                  <span class="profile-post-username">
+                    {{ post.authorName }}
+                  </span>
+                </RouterLink>
+
+                <!-- Likes -->
+                <div class="profile-post-likes">
+                  <i class="bi bi-heart-fill" aria-hidden="true"></i>
+                  <span>{{ post.likes }}</span>
+                </div>
+              </div>
+            </div>
+          </article>
         </div>
 
         <!-- Empty State -->

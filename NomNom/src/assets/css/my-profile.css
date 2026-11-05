@@ -14,26 +14,22 @@
    ========================================== */
 
 .my-profile-page .profile-card {
-  background: #fff;
-  border: 1px solid rgba(72, 57, 52, 0.12);
-  border-radius: 24px;
   overflow: hidden;
+  background: #fff;
+  border: 1px solid rgb(72 57 52 / 12%);
+  border-radius: 24px;
 }
 
 .my-profile-page .profile-cover {
   height: 110px;
-  background: linear-gradient(
-    120deg,
-    #dce9fc,
-    #f4f2c2
-  );
+  background: linear-gradient(120deg, #dce9fc, #f4f2c2);
 }
 
 .my-profile-page .profile-content {
   padding: 24px;
 }
 
-/* Avatar and Profile Information */
+/* Avatar and profile information */
 
 .my-profile-page .profile-info {
   display: flex;
@@ -118,6 +114,7 @@
 
 /* ==========================================
    PROFILE ACTION BUTTONS
+   Edit Profile / Logout
    ========================================== */
 
 .my-profile-page .profile-actions {
@@ -134,23 +131,26 @@
   gap: 9px;
   min-height: 44px;
   padding: 11px 20px;
+
   border: 1px solid transparent;
   border-radius: 999px;
+
   font: inherit;
   font-size: 0.9rem;
   font-weight: 700;
   line-height: 1.4;
   text-align: center;
   text-decoration: none;
+
   cursor: pointer;
+
   transition:
     background-color 150ms ease,
     border-color 150ms ease,
-    color 150ms ease,
-    opacity 150ms ease;
+    color 150ms ease;
 }
 
-/* Edit Profile button */
+/* Primary button */
 
 .my-profile-page .profile-button.primary {
   background: #483934;
@@ -160,16 +160,6 @@
 .my-profile-page .profile-button.primary:hover {
   background: #cd4639;
   color: #fffcf3;
-}
-
-.my-profile-page .profile-button.secondary {
-  background: #f4f2c2;
-  color: #483934;
-}
-
-.my-profile-page .profile-button.secondary:hover {
-  background: #e8e5ac;
-  color: #483934;
 }
 
 /* Logout button */
@@ -185,15 +175,69 @@
   color: #fffcf3;
 }
 
-/* Keyboard accessibility */
+/* ==========================================
+   PROFILE TABS
+   My Posts / Saved Posts
+   ========================================== */
 
-.my-profile-page .profile-button:focus-visible {
-  outline: 3px solid #cd4639;
-  outline-offset: 3px;
+.my-profile-page .profile-tabs {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  gap: 12px;
+
+  width: 100%;
+  margin-bottom: 32px;
+
+  border-bottom: 1px solid rgb(72 57 52 / 15%);
+}
+
+.my-profile-page .profile-tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+
+  flex: 1;
+  min-width: 0;
+  min-height: 52px;
+  padding: 14px 24px;
+
+  border: none;
+  border-bottom: 3px solid transparent;
+
+  background: transparent;
+  color: #796e69;
+
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    color 150ms ease,
+    background-color 150ms ease,
+    border-color 150ms ease;
+}
+
+.my-profile-page .profile-tab i {
+  font-size: 1.2rem;
+}
+
+.my-profile-page .profile-tab:hover {
+  color: #483934;
+  background: #f4f2c2;
+}
+
+.my-profile-page .profile-tab.is-active {
+  color: #483934;
+  font-weight: 800;
+  border-bottom-color: #cd4639;
 }
 
 /* ==========================================
-   MY PUBLISHED POSTS SECTION
+   MY POSTS / SAVED POSTS SECTION
    ========================================== */
 
 .my-profile-page .my-posts-section {
@@ -234,6 +278,235 @@
 }
 
 /* ==========================================
+   COMPACT POST GRID
+   Mobile-first: 2 columns
+   ========================================== */
+
+.my-profile-page .profile-photo-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: stretch;
+  gap: 12px;
+  width: 100%;
+}
+
+/* ==========================================
+   COMPACT POST CARD
+   ========================================== */
+
+.my-profile-page .profile-post-card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+
+  border: 1px solid rgb(72 57 52 / 10%);
+  border-radius: 14px;
+  background: #fffde0;
+}
+
+/* ==========================================
+   POST COVER IMAGE
+   ========================================== */
+
+.my-profile-page .profile-photo-link {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+
+  background: #f4f2c2;
+  text-decoration: none;
+}
+
+.my-profile-page .profile-photo-img {
+  position: absolute;
+  inset: 0;
+
+  display: block;
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover;
+  object-position: center;
+
+  transition: transform 200ms ease;
+}
+
+/* Hover zoom */
+
+@media (hover: hover) {
+  .my-profile-page .profile-photo-link:hover .profile-photo-img {
+    transform: scale(1.04);
+  }
+}
+
+/* ==========================================
+   SAVED POST BOOKMARK INDICATOR
+   ========================================== */
+
+.my-profile-page .profile-photo-bookmark {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 28px;
+  height: 30px;
+
+  border-radius: 7px;
+  background: rgb(255 252 243 / 90%);
+  color: #483934;
+
+  font-size: 0.95rem;
+  pointer-events: none;
+}
+
+/* ==========================================
+   POST CONTENT
+   ========================================== */
+
+.my-profile-page .profile-post-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 12px;
+  min-width: 0;
+  padding: 12px;
+}
+
+/* ==========================================
+   POST TITLE AND CATEGORY
+   ========================================== */
+
+.my-profile-page .profile-post-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+}
+
+.my-profile-page .profile-post-title {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+
+  color: #483934;
+  font-size: 0.95rem;
+  font-weight: 800;
+  line-height: 1.4;
+
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+}
+
+.my-profile-page .profile-post-title a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.my-profile-page .profile-post-title a:hover {
+  color: #cd4639;
+}
+
+/* Cuisine category badge */
+
+.my-profile-page .profile-post-category {
+  flex-shrink: 0;
+  max-width: 45%;
+
+  padding: 5px 8px;
+  border-radius: 999px;
+
+  background: #dce9fc;
+  color: #483934;
+
+  font-size: 0.7rem;
+  font-weight: 600;
+  line-height: 1.2;
+  text-align: center;
+
+  overflow-wrap: anywhere;
+}
+
+/* ==========================================
+   POST FOOTER
+   Author and Like Count
+   ========================================== */
+
+.my-profile-page .profile-post-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  min-width: 0;
+  margin-top: auto;
+}
+
+/* Author information */
+
+.my-profile-page .profile-post-author {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+
+  color: #483934;
+  text-decoration: none;
+}
+
+.my-profile-page .profile-post-author:hover {
+  color: #cd4639;
+}
+
+.my-profile-page .profile-post-avatar {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+
+  border-radius: 50%;
+  background: #dce9fc;
+  object-fit: cover;
+}
+
+.my-profile-page .profile-post-username {
+  min-width: 0;
+  overflow: hidden;
+
+  color: #483934;
+  font-size: 0.8rem;
+  font-weight: 500;
+
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* Like count */
+
+.my-profile-page .profile-post-likes {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+
+  color: #483934;
+  font-size: 0.85rem;
+}
+
+.my-profile-page .profile-post-likes i {
+  color: #ed3434;
+  font-size: 1rem;
+}
+
+/* ==========================================
    EMPTY STATE
    ========================================== */
 
@@ -241,8 +514,10 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+
   padding: 60px 24px;
   border-radius: 20px;
+
   background: #f4f2c2;
   color: #483934;
   text-align: center;
@@ -268,87 +543,29 @@
 .my-profile-page .profile-empty .profile-button {
   margin-top: 12px;
 }
+
 /* ==========================================
-   PROFILE TABS
-   My Posts / Saved Posts
+   ACCESSIBILITY
    ========================================== */
 
-.my-profile-page .profile-tabs {
-  display: flex;
-  align-items: stretch;
-  justify-content: center;
-  gap: 12px;
-
-  width: 100%;
-  margin-bottom: 32px;
-
-  border-bottom: 1px solid rgb(72 57 52 / 15%);
-}
-
-.my-profile-page .profile-tab {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-
-  flex: 1;
-  min-height: 52px;
-  padding: 14px 24px;
-
-  border: none;
-  border-bottom: 3px solid transparent;
-
-  background: transparent;
-  color: #796e69;
-
-  font: inherit;
-  font-size: 0.95rem;
-  font-weight: 600;
-
-  cursor: pointer;
-
-  transition:
-    color 150ms ease,
-    background-color 150ms ease,
-    border-color 150ms ease;
-}
-
-/* Tab Icons */
-
-.my-profile-page .profile-tab i {
-  font-size: 1.2rem;
-}
-
-/* Hover */
-
-.my-profile-page .profile-tab:hover {
-  color: #483934;
-  background: #f4f2c2;
-}
-
-/* Selected Tab */
-
-.my-profile-page .profile-tab.is-active {
-  color: #483934;
-  font-weight: 800;
-  border-bottom-color: #cd4639;
-}
-
-/* Keyboard Accessibility */
-
-.my-profile-page .profile-tab:focus-visible {
+.my-profile-page .profile-button:focus-visible,
+.my-profile-page .profile-tab:focus-visible,
+.my-profile-page .profile-photo-link:focus-visible,
+.my-profile-page .profile-post-title a:focus-visible,
+.my-profile-page .profile-post-author:focus-visible {
   outline: 3px solid #cd4639;
-  outline-offset: -3px;
+  outline-offset: 2px;
 }
 
 /* ==========================================
-   RESPONSIVE DESIGN
-   Mobile-first approach
+   MOBILE
+   Below 576px
    ========================================== */
-
-/* Mobile: below 576px */
 
 @media (max-width: 575.98px) {
+
+  /* Profile header */
+
   .my-profile-page .profile-cover {
     height: 90px;
   }
@@ -361,6 +578,22 @@
     font-size: 1.7rem;
   }
 
+  /* Statistics: 2 columns */
+
+  .my-profile-page .profile-stats {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+    gap: 12px;
+  }
+
+  .my-profile-page .stat-item {
+    min-width: 0;
+    padding: 14px 8px;
+  }
+
+  /* Profile action buttons */
+
   .my-profile-page .profile-actions {
     flex-direction: column;
     align-items: stretch;
@@ -370,47 +603,89 @@
     width: 100%;
   }
 
-  .my-profile-page .posts-header h2 {
-    font-size: 1.4rem;
-  }
+  /* Profile tabs */
 
-  .my-profile-page .profile-empty {
-    padding: 48px 20px;
-  }
-
-    .my-profile-page .profile-tabs {
+  .my-profile-page .profile-tabs {
     gap: 0;
     margin-bottom: 24px;
   }
 
   .my-profile-page .profile-tab {
+    gap: 8px;
     padding: 12px 8px;
     font-size: 0.85rem;
-    gap: 8px;
   }
 
   .my-profile-page .profile-tab i {
     font-size: 1.1rem;
   }
 
-  /* Display both statistics side by side */
-  .my-profile-page .profile-stats {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    width: 100%;
-    gap: 12px;
+  /* Posts section */
+
+  .my-profile-page .posts-header h2 {
+    font-size: 1.4rem;
   }
 
-  .my-profile-page .stat-item {
-    width: auto;
-    min-width: 0;
-    padding: 14px 8px;
+  /* Compact post grid */
+
+  .my-profile-page .profile-photo-grid {
+    gap: 10px;
+  }
+
+  .my-profile-page .profile-post-content {
+    gap: 12px;
+    padding: 10px;
+  }
+
+  .my-profile-page .profile-post-heading {
+    gap: 5px;
+  }
+
+  .my-profile-page .profile-post-title {
+    font-size: 0.82rem;
+  }
+
+  .my-profile-page .profile-post-category {
+    padding: 4px 6px;
+    font-size: 0.62rem;
+  }
+
+  /* Compact author and likes */
+
+  .my-profile-page .profile-post-author {
+    gap: 5px;
+  }
+
+  .my-profile-page .profile-post-avatar {
+    width: 24px;
+    height: 24px;
+  }
+
+  .my-profile-page .profile-post-username {
+    font-size: 0.75rem;
+  }
+
+  .my-profile-page .profile-post-likes {
+    gap: 4px;
+    font-size: 0.75rem;
+  }
+
+  /* Empty state */
+
+  .my-profile-page .profile-empty {
+    padding: 48px 20px;
   }
 }
 
-/* Tablet/Desktop: 768px and above */
+/* ==========================================
+   TABLET
+   768px and above
+   ========================================== */
 
 @media (min-width: 768px) {
+
+  /* Profile header */
+
   .my-profile-page .profile-content {
     padding: 32px;
   }
@@ -420,26 +695,66 @@
     align-items: center;
   }
 
+  /* Posts heading */
+
   .my-profile-page .posts-header {
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
   }
-}
 
-/* Large desktop: 1200px and above */
+  /* 3-column post grid */
 
-@media (min-width: 1200px) {
-  .my-profile-page .profile-content {
-    padding: 40px;
+  .my-profile-page .profile-photo-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  .my-profile-page .profile-post-card {
+    border-radius: 18px;
+  }
+
+  .my-profile-page .profile-post-content {
+    padding: 14px;
+  }
+
+  .my-profile-page .profile-post-title {
+    font-size: 1rem;
+  }
+
+  .my-profile-page .profile-post-avatar {
+    width: 32px;
+    height: 32px;
   }
 }
 
-/* Respect reduced-motion preferences */
+/* ==========================================
+   LARGE DESKTOP
+   1200px and above
+   ========================================== */
+
+@media (min-width: 1200px) {
+
+  .my-profile-page .profile-content {
+    padding: 40px;
+  }
+
+  /* 4-column post grid */
+
+  .my-profile-page .profile-photo-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 20px;
+  }
+}
+
+/* ==========================================
+   REDUCED MOTION
+   ========================================== */
 
 @media (prefers-reduced-motion: reduce) {
   .my-profile-page .profile-button,
-  .my-profile-page .profile-tab {
+  .my-profile-page .profile-tab,
+  .my-profile-page .profile-photo-img {
     transition: none;
   }
 }
