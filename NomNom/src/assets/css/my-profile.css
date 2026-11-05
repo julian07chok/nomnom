@@ -162,8 +162,6 @@
   color: #fffcf3;
 }
 
-/* Create Post and Saved Posts buttons */
-
 .my-profile-page .profile-button.secondary {
   background: #f4f2c2;
   color: #483934;
@@ -270,6 +268,78 @@
 .my-profile-page .profile-empty .profile-button {
   margin-top: 12px;
 }
+/* ==========================================
+   PROFILE TABS
+   My Posts / Saved Posts
+   ========================================== */
+
+.my-profile-page .profile-tabs {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  gap: 12px;
+
+  width: 100%;
+  margin-bottom: 32px;
+
+  border-bottom: 1px solid rgb(72 57 52 / 15%);
+}
+
+.my-profile-page .profile-tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+
+  flex: 1;
+  min-height: 52px;
+  padding: 14px 24px;
+
+  border: none;
+  border-bottom: 3px solid transparent;
+
+  background: transparent;
+  color: #796e69;
+
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    color 150ms ease,
+    background-color 150ms ease,
+    border-color 150ms ease;
+}
+
+/* Tab Icons */
+
+.my-profile-page .profile-tab i {
+  font-size: 1.2rem;
+}
+
+/* Hover */
+
+.my-profile-page .profile-tab:hover {
+  color: #483934;
+  background: #f4f2c2;
+}
+
+/* Selected Tab */
+
+.my-profile-page .profile-tab.is-active {
+  color: #483934;
+  font-weight: 800;
+  border-bottom-color: #cd4639;
+}
+
+/* Keyboard Accessibility */
+
+.my-profile-page .profile-tab:focus-visible {
+  outline: 3px solid #cd4639;
+  outline-offset: -3px;
+}
 
 /* ==========================================
    RESPONSIVE DESIGN
@@ -291,14 +361,6 @@
     font-size: 1.7rem;
   }
 
-  .my-profile-page .profile-stats {
-    width: 100%;
-  }
-
-  .my-profile-page .stat-item {
-    width: 100%;
-  }
-
   .my-profile-page .profile-actions {
     flex-direction: column;
     align-items: stretch;
@@ -315,13 +377,34 @@
   .my-profile-page .profile-empty {
     padding: 48px 20px;
   }
-}
 
-/* Tablet: 576px and above */
+    .my-profile-page .profile-tabs {
+    gap: 0;
+    margin-bottom: 24px;
+  }
 
-@media (min-width: 576px) {
-  .my-profile-page .profile-actions {
-    flex-direction: row;
+  .my-profile-page .profile-tab {
+    padding: 12px 8px;
+    font-size: 0.85rem;
+    gap: 8px;
+  }
+
+  .my-profile-page .profile-tab i {
+    font-size: 1.1rem;
+  }
+
+  /* Display both statistics side by side */
+  .my-profile-page .profile-stats {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+    gap: 12px;
+  }
+
+  .my-profile-page .stat-item {
+    width: auto;
+    min-width: 0;
+    padding: 14px 8px;
   }
 }
 
@@ -355,7 +438,8 @@
 /* Respect reduced-motion preferences */
 
 @media (prefers-reduced-motion: reduce) {
-  .my-profile-page .profile-button {
+  .my-profile-page .profile-button,
+  .my-profile-page .profile-tab {
     transition: none;
   }
 }
