@@ -6,7 +6,7 @@ import PostCard from "../components/post/PostCard.vue";
 import PaginationControls from "../components/common/Pagination.vue";
 import "../assets/css/home.css";
 
-const router = useRouter;
+const router = useRouter();
 
 const POSTS_PER_PAGE = 6;
 

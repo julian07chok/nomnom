@@ -1,5 +1,5 @@
 <script setup>
-const currentYear = new Date().getFullYear()
+const currentYear = new Date().getFullYear();
 </script>
 
 <template>
@@ -11,10 +11,7 @@ const currentYear = new Date().getFullYear()
             NomNom<span>.</span>
           </RouterLink>
 
-          <p>
-            Good food. Shared discoveries.
-            Find your next favourite bite.
-          </p>
+          <p>Good food. Shared discoveries. Find your next favourite bite.</p>
 
           <span class="footer-tag">Made for food lovers</span>
         </div>
@@ -127,12 +124,6 @@ const currentYear = new Date().getFullYear()
   border-right: 0;
 }
 
-@media (min-width: 768px) {
-  .site-footer .footer-divider-end {
-    border-right: 1px solid rgb(72 57 52 / 18%);
-  }
-}
-
 .footer-bottom {
   display: flex;
   flex-direction: column;
@@ -145,8 +136,19 @@ const currentYear = new Date().getFullYear()
 .footer-bottom small {
   font-size: inherit;
 }
+/* Mobile: use bottom navigation instead */
+@media (max-width: 767.98px) {
+  .site-footer {
+    display: none;
+  }
+}
 
+/* Tablet and desktop: show normal footer */
 @media (min-width: 768px) {
+  .site-footer .footer-divider-end {
+    border-right: 1px solid rgb(72 57 52 / 18%);
+  }
+
   .footer-top {
     grid-template-columns: 2fr 1fr 1fr;
   }
@@ -155,6 +157,10 @@ const currentYear = new Date().getFullYear()
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
+  }
+
+  .site-footer {
+    display: block;
   }
 }
 

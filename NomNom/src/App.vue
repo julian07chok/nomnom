@@ -1,6 +1,6 @@
 <script setup>
-import AppNavbar from './components/layout/AppNavBar.vue'
-import AppFooter from './components/layout/AppFooter.vue'
+import AppNavbar from "./components/layout/AppNavBar.vue";
+import AppFooter from "./components/layout/AppFooter.vue";
 </script>
 
 <template>
@@ -26,5 +26,12 @@ import AppFooter from './components/layout/AppFooter.vue'
 .page-content {
   flex: 1;
   min-width: 0;
+}
+
+/* Make room for the mobile bottom navigation */
+@media (max-width: 767.98px) {
+  .page-content {
+    padding-bottom: calc(80px + env(safe-area-inset-bottom));
+  }
 }
 </style>
