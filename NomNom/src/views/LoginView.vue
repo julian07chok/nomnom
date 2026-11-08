@@ -18,9 +18,12 @@ const passwordInput = ref(null);
 
 const emailError = computed(() => {
   if (!submitted.value) return "";
-  if (!email.value.trim()) return "Please enter your email address.";
+  const val = email.value.trim();
 
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value.trim())) {
+  if (!val) return "Please enter your email or username.";
+  
+  // Only validate as email if it contains an "@" symbol
+  if (val.includes("@") && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)) {
     return "Please enter a valid email address.";
   }
 
@@ -87,6 +90,7 @@ async function handleLogin() {
   isSubmitting.value = true;
 
   try {
+    // The variable is called "email" but it holds either email or username now
     await login(email.value, password.value);
   } catch (error) {
     loginError.value = error.message || "Unable to log in. Please try again.";
@@ -128,7 +132,7 @@ async function handleLogin() {
 
               <div class="mb-4">
                 <label for="login-email" class="form-label">
-                  Email address
+                  Email or Username
                 </label>
                 <input
                   id="login-email"
@@ -136,9 +140,9 @@ async function handleLogin() {
                   v-model="email"
                   class="form-control"
                   :class="{ 'is-invalid': emailError }"
-                  type="email"
+                  type="text"
                   autocomplete="username"
-                  placeholder="you@example.com"
+                  placeholder="you@example.com or julian"
                   required
                   :aria-invalid="Boolean(emailError)"
                   :aria-describedby="emailError ? 'email-error' : undefined"
@@ -211,6 +215,7 @@ async function handleLogin() {
             <aside class="demo-note" aria-label="Demo account">
               <strong>Try the demo account</strong>
               <span>Email: julian@example.com</span>
+              <span>Username: julian</span>
               <span>Password: password123</span>
               <small>Demo login only. Use these sample credentials.</small>
             </aside>

@@ -48,7 +48,6 @@ function saveProfileOverrides(map) {
 /**
  * All users = demo users from users.json + locally-registered users,
  * with profile overrides applied on top.
- * Exported so UserProfileView can search the same combined list.
  */
 export function allUsers() {
     const overrides = loadProfileOverrides()
@@ -119,17 +118,18 @@ export function profileLinkFor(username) {
     return `/users/${username}`
 }
 
-async function login(email, password) {
-    const normalizedEmail = email.trim().toLowerCase()
+async function login(identifier, password) {
+    const normalized = identifier.trim().toLowerCase()
 
     const user = allUsers().find(
         (user) =>
-            user.email.toLowerCase() === normalizedEmail &&
+            (user.email.toLowerCase() === normalized ||
+                user.username.toLowerCase() === normalized) &&
             user.password === password,
     )
 
     if (!user) {
-        throw new Error('Incorrect email or password.')
+        throw new Error('Incorrect email/username or password.')
     }
 
     currentUser.value = publicUser(user)
