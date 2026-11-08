@@ -9,21 +9,6 @@
   background: linear-gradient(180deg, #dce9fc 0%, #fffcf3 100%);
 }
 
-.hero-content {
-  max-width: 720px;
-}
-
-/* ... rest of your Home styles ... */
-.home-page {
-  background: #fffcf3;
-}
-
-/* Hero */
-.home-hero {
-  padding: 48px 0 40px;
-  background: linear-gradient(180deg, #dce9fc 0%, #fffcf3 100%);
-}
-
 .home-hero-content {
   max-width: 720px;
 }
@@ -71,6 +56,7 @@
   border: 2px solid #483934;
   border-radius: 999px;
   box-shadow: 0 8px 24px rgb(72 57 52 / 10%);
+  transition: border-color 150ms ease, box-shadow 150ms ease;
 }
 
 .home-search-icon {
@@ -92,6 +78,33 @@
 
 .home-search-input::placeholder {
   color: rgb(72 57 52 / 55%);
+}
+
+/* ── Remove the focus outline (red rectangle) ─────────── */
+.home-search-input:focus,
+.home-search-input:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
+/* ── Remove native clear button (grey ×) ──────────────── */
+.home-search-input::-webkit-search-cancel-button,
+.home-search-input::-webkit-search-decoration,
+.home-search-input::-webkit-search-results-button,
+.home-search-input::-webkit-search-results-decoration {
+  -webkit-appearance: none;
+  appearance: none;
+  display: none;
+}
+
+.home-search-input::-moz-search-cancel-button {
+  display: none;
+}
+
+/* ── Keyboard-only focus: glow the whole search pill ──── */
+.home-hero-search:has(.home-search-input:focus-visible) {
+  border-color: #cd4639;
+  box-shadow: 0 0 0 3px rgb(205 70 57 / 20%);
 }
 
 .home-search-btn {

@@ -1,7 +1,7 @@
-<!-- src/components/comment/CommentList.vue -->
 <script setup>
 import { computed } from 'vue'
 import '../../assets/css/comment-list.css'
+import { useAuth } from '../../services/auth'
 
 const props = defineProps({
   comments: { type: Array, default: () => [] },
@@ -10,7 +10,8 @@ const props = defineProps({
 
 const emit = defineEmits(['delete-comment'])
 
-// Computed: newest comments first
+const { profileLinkFor } = useAuth()
+
 const sortedComments = computed(() =>
   [...props.comments].sort(
     (a, b) => new Date(b.createdAt) - new Date(a.createdAt),
@@ -48,7 +49,7 @@ function isOwn(comment) {
         <div class="comment-body">
           <header class="comment-header">
             <RouterLink
-              :to="`/users/${comment.userName}`"
+              :to="profileLinkFor(comment.userName)"
               class="comment-author"
             >
               {{ comment.userName }}

@@ -1,6 +1,6 @@
 <script setup>
-
 import '../../assets/css/post-card.css'
+import { useAuth } from '../../services/auth'
 
 defineProps({
   post: {
@@ -8,6 +8,8 @@ defineProps({
     required: true,
   },
 })
+
+const { profileLinkFor } = useAuth()
 </script>
 
 <template>
@@ -42,7 +44,7 @@ defineProps({
 
       <footer class="post-footer">
         <RouterLink
-          :to="`/users/${post.authorName}`"
+          :to="profileLinkFor(post.authorName)"
           class="post-author"
         >
           <img

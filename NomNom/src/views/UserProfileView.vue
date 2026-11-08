@@ -1,7 +1,7 @@
 <script setup>
 import { computed, ref, watch } from "vue";
 import { useRoute } from "vue-router";
-import users from "../data/users.json";
+import { getUserByUsername } from "../services/auth";
 import { usePosts } from "../services/posts";
 
 import UserAvatar from "../components/user/UserAvatar.vue";
@@ -12,22 +12,15 @@ import "../assets/css/user-profile.css";
 const route = useRoute();
 const { posts } = usePosts();
 
-// Get the username from /users/:username
-const profile = computed(
-  () =>
-    users.find(
-      (user) =>
-        user.username.toLowerCase() ===
-        String(route.params.username).toLowerCase(),
-    ) ?? null,
-);
+// Find the user in the combined list (demo + registered + overrides)
+const profile = computed(() => getUserByUsername(route.params.username));
 
 // Find posts published by this user
 const userPosts = computed(() => {
   if (!profile.value) return [];
 
   return posts.value
-    .filter((post) => post.authorId === profile.value.id)
+    .filter((post) => String(post.authorId) === String(profile.value.id))
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 });
 
@@ -35,7 +28,9 @@ const userPosts = computed(() => {
 const currentPage = ref(1);
 const perPage = 6;
 
-const totalPages = computed(() => Math.ceil(userPosts.value.length / perPage));
+const totalPages = computed(() =>
+  Math.ceil(userPosts.value.length / perPage),
+);
 
 const paginatedPosts = computed(() => {
   const start = (currentPage.value - 1) * perPage;
@@ -74,7 +69,7 @@ const joinedDate = computed(() => {
 
               <div>
                 <h1 class="h2 fw-bold mb-1">
-                  {{ profile.username }}
+                  {{ profile.displayName || profile.username }}
                 </h1>
 
                 <p class="text-secondary mb-2">

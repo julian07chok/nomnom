@@ -26,6 +26,7 @@
   border: 2px solid #483934;
   border-radius: 999px;
   background: #fffcf3;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
 }
 
 .search-bar i {
@@ -44,6 +45,34 @@
   outline: none;
 }
 
+/* ── Hide the default focus outline on the input ──────── */
+.search-input:focus,
+.search-input:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
+/* ── Keyboard-only focus: glow the whole search pill ──── */
+.search-bar:has(.search-input:focus-visible) {
+  border-color: #cd4639;
+  box-shadow: 0 0 0 3px rgb(205 70 57 / 20%);
+}
+
+/* ── Remove native clear button (grey ×) ──────────────── */
+.search-input::-webkit-search-cancel-button,
+.search-input::-webkit-search-decoration,
+.search-input::-webkit-search-results-button,
+.search-input::-webkit-search-results-decoration {
+  -webkit-appearance: none;
+  appearance: none;
+  display: none;
+}
+
+.search-input::-moz-search-cancel-button {
+  display: none;
+}
+
+/* ── Custom clear button ──────────────────────────────── */
 .search-clear {
   display: grid;
   place-items: center;
@@ -54,6 +83,7 @@
   background: #f4f2c2;
   color: #483934;
   cursor: pointer;
+  transition: background-color 150ms ease;
 }
 
 .search-clear:hover {
