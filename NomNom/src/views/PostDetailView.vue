@@ -16,25 +16,15 @@ import "../assets/css/post-detail.css";
 const route = useRoute();
 const router = useRouter();
 
-const { posts } = usePosts();
-const { currentUser, isLoggedIn } = useAuth();
+const { posts, deletePost: deletePostFromService } = usePosts();
+const { currentUser, isLoggedIn, profileLinkFor } = useAuth();
 
 // ────────────────────────────────────────────────────────────
 // Persistence helpers (mock only — swap for PHP later)
 // ────────────────────────────────────────────────────────────
-// The real backend will replace the three keys below with:
-//   - POST /api/posts/:id/like
-//   - POST /api/posts/:id/save
-//   - POST /api/posts/:id/comments
-//   - DELETE /api/posts/:id
-//   - DELETE /api/comments/:id
-// For now we persist per-user state in localStorage so the UI
-// survives a refresh and the profile Saved tab can read it.
-
-const SAVED_KEY = "nomnom-saved-posts";       // { userId: [postId, ...] }
-const LIKED_KEY = "nomnom-liked-posts";       // { userId: [postId, ...] }
-const DELETED_POSTS_KEY = "nomnom-deleted-posts"; // [postId, ...]
-const EXTRA_COMMENTS_KEY = "nomnom-extra-comments"; // [comment, ...]
+const SAVED_KEY = "nomnom-saved-posts";
+const LIKED_KEY = "nomnom-liked-posts";
+const EXTRA_COMMENTS_KEY = "nomnom-extra-comments";
 
 function readJSON(key, fallback) {
   try {
@@ -55,10 +45,8 @@ function writeJSON(key, value) {
   }
 }
 
-// Load "saved by which user" map
 const savedByUser = ref(readJSON(SAVED_KEY, {}));
 const likedByUser = ref(readJSON(LIKED_KEY, {}));
-const deletedPostIds = ref(readJSON(DELETED_POSTS_KEY, []));
 const extraComments = ref(readJSON(EXTRA_COMMENTS_KEY, []));
 
 // ─── 1. Post ────────────────────────────────────────────────
@@ -66,14 +54,6 @@ const post = ref(null);
 const notFound = ref(false);
 
 function loadPost(id) {
-  const numericId = Number(id);
-
-  if (deletedPostIds.value.includes(numericId)) {
-    notFound.value = true;
-    post.value = null;
-    return;
-  }
-
   const found = posts.value.find((p) => String(p.id) === String(id));
 
   if (!found) {
@@ -111,7 +91,6 @@ const saved = computed(() => {
   return list.map(String).includes(String(post.value.id));
 });
 
-// Derived display count: base likes from JSON + (liked ? +1 : 0)
 const displayLikes = computed(() => {
   if (!post.value) return 0;
   return post.value.likes + (liked.value ? 1 : 0);
@@ -139,7 +118,7 @@ function toggleLike() {
     });
     return;
   }
-  // TODO: replace with POST /api/posts/:id/like (or DELETE for unlike)
+  // TODO: replace with POST /api/posts/:id/like
   toggleListInMap(likedByUser, LIKED_KEY, currentUser.value.id, post.value.id);
 }
 
@@ -151,7 +130,7 @@ function toggleSave() {
     });
     return;
   }
-  // TODO: replace with POST /api/posts/:id/save (or DELETE for unsave)
+  // TODO: replace with POST /api/posts/:id/save
   toggleListInMap(savedByUser, SAVED_KEY, currentUser.value.id, post.value.id);
 }
 
@@ -164,15 +143,17 @@ function deletePost() {
   if (!confirm("Delete this post? This cannot be undone.")) return;
 
   // TODO: replace with DELETE /api/posts/:id
-  const updated = [...deletedPostIds.value, post.value.id];
-  deletedPostIds.value = updated;
-  writeJSON(DELETED_POSTS_KEY, updated);
+  try {
+    deletePostFromService(post.value.id, currentUser.value);
+  } catch (error) {
+    alert(error.message);
+    return;
+  }
 
   router.push({ name: "home" });
 }
 
 // ─── 5. Comments ───────────────────────────────────────────
-// Seed comments from JSON + any added this browser session
 function allCommentsFor(postId) {
   const seeded = commentsData.filter((c) => c.postId === Number(postId));
   const added = extraComments.value.filter(
@@ -191,7 +172,7 @@ watch(
   { immediate: true },
 );
 
-function addComment(text) {
+function addComment({ text, images }) {
   if (!isLoggedIn.value) return;
 
   const newComment = {
@@ -200,8 +181,8 @@ function addComment(text) {
     userId: currentUser.value.id,
     userName: currentUser.value.username,
     userAvatar: currentUser.value.avatar,
-    text,
-    images: [],
+    text: text || "",
+    images: images || [],
     createdAt: new Date().toISOString(),
   };
 
@@ -240,7 +221,7 @@ function deleteComment(commentId) {
       <!-- Post -->
       <article v-else-if="post" class="post-article">
         <header class="post-header">
-          <RouterLink :to="`/users/${post.authorName}`" class="post-author">
+          <RouterLink :to="profileLinkFor(post.authorName)" class="post-author">
             <img
               :src="post.authorAvatar"
               :alt="post.authorName"

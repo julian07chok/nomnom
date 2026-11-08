@@ -28,20 +28,98 @@
   font-weight: 700;
 }
 
+/* ── Compact textarea + floating icon ─────────────────── */
+
+.comment-input-wrap {
+  position: relative;
+  border-radius: 12px;
+  transition: box-shadow 150ms ease;
+}
+
+.comment-input-wrap.is-dragging {
+  box-shadow: 0 0 0 3px rgb(205 70 57 / 35%);
+}
+
 .comment-input {
-  padding: 14px;
+  display: block;
+  width: 100%;
+  /* Extra right padding so text never runs under the icon */
+  padding: 11px 48px 11px 14px;
   border: 1px solid rgb(72 57 52 / 20%);
-  border-radius: 14px;
+  border-radius: 12px;
   background: #fffcf3;
   color: #483934;
   font: inherit;
-  resize: vertical;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  /* Single-row height — grows if user types Enter */
+  min-height: 44px;
+  max-height: 160px;
+  resize: none;
+  box-sizing: border-box;
+}
+
+.comment-input:focus {
+  outline: none;
+  border-color: #483934;
 }
 
 .comment-input:focus-visible {
   outline: 3px solid #cd4639;
   outline-offset: 2px;
 }
+
+/* ── Floating attach button — TOP-RIGHT of textarea ──── */
+
+.comment-attach-btn {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #483934;
+  font-size: 1.15rem;
+  cursor: pointer;
+  transition: background-color 150ms ease, color 150ms ease;
+}
+
+.comment-attach-btn:hover:not(:disabled) {
+  background: #f4f2c2;
+  color: #483934;
+}
+
+.comment-attach-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.comment-attach-btn.is-busy {
+  opacity: 0.85;
+  cursor: wait;
+}
+
+.comment-attach-btn .spin {
+  animation: comment-spin 800ms linear infinite;
+}
+
+@keyframes comment-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.comment-attach-btn:focus-visible {
+  outline: 3px solid #cd4639;
+  outline-offset: 2px;
+}
+
+/* ── Help + errors ───────────────────────────────────── */
 
 .comment-help {
   margin: 0;
@@ -58,6 +136,8 @@
   font-weight: 600;
 }
 
+/* ── Submit ───────────────────────────────────────────── */
+
 .comment-submit {
   align-self: flex-end;
   padding: 12px 24px;
@@ -67,8 +147,78 @@
   color: #fffcf3;
   font-weight: 700;
   cursor: pointer;
+  transition: background-color 150ms ease;
 }
 
-.comment-submit:hover {
+.comment-submit:hover:not(:disabled) {
   background: #cd4639;
+}
+
+.comment-submit:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+/* ── Pending photo previews ──────────────────────────── */
+
+.comment-pending-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.comment-pending-item {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #f4f2c2;
+}
+
+.comment-pending-item img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.comment-pending-remove {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: rgb(255 252 243 / 92%);
+  color: #483934;
+  font-size: 0.7rem;
+  cursor: pointer;
+}
+
+.comment-pending-remove:hover {
+  background: #cd4639;
+  color: #fffcf3;
+}
+
+.comment-pending-remove:focus-visible {
+  outline: 2px solid #cd4639;
+  outline-offset: 1px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .comment-input-wrap,
+  .comment-attach-btn,
+  .comment-attach-btn .spin,
+  .comment-submit {
+    transition: none;
+    animation: none;
+  }
 }
