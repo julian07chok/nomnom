@@ -5,7 +5,7 @@ const STORAGE_KEY = 'nomnom-demo-user-id'
 const REGISTERED_USERS_KEY = 'nomnom-registered-users'
 const PROFILE_OVERRIDES_KEY = 'nomnom-profile-overrides'
 
-// ── Locally-registered users (stored in localStorage) ──────
+// ── Locally-registered users ────────────────────────────────
 function loadRegisteredUsers() {
     try {
         const raw = localStorage.getItem(REGISTERED_USERS_KEY)
@@ -25,10 +25,7 @@ function saveRegisteredUsers(list) {
     }
 }
 
-// ── Profile overrides ─────────────────────────────────────
-// Edits to demo users (which live in users.json) are stored here
-// so we can't accidentally corrupt the seed data.
-// Shape: { [userId]: { displayName?, bio?, avatar? } }
+// ── Profile overrides ──────────────────────────────────────
 function loadProfileOverrides() {
     try {
         const raw = localStorage.getItem(PROFILE_OVERRIDES_KEY)
@@ -48,13 +45,38 @@ function saveProfileOverrides(map) {
     }
 }
 
-// Demo users + locally-registered users, with overrides applied
-function allUsers() {
+/**
+ * All users = demo users from users.json + locally-registered users,
+ * with profile overrides applied on top.
+ * Exported so UserProfileView can search the same combined list.
+ */
+export function allUsers() {
     const overrides = loadProfileOverrides()
     return [...users, ...loadRegisteredUsers()].map((user) => {
         const patch = overrides[user.id]
         return patch ? { ...user, ...patch } : user
     })
+}
+
+/**
+ * Find a single user by username (case-insensitive).
+ * Returns the public profile (no password).
+ */
+export function getUserByUsername(username) {
+    if (!username) return null
+
+    const normalized = String(username).toLowerCase()
+    const found = allUsers().find(
+        (u) => u.username.toLowerCase() === normalized,
+    )
+
+    if (!found) return null
+
+    const { password, ...profile } = found
+    return {
+        ...profile,
+        displayName: profile.displayName ?? profile.username,
+    }
 }
 
 function restoreUser() {
@@ -71,7 +93,6 @@ function publicUser(user) {
 
     const { password, ...profile } = user
 
-    // Ensure displayName always exists for the UI
     return {
         ...profile,
         displayName: profile.displayName ?? profile.username,
@@ -80,6 +101,23 @@ function publicUser(user) {
 
 const currentUser = ref(publicUser(restoreUser()))
 const isLoggedIn = computed(() => currentUser.value !== null)
+
+/**
+ * Where should the "author" link point?
+ * Own account → My Profile (/profile)
+ * Someone else → User Profile (/users/:username)
+ */
+export function profileLinkFor(username) {
+    if (!username) return '/'
+    if (
+        currentUser.value &&
+        currentUser.value.username.toLowerCase() ===
+            String(username).toLowerCase()
+    ) {
+        return '/profile'
+    }
+    return `/users/${username}`
+}
 
 async function login(email, password) {
     const normalizedEmail = email.trim().toLowerCase()
@@ -103,10 +141,6 @@ async function login(email, password) {
     }
 }
 
-/**
- * Register a new account.
- * TODO: replace body with POST /api/auth/register.php
- */
 async function register({ username, email, password }) {
     const normalizedUsername = username.trim().toLowerCase()
     const normalizedEmail = email.trim().toLowerCase()
@@ -129,7 +163,7 @@ async function register({ username, email, password }) {
         username: normalizedUsername,
         displayName: username.trim(),
         email: normalizedEmail,
-        password, // mock only — hash in PHP
+        password,
         avatar: `https://i.pravatar.cc/150?u=${encodeURIComponent(normalizedEmail)}`,
         bio: '',
         postIds: [],
@@ -153,10 +187,6 @@ async function register({ username, email, password }) {
     return publicUser(newUser)
 }
 
-/**
- * Update the current user's profile (displayName, bio, avatar).
- * TODO: replace body with PUT /api/users/me
- */
 async function updateProfile({ displayName, bio, avatar }) {
     if (!currentUser.value) {
         throw new Error('You must be logged in to update your profile.')
@@ -173,7 +203,6 @@ async function updateProfile({ displayName, bio, avatar }) {
     }
     saveProfileOverrides(overrides)
 
-    // Update the reactive currentUser so every page sees the change
     currentUser.value = {
         ...currentUser.value,
         displayName: displayName.trim(),
@@ -202,5 +231,6 @@ export function useAuth() {
         register,
         updateProfile,
         logout,
+        profileLinkFor,
     }
 }
