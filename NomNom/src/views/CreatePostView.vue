@@ -9,12 +9,14 @@ const { currentUser } = useAuth();
 const { createPost } = usePosts();
 
 const formElement = ref(null);
+const fileInput = ref(null);
 const photos = ref([]);
 const photoError = ref("");
 const publishError = ref("");
 const isReading = ref(false);
 const isPublishing = ref(false);
 const submitted = ref(false);
+const dragOver = ref(false);
 
 const MAX_PHOTOS = 5;
 const MAX_FILE_SIZE = 500 * 1024;
@@ -87,6 +89,15 @@ const form = reactive({
 
 const errors = reactive({});
 
+// ── Unique id (browser-safe) ────────────────────────────────
+function uid() {
+  if (typeof crypto !== "undefined" && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+  return `p-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+// ── Read one file → { id, name, src } ──────────────────────
 function readPhoto(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -98,7 +109,7 @@ function readPhoto(file) {
 
       image.onload = () =>
         resolve({
-          id: crypto.randomUUID(),
+          id: uid(),
           name: file.name,
           src: reader.result,
         });
@@ -113,17 +124,49 @@ function readPhoto(file) {
   });
 }
 
-async function selectPhotos(event) {
+// ── File picker ────────────────────────────────────────────
+function pickFile() {
+  if (fileInput.value) {
+    fileInput.value.click();
+  }
+}
+
+// ── Drag-and-drop ──────────────────────────────────────────
+function onDragOver() {
+  dragOver.value = true;
+}
+
+function onDragLeave() {
+  dragOver.value = false;
+}
+
+function onDrop(event) {
+  dragOver.value = false;
+  addFiles(Array.from(event.dataTransfer?.files || []));
+}
+
+// ── File input change ──────────────────────────────────────
+function onFileSelected(event) {
+  // IMPORTANT: copy the FileList into a real Array FIRST.
+  // event.target.files is a "live" view — resetting .value
+  // below would empty it before addFiles could read it.
   const files = Array.from(event.target.files || []);
+
+  // Now it's safe to reset the input (allows re-selecting the same file)
   event.target.value = "";
 
+  addFiles(files);
+}
+
+// ── Shared add-files logic (used by both drop and picker) ──
+async function addFiles(files) {
   if (!files.length) return;
 
   photoError.value = "";
   publishError.value = "";
 
   if (photos.value.length + files.length > MAX_PHOTOS) {
-    photoError.value = "You can add up to five photos.";
+    photoError.value = `You can add up to ${MAX_PHOTOS} photos.`;
     return;
   }
 
@@ -149,10 +192,20 @@ async function selectPhotos(event) {
   }
 }
 
+// ── Photo management ───────────────────────────────────────
 function removePhoto(id) {
   photos.value = photos.value.filter((photo) => photo.id !== id);
   photoError.value = "";
   publishError.value = "";
+}
+
+function movePhoto(index, direction) {
+  const target = index + direction;
+  if (target < 0 || target >= photos.value.length) return;
+
+  const list = [...photos.value];
+  [list[index], list[target]] = [list[target], list[index]];
+  photos.value = list;
 }
 
 function clearError(name) {
@@ -160,6 +213,7 @@ function clearError(name) {
   publishError.value = "";
 }
 
+// ── Validation ─────────────────────────────────────────────
 function validate() {
   Object.keys(errors).forEach((key) => delete errors[key]);
 
@@ -192,6 +246,7 @@ function validate() {
   return Object.keys(errors).length === 0;
 }
 
+// ── Publish ────────────────────────────────────────────────
 async function publish() {
   if (isReading.value || isPublishing.value) return;
 
@@ -248,7 +303,7 @@ async function publish() {
         <div>
           <header class="create-heading">
             <span class="create-tag">Share your discovery</span>
-            <h1>What’s worth a bite?</h1>
+            <h1>What's worth a bite?</h1>
             <p>
               Share your photos and tell the community about your experience.
             </p>
@@ -275,36 +330,68 @@ async function publish() {
               Please complete the required fields below.
             </p>
 
+            <!-- ============================================
+                 PHOTOS
+                 ============================================ -->
             <section class="mb-4" aria-labelledby="photos-title">
               <h2 id="photos-title" class="section-title">
-                <label for="post-photos">
-                  Food photos <span class="photo-hint">(Add 1–5 photos)</span>
-                </label>
+                Food photos
+                <span class="photo-hint">
+                  ({{ photos.length }} / {{ MAX_PHOTOS }})
+                </span>
               </h2>
 
+              <!-- Drag-and-drop zone -->
+              <div
+                class="drop-zone"
+                :class="{ 'is-dragging': dragOver }"
+                @click="pickFile"
+                @dragover.prevent="onDragOver"
+                @dragenter.prevent="onDragOver"
+                @dragleave.prevent="onDragLeave"
+                @drop.prevent="onDrop"
+              >
+                <i
+                  :class="
+                    isReading
+                      ? 'bi bi-arrow-repeat spin'
+                      : 'bi bi-cloud-arrow-up'
+                  "
+                  aria-hidden="true"
+                ></i>
+                <p class="drop-title">
+                  <template v-if="isReading">Preparing your photos…</template>
+                  <template v-else-if="dragOver">Drop your photos here</template>
+                  <template v-else>
+                    Drag photos here, or
+                    <span class="drop-link">browse files</span>
+                  </template>
+                </p>
+                <p class="drop-hint">
+                  JPG, PNG, or WebP · up to 500 KB each · max {{ MAX_PHOTOS }}
+                </p>
+              </div>
+
+              <!-- Visible file input -->
               <input
-                id="post-photos"
-                class="form-control"
+                ref="fileInput"
                 type="file"
                 accept="image/jpeg,image/png,image/webp"
                 multiple
+                class="form-control mt-2"
                 :disabled="isReading || isPublishing"
-                :aria-invalid="Boolean(errors.photos || photoError)"
-                aria-describedby="photos-help photos-error"
-                @change="selectPhotos"
+                @change="onFileSelected"
               />
 
-              <p id="photos-help" class="form-text">
-                JPG, PNG, or WebP, up to 500 KB each. Your first photo becomes
-                the cover.
+              <p class="form-text">
+                The first photo becomes the cover. Use the arrows to reorder.
               </p>
 
-              <p id="photos-error" class="field-error" aria-live="polite">
+              <p class="field-error" aria-live="polite">
                 {{ photoError || errors.photos }}
               </p>
 
-              <p v-if="isReading" role="status">Preparing your photos…</p>
-
+              <!-- Photo previews -->
               <div v-if="photos.length" class="row g-3 mt-1">
                 <div
                   v-for="(photo, index) in photos"
@@ -312,10 +399,7 @@ async function publish() {
                   class="col-6 col-md-4"
                 >
                   <div class="photo-preview">
-                    <img
-                      :src="photo.src"
-                      :alt="`Selected photo ${index + 1}: ${photo.name}`"
-                    />
+                    <img :src="photo.src" :alt="`Photo ${index + 1}`" />
 
                     <span v-if="index === 0" class="cover-label">Cover</span>
 
@@ -328,11 +412,43 @@ async function publish() {
                     >
                       <i class="bi bi-x-lg" aria-hidden="true"></i>
                     </button>
+
+                    <div class="reorder-controls">
+                      <button
+                        type="button"
+                        class="reorder-btn"
+                        :aria-label="`Move photo ${index + 1} left`"
+                        :disabled="index === 0 || isReading || isPublishing"
+                        @click="movePhoto(index, -1)"
+                      >
+                        <i class="bi bi-arrow-left" aria-hidden="true"></i>
+                      </button>
+                      <button
+                        type="button"
+                        class="reorder-btn"
+                        :aria-label="`Move photo ${index + 1} right`"
+                        :disabled="
+                          index === photos.length - 1 ||
+                          isReading ||
+                          isPublishing
+                        "
+                        @click="movePhoto(index, 1)"
+                      >
+                        <i class="bi bi-arrow-right" aria-hidden="true"></i>
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
+
+              <p v-if="photos.length >= MAX_PHOTOS" class="max-photos-note">
+                Maximum photos reached. Remove one to add another.
+              </p>
             </section>
 
+            <!-- ============================================
+                 TEXT FIELDS
+                 ============================================ -->
             <div v-for="field in fields" :key="field.name" class="mb-4">
               <label :for="`post-${field.name}`" class="form-label">
                 {{ field.label }}
@@ -373,6 +489,9 @@ async function publish() {
               </p>
             </div>
 
+            <!-- ============================================
+                 SELECTS
+                 ============================================ -->
             <div class="row g-3">
               <div class="col-12 col-md-4">
                 <label for="post-location" class="form-label">Location</label>
@@ -443,6 +562,9 @@ async function publish() {
               </div>
             </div>
 
+            <!-- ============================================
+                 ACTIONS
+                 ============================================ -->
             <div class="form-actions">
               <RouterLink class="cancel-link" to="/">Cancel</RouterLink>
 
