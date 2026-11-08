@@ -19,82 +19,183 @@ const router = useRouter();
 const { posts } = usePosts();
 const { currentUser, isLoggedIn } = useAuth();
 
+// ────────────────────────────────────────────────────────────
+// Persistence helpers (mock only — swap for PHP later)
+// ────────────────────────────────────────────────────────────
+// The real backend will replace the three keys below with:
+//   - POST /api/posts/:id/like
+//   - POST /api/posts/:id/save
+//   - POST /api/posts/:id/comments
+//   - DELETE /api/posts/:id
+//   - DELETE /api/comments/:id
+// For now we persist per-user state in localStorage so the UI
+// survives a refresh and the profile Saved tab can read it.
+
+const SAVED_KEY = "nomnom-saved-posts";       // { userId: [postId, ...] }
+const LIKED_KEY = "nomnom-liked-posts";       // { userId: [postId, ...] }
+const DELETED_POSTS_KEY = "nomnom-deleted-posts"; // [postId, ...]
+const EXTRA_COMMENTS_KEY = "nomnom-extra-comments"; // [comment, ...]
+
+function readJSON(key, fallback) {
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw) return fallback;
+    const parsed = JSON.parse(raw);
+    return parsed ?? fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function writeJSON(key, value) {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch {
+    // Storage unavailable — UI still works this session.
+  }
+}
+
+// Load "saved by which user" map
+const savedByUser = ref(readJSON(SAVED_KEY, {}));
+const likedByUser = ref(readJSON(LIKED_KEY, {}));
+const deletedPostIds = ref(readJSON(DELETED_POSTS_KEY, []));
+const extraComments = ref(readJSON(EXTRA_COMMENTS_KEY, []));
+
 // ─── 1. Post ────────────────────────────────────────────────
 const post = ref(null);
 const notFound = ref(false);
 
 function loadPost(id) {
+  const numericId = Number(id);
+
+  if (deletedPostIds.value.includes(numericId)) {
+    notFound.value = true;
+    post.value = null;
+    return;
+  }
+
   const found = posts.value.find((p) => String(p.id) === String(id));
+
   if (!found) {
     notFound.value = true;
     post.value = null;
     return;
   }
+
   notFound.value = false;
-  post.value = { ...found }; // local copy so like/save don't mutate the JSON
+  post.value = { ...found };
 }
 
-// Composition API (p.9): watch a specific source
-watch(
-  () => route.params.id,
-  (newId) => loadPost(newId),
-  { immediate: true },
-);
+watch(() => route.params.id, (newId) => loadPost(newId), { immediate: true });
 
-// Computed: is current user the author?
+// Re-load if the underlying posts array changes (e.g. after delete)
+watch(posts, () => loadPost(route.params.id));
+
+// ─── 2. Owner check ────────────────────────────────────────
 const isOwner = computed(
   () =>
-    isLoggedIn.value && post.value?.authorName === currentUser.value?.username,
+    isLoggedIn.value &&
+    post.value?.authorName === currentUser.value?.username,
 );
 
-// ─── 2. Comments (local state) ──────────────────────────────
-const comments = ref([]);
-
-function loadComments(postId) {
-  comments.value = commentsData.filter((c) => c.postId === Number(postId));
-}
-
-// Reload comments when post changes
-watch(post, (p) => {
-  if (p) loadComments(p.id);
-  else comments.value = [];
+// ─── 3. Like / Save (persisted per user) ───────────────────
+const liked = computed(() => {
+  if (!currentUser.value || !post.value) return false;
+  const list = likedByUser.value[currentUser.value.id] || [];
+  return list.map(String).includes(String(post.value.id));
 });
 
-// ─── 3. Interactions ────────────────────────────────────────
-const liked = ref(false);
-const saved = ref(false);
+const saved = computed(() => {
+  if (!currentUser.value || !post.value) return false;
+  const list = savedByUser.value[currentUser.value.id] || [];
+  return list.map(String).includes(String(post.value.id));
+});
+
+// Derived display count: base likes from JSON + (liked ? +1 : 0)
+const displayLikes = computed(() => {
+  if (!post.value) return 0;
+  return post.value.likes + (liked.value ? 1 : 0);
+});
+
+function toggleListInMap(mapRef, key, userId, postId) {
+  const map = { ...mapRef.value };
+  const current = (map[userId] || []).map(String);
+  const target = String(postId);
+  const idx = current.indexOf(target);
+
+  if (idx >= 0) current.splice(idx, 1);
+  else current.push(target);
+
+  map[userId] = current;
+  mapRef.value = map;
+  writeJSON(key, map);
+}
 
 function toggleLike() {
   if (!isLoggedIn.value) {
-    router.push({ name: "login" });
+    router.push({
+      name: "login",
+      query: { redirect: route.fullPath },
+    });
     return;
   }
-  liked.value = !liked.value;
-  post.value.likes += liked.value ? 1 : -1;
+  // TODO: replace with POST /api/posts/:id/like (or DELETE for unlike)
+  toggleListInMap(likedByUser, LIKED_KEY, currentUser.value.id, post.value.id);
 }
 
 function toggleSave() {
   if (!isLoggedIn.value) {
-    router.push({ name: "login" });
+    router.push({
+      name: "login",
+      query: { redirect: route.fullPath },
+    });
     return;
   }
-  saved.value = !saved.value;
+  // TODO: replace with POST /api/posts/:id/save (or DELETE for unsave)
+  toggleListInMap(savedByUser, SAVED_KEY, currentUser.value.id, post.value.id);
 }
 
+// ─── 4. Owner actions ──────────────────────────────────────
 function goEdit() {
   router.push({ name: "edit-post", params: { id: post.value.id } });
 }
 
 function deletePost() {
   if (!confirm("Delete this post? This cannot be undone.")) return;
-  // In the mock version, we just navigate away.
-  // Backend phase: call DELETE /posts/:id
+
+  // TODO: replace with DELETE /api/posts/:id
+  const updated = [...deletedPostIds.value, post.value.id];
+  deletedPostIds.value = updated;
+  writeJSON(DELETED_POSTS_KEY, updated);
+
   router.push({ name: "home" });
 }
 
+// ─── 5. Comments ───────────────────────────────────────────
+// Seed comments from JSON + any added this browser session
+function allCommentsFor(postId) {
+  const seeded = commentsData.filter((c) => c.postId === Number(postId));
+  const added = extraComments.value.filter(
+    (c) => Number(c.postId) === Number(postId),
+  );
+  return [...added, ...seeded];
+}
+
+const comments = ref([]);
+
+watch(
+  post,
+  (p) => {
+    comments.value = p ? allCommentsFor(p.id) : [];
+  },
+  { immediate: true },
+);
+
 function addComment(text) {
+  if (!isLoggedIn.value) return;
+
   const newComment = {
-    id: Date.now(),
+    id: `local-${Date.now()}`,
     postId: post.value.id,
     userId: currentUser.value.id,
     userName: currentUser.value.username,
@@ -103,11 +204,26 @@ function addComment(text) {
     images: [],
     createdAt: new Date().toISOString(),
   };
+
+  // TODO: replace with POST /api/posts/:id/comments
+  const updated = [newComment, ...extraComments.value];
+  extraComments.value = updated;
+  writeJSON(EXTRA_COMMENTS_KEY, updated);
+
   comments.value = [newComment, ...comments.value];
 }
 
 function deleteComment(commentId) {
-  comments.value = comments.value.filter((c) => c.id !== commentId);
+  // TODO: replace with DELETE /api/comments/:id
+  const updated = extraComments.value.filter(
+    (c) => String(c.id) !== String(commentId),
+  );
+  extraComments.value = updated;
+  writeJSON(EXTRA_COMMENTS_KEY, updated);
+
+  comments.value = comments.value.filter(
+    (c) => String(c.id) !== String(commentId),
+  );
 }
 </script>
 
@@ -146,7 +262,7 @@ function deleteComment(commentId) {
         <PostGallery :images="post.gallery" :alt="post.title" />
 
         <PostActions
-          :likes="post.likes"
+          :likes="displayLikes"
           :liked="liked"
           :saved="saved"
           :is-owner="isOwner"
@@ -172,7 +288,8 @@ function deleteComment(commentId) {
               {{ post.priceRange }}
             </li>
             <li>
-              <i class="bi bi-tag" aria-hidden="true"></i> {{ post.location }}
+              <i class="bi bi-tag" aria-hidden="true"></i>
+              {{ post.location }}
             </li>
           </ul>
         </section>
