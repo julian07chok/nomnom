@@ -149,3 +149,47 @@
   color: #483934;
   opacity: 0.75;
 }
+
+/* ── Near Me Button (Explore Page) ────────────────────── */
+.near-me-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border: 1px solid #483934;
+  border-radius: 12px;
+  background: #fffcf3;
+  color: #483934;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 150ms ease;
+}
+
+.near-me-btn:hover:not(:disabled) {
+  background: #f4f2c2;
+}
+
+.near-me-btn:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.near-me-btn.is-active {
+  background: #483934;
+  color: #fffcf3;
+  border-color: #483934;
+}
+
+.near-me-btn.is-active:hover {
+  background: #cd4639;
+  border-color: #cd4639;
+}
+
+.near-me-btn .bi-x-circle-fill {
+  font-size: 0.9em;
+  opacity: 0.8;
+}
+.near-me-btn:hover .bi-x-circle-fill {
+  opacity: 1;
+}

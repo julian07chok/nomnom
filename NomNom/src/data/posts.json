@@ -8,6 +8,8 @@
     "cuisine": "Malaysian",
     "priceRange": "$$",
     "location": "Petaling Jaya",
+    "latitude": 3.1372,
+    "longitude": 101.6222,
     "coverImage": "https://picsum.photos/seed/nasilemak1/800/600",
     "gallery": [
       "https://picsum.photos/seed/nasilemak1/800/600",
@@ -33,6 +35,8 @@
     "cuisine": "Cafe",
     "priceRange": "$$",
     "location": "Kuala Lumpur",
+    "latitude": 3.1268,
+    "longitude": 101.5903,
     "coverImage": "https://picsum.photos/seed/matcha1/800/600",
     "gallery": [
       "https://picsum.photos/seed/matcha1/800/600",
@@ -57,6 +61,8 @@
     "cuisine": "Indian",
     "priceRange": "$",
     "location": "Penang",
+    "latitude": 5.4141,
+    "longitude": 100.3288,
     "coverImage": "https://picsum.photos/seed/nasikandar1/800/600",
     "gallery": [
       "https://picsum.photos/seed/nasikandar1/800/600",
@@ -80,6 +86,8 @@
     "cuisine": "Western",
     "priceRange": "$$",
     "location": "Kuala Lumpur",
+    "latitude": 3.1497,
+    "longitude": 101.6300,
     "coverImage": "https://picsum.photos/seed/croissant1/800/600",
     "gallery": [
       "https://picsum.photos/seed/croissant1/800/600",
@@ -104,6 +112,8 @@
     "cuisine": "Chinese",
     "priceRange": "$$",
     "location": "Penang",
+    "latitude": 5.4164,
+    "longitude": 100.3251,
     "coverImage": "https://picsum.photos/seed/ckt1/800/600",
     "gallery": [
       "https://picsum.photos/seed/ckt1/800/600",
@@ -128,6 +138,8 @@
     "cuisine": "Dessert",
     "priceRange": "$$",
     "location": "Petaling Jaya",
+    "latitude": 3.1191,
+    "longitude": 101.6217,
     "coverImage": "https://picsum.photos/seed/cheesecake1/800/600",
     "gallery": [
       "https://picsum.photos/seed/cheesecake1/800/600",
@@ -151,6 +163,8 @@
     "cuisine": "Indian",
     "priceRange": "$$",
     "location": "Kuala Lumpur",
+    "latitude": 3.1272,
+    "longitude": 101.5910,
     "coverImage": "https://picsum.photos/seed/bananaleaf1/800/600",
     "gallery": [
       "https://picsum.photos/seed/bananaleaf1/800/600",
@@ -175,6 +189,8 @@
     "cuisine": "Dessert",
     "priceRange": "$",
     "location": "Penang",
+    "latitude": 5.4154,
+    "longitude": 100.3301,
     "coverImage": "https://picsum.photos/seed/cendol1/800/600",
     "gallery": [
       "https://picsum.photos/seed/cendol1/800/600",
@@ -198,6 +214,8 @@
     "cuisine": "Chinese",
     "priceRange": "$$",
     "location": "Kuala Lumpur",
+    "latitude": 3.0433,
+    "longitude": 101.4455,
     "coverImage": "https://picsum.photos/seed/bkt1/800/600",
     "gallery": [
       "https://picsum.photos/seed/bkt1/800/600",
@@ -222,6 +240,8 @@
     "cuisine": "Korean",
     "priceRange": "$$",
     "location": "Kuala Lumpur",
+    "latitude": 3.1491,
+    "longitude": 101.7133,
     "coverImage": "https://picsum.photos/seed/kfc1/800/600",
     "gallery": [
       "https://picsum.photos/seed/kfc1/800/600",
@@ -246,6 +266,8 @@
     "cuisine": "Indian",
     "priceRange": "$",
     "location": "Kuala Lumpur",
+    "latitude": 3.1486,
+    "longitude": 101.6969,
     "coverImage": "https://picsum.photos/seed/murtabak1/800/600",
     "gallery": [
       "https://picsum.photos/seed/murtabak1/800/600",
@@ -269,6 +291,8 @@
     "cuisine": "Dessert",
     "priceRange": "$$",
     "location": "Kuala Lumpur",
+    "latitude": 3.1578,
+    "longitude": 101.7118,
     "coverImage": "https://picsum.photos/seed/gelato1/800/600",
     "gallery": [
       "https://picsum.photos/seed/gelato1/800/600",
@@ -293,6 +317,8 @@
     "cuisine": "Japanese",
     "priceRange": "$$",
     "location": "Kuala Lumpur",
+    "latitude": 3.1491,
+    "longitude": 101.7133,
     "coverImage": "https://picsum.photos/seed/ramen1/800/600",
     "gallery": [
       "https://picsum.photos/seed/ramen1/800/600",
@@ -317,6 +343,8 @@
     "cuisine": "Chinese",
     "priceRange": "$$",
     "location": "Petaling Jaya",
+    "latitude": 3.1168,
+    "longitude": 101.5964,
     "coverImage": "https://picsum.photos/seed/dimsum1/800/600",
     "gallery": [
       "https://picsum.photos/seed/dimsum1/800/600",
@@ -341,6 +369,8 @@
     "cuisine": "Thai",
     "priceRange": "$$",
     "location": "Subang Jaya",
+    "latitude": 3.0481,
+    "longitude": 101.5861,
     "coverImage": "https://picsum.photos/seed/thai1/800/600",
     "gallery": [
       "https://picsum.photos/seed/thai1/800/600",
@@ -364,6 +394,8 @@
     "cuisine": "Chinese",
     "priceRange": "$",
     "location": "Kuala Lumpur",
+    "latitude": 3.1447,
+    "longitude": 101.7071,
     "coverImage": "https://picsum.photos/seed/wantan1/800/600",
     "gallery": [
       "https://picsum.photos/seed/wantan1/800/600",
@@ -387,6 +419,8 @@
     "cuisine": "Dessert",
     "priceRange": "$$",
     "location": "Petaling Jaya",
+    "latitude": 3.1191,
+    "longitude": 101.6217,
     "coverImage": "https://picsum.photos/seed/choccake1/800/600",
     "gallery": [
       "https://picsum.photos/seed/choccake1/800/600",
@@ -410,6 +444,8 @@
     "cuisine": "Japanese",
     "priceRange": "$$",
     "location": "Kuala Lumpur",
+    "latitude": 3.1491,
+    "longitude": 101.7133,
     "coverImage": "https://picsum.photos/seed/sushi1/800/600",
     "gallery": [
       "https://picsum.photos/seed/sushi1/800/600",
@@ -434,6 +470,8 @@
     "cuisine": "Chinese",
     "priceRange": "$$",
     "location": "Petaling Jaya",
+    "latitude": 3.1191,
+    "longitude": 101.6217,
     "coverImage": "https://picsum.photos/seed/jinxuan1/800/600",
     "gallery": [
       "https://picsum.photos/seed/jinxuan1/800/600",
@@ -457,6 +495,8 @@
     "cuisine": "Indian",
     "priceRange": "$$",
     "location": "Kuala Lumpur",
+    "latitude": 3.1272,
+    "longitude": 101.5910,
     "coverImage": "https://picsum.photos/seed/srinirwana1/800/600",
     "gallery": [
       "https://picsum.photos/seed/srinirwana1/800/600",
@@ -480,6 +520,8 @@
     "cuisine": "Japanese",
     "priceRange": "$$$",
     "location": "Kuala Lumpur",
+    "latitude": 3.1491,
+    "longitude": 101.7133,
     "coverImage": "https://picsum.photos/seed/ippudo1/800/600",
     "gallery": [
       "https://picsum.photos/seed/ippudo1/800/600",
@@ -503,6 +545,8 @@
     "cuisine": "Indian",
     "priceRange": "$",
     "location": "Kuala Lumpur",
+    "latitude": 3.1300,
+    "longitude": 101.6900,
     "coverImage": "https://picsum.photos/seed/roticanai1/800/600",
     "gallery": [
       "https://picsum.photos/seed/roticanai1/800/600",
@@ -527,6 +571,8 @@
     "cuisine": "Vietnamese",
     "priceRange": "$$",
     "location": "Subang Jaya",
+    "latitude": 3.0755,
+    "longitude": 101.5883,
     "coverImage": "https://picsum.photos/seed/pho1/800/600",
     "gallery": [
       "https://picsum.photos/seed/pho1/800/600",
@@ -550,6 +596,8 @@
     "cuisine": "Malaysian",
     "priceRange": "$$",
     "location": "Kuala Lumpur",
+    "latitude": 3.1578,
+    "longitude": 101.7118,
     "coverImage": "https://picsum.photos/seed/nasikerabu1/800/600",
     "gallery": [
       "https://picsum.photos/seed/nasikerabu1/800/600",
@@ -573,6 +621,8 @@
     "cuisine": "Dessert",
     "priceRange": "$$",
     "location": "Petaling Jaya",
+    "latitude": 3.1191,
+    "longitude": 101.6217,
     "coverImage": "https://picsum.photos/seed/pandan1/800/600",
     "gallery": [
       "https://picsum.photos/seed/pandan1/800/600",
@@ -596,6 +646,8 @@
     "cuisine": "Japanese",
     "priceRange": "$$",
     "location": "Kuala Lumpur",
+    "latitude": 3.1491,
+    "longitude": 101.7133,
     "coverImage": "https://picsum.photos/seed/tsukemen1/800/600",
     "gallery": [
       "https://picsum.photos/seed/tsukemen1/800/600",
@@ -619,6 +671,8 @@
     "cuisine": "Chinese",
     "priceRange": "$",
     "location": "Kuala Lumpur",
+    "latitude": 3.0884,
+    "longitude": 101.6903,
     "coverImage": "https://picsum.photos/seed/eggtart1/800/600",
     "gallery": [
       "https://picsum.photos/seed/eggtart1/800/600",
@@ -642,6 +696,8 @@
     "cuisine": "Cafe",
     "priceRange": "$$",
     "location": "Kuala Lumpur",
+    "latitude": 3.0848,
+    "longitude": 101.7429,
     "coverImage": "https://picsum.photos/seed/sourdough1/800/600",
     "gallery": [
       "https://picsum.photos/seed/sourdough1/800/600",
@@ -665,6 +721,8 @@
     "cuisine": "Malaysian",
     "priceRange": "$$",
     "location": "Kuala Lumpur",
+    "latitude": 3.1604,
+    "longitude": 101.7190,
     "coverImage": "https://picsum.photos/seed/meegoreng1/800/600",
     "gallery": [
       "https://picsum.photos/seed/meegoreng1/800/600",
@@ -688,6 +746,8 @@
     "cuisine": "Japanese",
     "priceRange": "$$",
     "location": "Kuala Lumpur",
+    "latitude": 3.1491,
+    "longitude": 101.7133,
     "coverImage": "https://picsum.photos/seed/katsu1/800/600",
     "gallery": [
       "https://picsum.photos/seed/katsu1/800/600",

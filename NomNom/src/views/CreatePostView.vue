@@ -49,6 +49,18 @@ const locations = [
   "Ipoh",
 ];
 
+// Approximate coordinates for Malaysian cities to support the "Near Me" feature
+const locationCoordinates = {
+  "Kuala Lumpur": { lat: 3.1390, lng: 101.6869 },
+  "Petaling Jaya": { lat: 3.1073, lng: 101.6068 },
+  "Subang Jaya": { lat: 3.0567, lng: 101.5851 },
+  "Cyberjaya": { lat: 2.9181, lng: 101.6547 },
+  "Penang": { lat: 5.4141, lng: 100.3288 },
+  "Johor Bahru": { lat: 1.4927, lng: 103.7414 },
+  "Melaka": { lat: 2.1896, lng: 102.2501 },
+  "Ipoh": { lat: 4.5975, lng: 101.0901 },
+};
+
 const fields = [
   {
     name: "title",
@@ -271,6 +283,9 @@ async function publish() {
   isPublishing.value = true;
 
   try {
+    // Get approximate coordinates for the selected location
+    const coords = locationCoordinates[form.location] || { lat: null, lng: null };
+
     createPost(
       {
         title: form.title.trim(),
@@ -282,6 +297,10 @@ async function publish() {
         priceRange: form.priceRange,
         coverImage: photos.value[0].src,
         gallery: photos.value.map((photo) => photo.src),
+        
+        // Add coordinates for the Near Me feature
+        latitude: coords.lat,
+        longitude: coords.lng,
       },
       currentUser.value,
     );

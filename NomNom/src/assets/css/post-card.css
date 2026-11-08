@@ -45,6 +45,27 @@
   letter-spacing: 0.5px;
 }
 
+/* ── Distance Badge (Near Me) ─────────────────────────── */
+.distance-badge {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: #fffcf3;
+  color: #483934;
+  font-size: 0.8rem;
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgb(72 57 52 / 15%);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.distance-badge i {
+  color: #cd4639;
+}
+
 .post-body {
   display: flex;
   flex: 1;

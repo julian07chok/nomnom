@@ -80,14 +80,19 @@
   color: rgb(72 57 52 / 55%);
 }
 
-/* ── Remove the focus outline (red rectangle) ─────────── */
+/* ── Remove focus outline ─────────────────────────────── */
 .home-search-input:focus,
 .home-search-input:focus-visible {
   outline: none;
   box-shadow: none;
 }
 
-/* ── Remove native clear button (grey ×) ──────────────── */
+.home-hero-search:has(.home-search-input:focus-visible) {
+  border-color: #cd4639;
+  box-shadow: 0 0 0 3px rgb(205 70 57 / 20%);
+}
+
+/* ── Native clear button removal ──────────────────────── */
 .home-search-input::-webkit-search-cancel-button,
 .home-search-input::-webkit-search-decoration,
 .home-search-input::-webkit-search-results-button,
@@ -99,12 +104,6 @@
 
 .home-search-input::-moz-search-cancel-button {
   display: none;
-}
-
-/* ── Keyboard-only focus: glow the whole search pill ──── */
-.home-hero-search:has(.home-search-input:focus-visible) {
-  border-color: #cd4639;
-  box-shadow: 0 0 0 3px rgb(205 70 57 / 20%);
 }
 
 .home-search-btn {
@@ -211,6 +210,53 @@
 .home-sort-select:focus-visible {
   outline: 3px solid #cd4639;
   outline-offset: 3px;
+}
+
+/* ── Near Me Button ───────────────────────────────────── */
+.near-me-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  border: 1px solid #483934;
+  border-radius: 12px;
+  background: #fffcf3;
+  color: #483934;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 150ms ease;
+}
+
+.near-me-btn:hover:not(:disabled) {
+  background: #f4f2c2;
+}
+
+.near-me-btn:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+/* Active State */
+.near-me-btn.is-active {
+  background: #483934;
+  color: #fffcf3;
+  border-color: #483934;
+}
+
+.near-me-btn.is-active:hover {
+  background: #cd4639;
+  border-color: #cd4639;
+}
+
+/* The little cross icon inside the button */
+.near-me-btn .bi-x-circle-fill {
+  font-size: 0.9em;
+  opacity: 0.8;
+  transition: opacity 150ms ease;
+}
+
+.near-me-btn:hover .bi-x-circle-fill {
+  opacity: 1;
 }
 
 /* Grid */

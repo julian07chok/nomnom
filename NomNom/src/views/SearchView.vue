@@ -1,8 +1,8 @@
-<!-- src/views/SearchView.vue -->
 <script setup>
 import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import posts from '../data/posts.json'
+import { getDistanceKm, formatDistance } from '../utils/geo'
 import PostCard from '../components/post/PostCard.vue'
 import PostFilters from '../components/post/PostFilters.vue'
 import Pagination from '../components/common/Pagination.vue'
@@ -12,6 +12,7 @@ const route = useRoute()
 const router = useRouter()
 
 const POSTS_PER_PAGE = 6
+const radiusKm = 50 // Radius in kilometers for Near Me
 
 // ─── Local state (initialised from URL) ────────────────────
 const searchQuery = ref(String(route.query.q || ''))
@@ -23,6 +24,72 @@ const filters = ref({
   location: String(route.query.location || 'All'),
   priceRange: String(route.query.priceRange || 'All'),
 })
+
+// ─── Near Me State ─────────────────────────────────────────
+const userLocation = ref(null)
+const isNearMeActive = ref(route.query.near === 'true')
+const isLocating = ref(false)
+const locationError = ref('')
+
+// If arriving via URL with near=true, try to get location immediately
+if (isNearMeActive.value) {
+  requestLocation()
+}
+
+function requestLocation() {
+  locationError.value = ''
+
+  if (!navigator.geolocation) {
+    locationError.value = "Geolocation is not supported by your browser."
+    isNearMeActive.value = false
+    return
+  }
+
+  isLocating.value = true
+
+  navigator.geolocation.getCurrentPosition(
+    (position) => {
+      userLocation.value = {
+        lat: position.coords.latitude,
+        lng: position.coords.longitude,
+      }
+      isLocating.value = false
+    },
+    (error) => {
+      isLocating.value = false
+      isNearMeActive.value = false
+      userLocation.value = null
+      
+      switch (error.code) {
+        case error.PERMISSION_DENIED:
+          locationError.value = "Location permission denied."
+          break
+        case error.POSITION_UNAVAILABLE:
+          locationError.value = "Location information is unavailable."
+          break
+        case error.TIMEOUT:
+          locationError.value = "Location request timed out."
+          break
+        default:
+          locationError.value = "An unknown error occurred."
+      }
+    },
+    { timeout: 10000, enableHighAccuracy: true }
+  )
+}
+
+function toggleNearMe() {
+  if (isNearMeActive.value) {
+    // Turn off
+    isNearMeActive.value = false
+    userLocation.value = null
+    locationError.value = ''
+  } else {
+    // Turn on
+    isNearMeActive.value = true
+    requestLocation()
+  }
+}
 
 // ─── Computed: filtered + sorted posts ─────────────────────
 const filteredPosts = computed(() => {
@@ -46,7 +113,7 @@ const filteredPosts = computed(() => {
     result = result.filter((p) => p.cuisine === filters.value.cuisine)
   }
 
-  // 3. Location
+  // 3. Location (Dropdown filter)
   if (filters.value.location !== 'All') {
     result = result.filter((p) => p.location === filters.value.location)
   }
@@ -56,7 +123,22 @@ const filteredPosts = computed(() => {
     result = result.filter((p) => p.priceRange === filters.value.priceRange)
   }
 
-  // 5. Sort
+  // 5. Near Me (Distance Filter)
+  if (isNearMeActive.value && userLocation.value) {
+    result = result
+      .map((p) => {
+        const dist = getDistanceKm(
+          userLocation.value.lat,
+          userLocation.value.lng,
+          p.latitude,
+          p.longitude
+        )
+        return { ...p, distanceKm: dist }
+      })
+      .filter((p) => p.distanceKm !== null && p.distanceKm <= radiusKm)
+  }
+
+  // 6. Sort
   if (sortBy.value === 'newest') {
     result.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
   } else if (sortBy.value === 'oldest') {
@@ -80,7 +162,6 @@ const paginatedPosts = computed(() => {
 })
 
 // ─── Sync state → URL ──────────────────────────────────────
-// Flag prevents the route.query watcher from firing on our own updates
 let isSyncingFromSelf = false
 
 function syncUrl() {
@@ -92,10 +173,10 @@ function syncUrl() {
   if (filters.value.priceRange !== 'All') query.priceRange = filters.value.priceRange
   if (sortBy.value !== 'newest') query.sort = sortBy.value
   if (currentPage.value > 1) query.page = currentPage.value
+  if (isNearMeActive.value) query.near = 'true'
 
   isSyncingFromSelf = true
   router.replace({ name: 'search', query }).finally(() => {
-    // Give Vue Router one tick to process the change before unlocking
     setTimeout(() => {
       isSyncingFromSelf = false
     }, 0)
@@ -104,7 +185,7 @@ function syncUrl() {
 
 // Filters changed → reset to page 1, then sync URL
 watch(
-  [searchQuery, filters, sortBy],
+  [searchQuery, filters, sortBy, isNearMeActive],
   () => {
     if (currentPage.value !== 1) currentPage.value = 1
     syncUrl()
@@ -129,6 +210,12 @@ watch(
 
     const newSort = String(q.sort || 'newest')
     if (newSort !== sortBy.value) sortBy.value = newSort
+
+    const newNear = q.near === 'true'
+    if (newNear !== isNearMeActive.value) {
+      isNearMeActive.value = newNear
+      if (newNear && !userLocation.value) requestLocation()
+    }
 
     const newFilters = {
       cuisine: String(q.cuisine || 'All'),
@@ -178,12 +265,36 @@ watch(
 
         <!-- Results -->
         <div class="col-12 col-lg-9">
+          
+          <!-- Results header -->
           <header class="results-header">
-            <p class="results-count">
-              <strong>{{ filteredPosts.length }}</strong>
-              {{ filteredPosts.length === 1 ? 'result' : 'results' }}
-              <span v-if="searchQuery">for "{{ searchQuery }}"</span>
-            </p>
+            <div class="d-flex flex-wrap align-items-center gap-3">
+              <p class="results-count mb-0">
+                <strong>{{ filteredPosts.length }}</strong>
+                {{ filteredPosts.length === 1 ? 'result' : 'results' }}
+                <span v-if="searchQuery">for "{{ searchQuery }}"</span>
+                <span v-if="isNearMeActive" class="text-success"> · within {{ radiusKm }}km</span>
+              </p>
+
+              <!-- NEAR ME BUTTON -->
+              <button 
+                type="button" 
+                class="near-me-btn"
+                :class="{ 'is-active': isNearMeActive }"
+                :disabled="isLocating"
+                @click="toggleNearMe"
+              >
+                <template v-if="isNearMeActive">
+                  <i class="bi bi-geo-alt-fill me-1" aria-hidden="true"></i>
+                  Near Me
+                  <i class="bi bi-x-circle-fill ms-1" aria-hidden="true" title="Clear Near Me"></i>
+                </template>
+                <template v-else>
+                  <i class="bi bi-geo-alt me-1" aria-hidden="true"></i>
+                  {{ isLocating ? 'Locating…' : 'Near Me' }}
+                </template>
+              </button>
+            </div>
 
             <div class="results-sort">
               <label for="sort" class="sort-label">Sort</label>
@@ -196,11 +307,20 @@ watch(
             </div>
           </header>
 
+          <!-- Location error -->
+          <div v-if="locationError" class="alert alert-warning mb-3" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            {{ locationError }}
+          </div>
+
           <!-- Empty -->
           <div v-if="paginatedPosts.length === 0" class="results-empty">
             <p class="empty-emoji" aria-hidden="true">🔍</p>
             <h2>No results</h2>
-            <p>Try different keywords or clear the filters.</p>
+            <p v-if="isNearMeActive">
+              There are no results within {{ radiusKm }}km of your location.
+            </p>
+            <p v-else>Try different keywords or clear the filters.</p>
           </div>
 
           <!-- Grid -->
@@ -210,7 +330,10 @@ watch(
               :key="post.id"
               class="col-12 col-sm-6 col-xl-4"
             >
-              <PostCard :post="post" />
+              <PostCard 
+                :post="post" 
+                :distance="post.distanceKm ? formatDistance(post.distanceKm) : null"
+              />
             </div>
           </div>
 
