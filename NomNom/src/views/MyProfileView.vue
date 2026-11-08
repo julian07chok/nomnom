@@ -29,16 +29,26 @@ const myPosts = computed(() => {
 // 2. MY SAVED POSTS
 // ==========================================
 
-// Currently uses savedPostIds from users.json.
-// This will be replaced by a database API later.
+// Reads the same localStorage map that PostDetailView writes to
+// when you click the Save button.
+// TODO: replace with GET /api/users/me/saved once PHP is live.
 
 const savedPosts = computed(() => {
   if (!currentUser.value) return [];
 
-  const savedIds = currentUser.value.savedPostIds || [];
+  let savedMap = {};
+  try {
+    savedMap = JSON.parse(
+      localStorage.getItem("nomnom-saved-posts") || "{}",
+    );
+  } catch {
+    savedMap = {};
+  }
+
+  const savedIds = (savedMap[currentUser.value.id] || []).map(String);
 
   return posts.value
-    .filter((post) => savedIds.some((id) => String(id) === String(post.id)))
+    .filter((post) => savedIds.includes(String(post.id)))
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 });
 
@@ -183,7 +193,7 @@ function handleLogout() {
             @click="switchTab('posts')"
           >
             <i class="bi bi-grid-3x3" aria-hidden="true"></i>
-            My Postssss
+            My Posts
           </button>
 
           <button
