@@ -38,9 +38,7 @@ const savedPosts = computed(() => {
 
   let savedMap = {};
   try {
-    savedMap = JSON.parse(
-      localStorage.getItem("nomnom-saved-posts") || "{}",
-    );
+    savedMap = JSON.parse(localStorage.getItem("nomnom-saved-posts") || "{}");
   } catch {
     savedMap = {};
   }
@@ -107,9 +105,13 @@ watch(activeTab, () => {
 // 6. LOGOUT
 // ==========================================
 
-function handleLogout() {
-  logout();
-  router.replace({ name: "home" });
+async function handleLogout() {
+  try {
+    await logout();
+    await router.replace({ name: "home" });
+  } catch (error) {
+    window.alert(error.message || "Unable to log out. Please try again.");
+  }
 }
 </script>
 

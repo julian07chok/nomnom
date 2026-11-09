@@ -47,6 +47,9 @@ const emailError = computed(() => {
   const value = email.value.trim();
 
   if (!value) return "Please enter your email address.";
+  if (value.length > 190) {
+    return "Email must be 190 characters or fewer.";
+  }
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
     return "Please enter a valid email address.";
   }
@@ -59,6 +62,13 @@ const passwordError = computed(() => {
 
   if (!value) return "Please create a password.";
   if (value.length < 8) return "Password must be at least 8 characters.";
+  if (new TextEncoder().encode(value).length > 72) {
+    return "Password must be 72 bytes or fewer.";
+  }
+
+  if (value.includes("\0")) {
+    return "Password contains an unsupported character.";
+  }
   if (!/[A-Za-z]/.test(value) || !/[0-9]/.test(value)) {
     return "Password must include both letters and numbers.";
   }
@@ -85,10 +95,10 @@ const termsError = computed(() => {
 const hasErrors = computed(() =>
   Boolean(
     usernameError.value ||
-      emailError.value ||
-      passwordError.value ||
-      confirmPasswordError.value ||
-      termsError.value,
+    emailError.value ||
+    passwordError.value ||
+    confirmPasswordError.value ||
+    termsError.value,
   ),
 );
 
@@ -155,6 +165,8 @@ async function handleRegister() {
       username: username.value,
       email: email.value,
       password: password.value,
+      confirmPassword: confirmPassword.value,
+      acceptedTerms: acceptedTerms.value,
     });
   } catch (error) {
     registerError.value =
@@ -224,11 +236,7 @@ async function handleRegister() {
                   "
                   @input="registerError = ''"
                 />
-                <p
-                  v-if="usernameError"
-                  id="username-error"
-                  class="field-error"
-                >
+                <p v-if="usernameError" id="username-error" class="field-error">
                   {{ usernameError }}
                 </p>
                 <p v-else id="username-help" class="field-help">
@@ -306,11 +314,7 @@ async function handleRegister() {
                   </button>
                 </div>
 
-                <p
-                  v-if="passwordError"
-                  id="password-error"
-                  class="field-error"
-                >
+                <p v-if="passwordError" id="password-error" class="field-error">
                   {{ passwordError }}
                 </p>
                 <p v-else id="password-help" class="field-help">
@@ -346,18 +350,14 @@ async function handleRegister() {
                     type="button"
                     aria-controls="register-confirm"
                     :aria-label="
-                      showConfirmPassword
-                        ? 'Hide password'
-                        : 'Show password'
+                      showConfirmPassword ? 'Hide password' : 'Show password'
                     "
                     :aria-pressed="showConfirmPassword"
                     @click="showConfirmPassword = !showConfirmPassword"
                   >
                     <i
                       :class="
-                        showConfirmPassword
-                          ? 'bi bi-eye-slash'
-                          : 'bi bi-eye'
+                        showConfirmPassword ? 'bi bi-eye-slash' : 'bi bi-eye'
                       "
                       aria-hidden="true"
                     ></i>
