@@ -21,7 +21,7 @@ const emailError = computed(() => {
   const val = email.value.trim();
 
   if (!val) return "Please enter your email or username.";
-  
+
   // Only validate as email if it contains an "@" symbol
   if (val.includes("@") && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)) {
     return "Please enter a valid email address.";
@@ -142,7 +142,7 @@ async function handleLogin() {
                   :class="{ 'is-invalid': emailError }"
                   type="text"
                   autocomplete="username"
-                  placeholder="you@example.com or julian"
+                  placeholder="you@example.com"
                   required
                   :aria-invalid="Boolean(emailError)"
                   :aria-describedby="emailError ? 'email-error' : undefined"
@@ -211,14 +211,6 @@ async function handleLogin() {
               New to NomNom?
               <RouterLink :to="registerTarget">Create an account</RouterLink>
             </p>
-
-            <aside class="demo-note" aria-label="Demo account">
-              <strong>Try the demo account</strong>
-              <span>Email: julian@example.com</span>
-              <span>Username: julian</span>
-              <span>Password: password123</span>
-              <small>Demo login only. Use these sample credentials.</small>
-            </aside>
           </div>
         </section>
       </div>
@@ -374,21 +366,6 @@ async function handleLogin() {
 .register-prompt a {
   color: var(--red);
   font-weight: 700;
-}
-
-.demo-note {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding: 16px;
-  border-radius: 14px;
-  background: var(--light-yellow);
-  overflow-wrap: anywhere;
-  font-size: 0.9rem;
-}
-
-.demo-note small {
-  margin-top: 4px;
 }
 
 button:focus-visible,
