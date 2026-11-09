@@ -1,5 +1,6 @@
 import { computed, ref } from "vue";
 import { apiRequest } from "./api";
+import { useAuth } from "./auth";
 
 const postList = ref([]);
 const isLoading = ref(false);
@@ -7,6 +8,16 @@ const postError = ref("");
 const postsLoaded = ref(false);
 
 let pendingRequest = null;
+
+function resolveImageUrl(url) {
+  if (typeof url !== "string") return "";
+
+  if (url.startsWith("api/")) {
+    return `${import.meta.env.BASE_URL}${url}`;
+  }
+
+  return url;
+}
 
 function loadPosts() {
   // Share an existing request if another component is loading posts.
@@ -23,7 +34,11 @@ function loadPosts() {
         throw new Error("The server returned an invalid post list.");
       }
 
-      postList.value = data.posts;
+      postList.value = data.posts.map((post) => ({
+        ...post,
+        coverImage: resolveImageUrl(post.coverImage),
+        gallery: post.gallery.map(resolveImageUrl),
+      }));
       postsLoaded.value = true;
       return true;
     } catch (error) {
@@ -41,11 +56,45 @@ function loadPosts() {
   return pendingRequest;
 }
 
+async function createPost(data) {
+  const { initAuth, isLoggedIn } = useAuth();
+
+  await initAuth();
+
+  if (!isLoggedIn.value) {
+    throw new Error("Please log in before publishing.");
+  }
+
+  const body = new FormData();
+
+  const fields = [
+    "title",
+    "description",
+    "restaurantName",
+    "address",
+    "location",
+    "cuisine",
+    "priceRange",
+  ];
+
+  for (const field of fields) {
+    body.append(field, data[field]);
+  }
+
+  for (const file of data.files) {
+    body.append("photos[]", file);
+  }
+
+  const result = await apiRequest("posts.php", {
+    method: "POST",
+    body,
+  });
+
+  return { id: Number(result.postId) };
+}
+
 // These remain exported so existing forms can still import them.
 // Their database implementations come in the next stages.
-function createPost() {
-  throw new Error("Post creation is temporarily unavailable.");
-}
 
 function updatePost() {
   throw new Error("Post editing is temporarily unavailable.");

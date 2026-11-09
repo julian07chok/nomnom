@@ -2,8 +2,13 @@
 
 require __DIR__ . '/bootstrap.php';
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    require __DIR__ . '/create-post.php';
+    exit;
+}
+
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
-    header('Allow: GET');
+    header('Allow: GET, POST');
 
     respond([
         'ok' => false,

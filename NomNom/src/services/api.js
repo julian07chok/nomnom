@@ -10,11 +10,12 @@ export function setCsrfToken(token) {
 }
 
 export async function apiRequest(endpoint, { method = "GET", body } = {}) {
+  const isFormData = body instanceof FormData;
   const headers = {
     Accept: "application/json",
   };
 
-  if (body !== undefined) {
+  if (body !== undefined && !isFormData) {
     headers["Content-Type"] = "application/json";
   }
 
@@ -29,7 +30,12 @@ export async function apiRequest(endpoint, { method = "GET", body } = {}) {
       method,
       headers,
       credentials: "same-origin",
-      body: body === undefined ? undefined : JSON.stringify(body),
+      body:
+        body === undefined
+          ? undefined
+          : isFormData
+            ? body
+            : JSON.stringify(body),
     });
   } catch {
     throw new Error(

@@ -49,17 +49,17 @@ const locations = [
   "Ipoh",
 ];
 
-// Approximate coordinates for Malaysian cities to support the "Near Me" feature
-const locationCoordinates = {
-  "Kuala Lumpur": { lat: 3.1390, lng: 101.6869 },
-  "Petaling Jaya": { lat: 3.1073, lng: 101.6068 },
-  "Subang Jaya": { lat: 3.0567, lng: 101.5851 },
-  "Cyberjaya": { lat: 2.9181, lng: 101.6547 },
-  "Penang": { lat: 5.4141, lng: 100.3288 },
-  "Johor Bahru": { lat: 1.4927, lng: 103.7414 },
-  "Melaka": { lat: 2.1896, lng: 102.2501 },
-  "Ipoh": { lat: 4.5975, lng: 101.0901 },
-};
+// // Approximate coordinates for Malaysian cities to support the "Near Me" feature
+// const locationCoordinates = {
+//   "Kuala Lumpur": { lat: 3.139, lng: 101.6869 },
+//   "Petaling Jaya": { lat: 3.1073, lng: 101.6068 },
+//   "Subang Jaya": { lat: 3.0567, lng: 101.5851 },
+//   Cyberjaya: { lat: 2.9181, lng: 101.6547 },
+//   Penang: { lat: 5.4141, lng: 100.3288 },
+//   "Johor Bahru": { lat: 1.4927, lng: 103.7414 },
+//   Melaka: { lat: 2.1896, lng: 102.2501 },
+//   Ipoh: { lat: 4.5975, lng: 101.0901 },
+// };
 
 const fields = [
   {
@@ -124,6 +124,7 @@ function readPhoto(file) {
           id: uid(),
           name: file.name,
           src: reader.result,
+          file,
         });
 
       image.onerror = () =>
@@ -172,7 +173,7 @@ function onFileSelected(event) {
 
 // ── Shared add-files logic (used by both drop and picker) ──
 async function addFiles(files) {
-  if (!files.length) return;
+  if (isReading.value || isPublishing.value || !files.length) return;
 
   photoError.value = "";
   publishError.value = "";
@@ -282,35 +283,31 @@ async function publish() {
 
   isPublishing.value = true;
 
-  try {
-    // Get approximate coordinates for the selected location
-    const coords = locationCoordinates[form.location] || { lat: null, lng: null };
+  let createdPost;
 
-    createPost(
-      {
-        title: form.title.trim(),
-        description: form.description.trim(),
-        restaurantName: form.restaurantName.trim(),
-        address: form.address.trim(),
-        location: form.location,
-        cuisine: form.cuisine,
-        priceRange: form.priceRange,
-        coverImage: photos.value[0].src,
-        gallery: photos.value.map((photo) => photo.src),
-        
-        // Add coordinates for the Near Me feature
-        latitude: coords.lat,
-        longitude: coords.lng,
-      },
-      currentUser.value,
-    );
+  try {
+    createdPost = await createPost({
+      title: form.title.trim(),
+      description: form.description.trim(),
+      restaurantName: form.restaurantName.trim(),
+      address: form.address.trim(),
+      location: form.location,
+      cuisine: form.cuisine,
+      priceRange: form.priceRange,
+      files: photos.value.map((photo) => photo.file),
+    });
   } catch (error) {
-    publishError.value = error.message;
+    publishError.value = error.message || "Unable to publish this post.";
     isPublishing.value = false;
     return;
   }
 
-  await router.push({ name: "home" });
+  // The existing route guard reloads the database collection.
+  await router.push({
+    name: "post-detail",
+    params: { id: createdPost.id },
+  });
+
   isPublishing.value = false;
 }
 </script>
@@ -380,7 +377,9 @@ async function publish() {
                 ></i>
                 <p class="drop-title">
                   <template v-if="isReading">Preparing your photos…</template>
-                  <template v-else-if="dragOver">Drop your photos here</template>
+                  <template v-else-if="dragOver"
+                    >Drop your photos here</template
+                  >
                   <template v-else>
                     Drag photos here, or
                     <span class="drop-link">browse files</span>
