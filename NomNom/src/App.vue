@@ -1,6 +1,25 @@
 <script setup>
+import { computed } from "vue";
+import { useRoute } from "vue-router";
+import { usePosts } from "./services/posts";
+
 import AppNavbar from "./components/layout/AppNavBar.vue";
 import AppFooter from "./components/layout/AppFooter.vue";
+
+const route = useRoute();
+const { isLoading, postError, loadPosts } = usePosts();
+
+const needsPosts = computed(() =>
+  [
+    "home",
+    "search",
+    "post-detail",
+    "edit-post",
+    "my-profile",
+    "user-profile",
+    "saved",
+  ].includes(route.name),
+);
 </script>
 
 <template>
@@ -8,7 +27,21 @@ import AppFooter from "./components/layout/AppFooter.vue";
     <AppNavbar />
 
     <div class="page-content">
-      <RouterView />
+      <div v-if="isLoading" class="container py-5" role="status">
+        Loading discoveries…
+      </div>
+
+      <div v-else-if="needsPosts && postError" class="container py-5">
+        <div class="alert alert-danger" role="alert">
+          {{ postError }}
+        </div>
+
+        <button class="btn btn-outline-dark" type="button" @click="loadPosts">
+          Try again
+        </button>
+      </div>
+
+      <RouterView v-else />
     </div>
 
     <AppFooter />

@@ -1,102 +1,103 @@
 <script setup>
-import { computed, ref, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import posts from '../data/posts.json'
-import { getDistanceKm, formatDistance } from '../utils/geo'
-import PostCard from '../components/post/PostCard.vue'
-import PostFilters from '../components/post/PostFilters.vue'
-import Pagination from '../components/common/Pagination.vue'
-import '../assets/css/search.css'
+import { computed, ref, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { getDistanceKm, formatDistance } from "../utils/geo";
+import { usePosts } from "../services/posts";
+import PostCard from "../components/post/PostCard.vue";
+import PostFilters from "../components/post/PostFilters.vue";
+import Pagination from "../components/common/Pagination.vue";
+import "../assets/css/search.css";
 
-const route = useRoute()
-const router = useRouter()
+const route = useRoute();
+const router = useRouter();
+const { posts } = usePosts();
 
-const POSTS_PER_PAGE = 6
-const radiusKm = 50 // Radius in kilometers for Near Me
+const POSTS_PER_PAGE = 6;
+const radiusKm = 50; // Radius in kilometers for Near Me
 
 // ─── Local state (initialised from URL) ────────────────────
-const searchQuery = ref(String(route.query.q || ''))
-const sortBy = ref(String(route.query.sort || 'newest'))
-const currentPage = ref(Number(route.query.page) || 1)
+const searchQuery = ref(String(route.query.q || ""));
+const sortBy = ref(String(route.query.sort || "newest"));
+const currentPage = ref(Number(route.query.page) || 1);
 
 const filters = ref({
-  cuisine: String(route.query.cuisine || 'All'),
-  location: String(route.query.location || 'All'),
-  priceRange: String(route.query.priceRange || 'All'),
-})
+  cuisine: String(route.query.cuisine || "All"),
+  location: String(route.query.location || "All"),
+  priceRange: String(route.query.priceRange || "All"),
+});
 
 // ─── Near Me State ─────────────────────────────────────────
-const userLocation = ref(null)
-const isNearMeActive = ref(route.query.near === 'true')
-const isLocating = ref(false)
-const locationError = ref('')
+const userLocation = ref(null);
+const isNearMeActive = ref(route.query.near === "true");
+const isLocating = ref(false);
+const locationError = ref("");
 
 // If arriving via URL with near=true, try to get location immediately
 if (isNearMeActive.value) {
-  requestLocation()
+  requestLocation();
 }
 
 function requestLocation() {
-  locationError.value = ''
+  locationError.value = "";
 
   if (!navigator.geolocation) {
-    locationError.value = "Geolocation is not supported by your browser."
-    isNearMeActive.value = false
-    return
+    locationError.value = "Geolocation is not supported by your browser.";
+    isNearMeActive.value = false;
+    return;
   }
 
-  isLocating.value = true
+  isLocating.value = true;
 
   navigator.geolocation.getCurrentPosition(
     (position) => {
       userLocation.value = {
         lat: position.coords.latitude,
         lng: position.coords.longitude,
-      }
-      isLocating.value = false
+      };
+      isLocating.value = false;
     },
     (error) => {
-      isLocating.value = false
-      isNearMeActive.value = false
-      userLocation.value = null
-      
+      isLocating.value = false;
+      isNearMeActive.value = false;
+      userLocation.value = null;
+
       switch (error.code) {
         case error.PERMISSION_DENIED:
-          locationError.value = "Location permission denied."
-          break
+          locationError.value = "Location permission denied.";
+          break;
         case error.POSITION_UNAVAILABLE:
-          locationError.value = "Location information is unavailable."
-          break
+          locationError.value = "Location information is unavailable.";
+          break;
         case error.TIMEOUT:
-          locationError.value = "Location request timed out."
-          break
+          locationError.value = "Location request timed out.";
+          break;
         default:
-          locationError.value = "An unknown error occurred."
+          locationError.value = "An unknown error occurred.";
       }
     },
-    { timeout: 10000, enableHighAccuracy: true }
-  )
+    { timeout: 10000, enableHighAccuracy: true },
+  );
 }
 
 function toggleNearMe() {
   if (isNearMeActive.value) {
     // Turn off
-    isNearMeActive.value = false
-    userLocation.value = null
-    locationError.value = ''
+    isNearMeActive.value = false;
+    userLocation.value = null;
+    locationError.value = "";
   } else {
     // Turn on
-    isNearMeActive.value = true
-    requestLocation()
+    isNearMeActive.value = true;
+    requestLocation();
   }
 }
 
 // ─── Computed: filtered + sorted posts ─────────────────────
 const filteredPosts = computed(() => {
-  let result = [...posts]
+  let result = [...posts.value];
 
   // 1. Keyword
-  const q = searchQuery.value.trim().toLowerCase()
+  const q = searchQuery.value.trim().toLowerCase();
   if (q) {
     result = result.filter(
       (p) =>
@@ -105,22 +106,22 @@ const filteredPosts = computed(() => {
         p.location.toLowerCase().includes(q) ||
         p.cuisine.toLowerCase().includes(q) ||
         p.description.toLowerCase().includes(q),
-    )
+    );
   }
 
   // 2. Cuisine
-  if (filters.value.cuisine !== 'All') {
-    result = result.filter((p) => p.cuisine === filters.value.cuisine)
+  if (filters.value.cuisine !== "All") {
+    result = result.filter((p) => p.cuisine === filters.value.cuisine);
   }
 
   // 3. Location (Dropdown filter)
-  if (filters.value.location !== 'All') {
-    result = result.filter((p) => p.location === filters.value.location)
+  if (filters.value.location !== "All") {
+    result = result.filter((p) => p.location === filters.value.location);
   }
 
   // 4. Price
-  if (filters.value.priceRange !== 'All') {
-    result = result.filter((p) => p.priceRange === filters.value.priceRange)
+  if (filters.value.priceRange !== "All") {
+    result = result.filter((p) => p.priceRange === filters.value.priceRange);
   }
 
   // 5. Near Me (Distance Filter)
@@ -131,102 +132,115 @@ const filteredPosts = computed(() => {
           userLocation.value.lat,
           userLocation.value.lng,
           p.latitude,
-          p.longitude
-        )
-        return { ...p, distanceKm: dist }
+          p.longitude,
+        );
+        return { ...p, distanceKm: dist };
       })
-      .filter((p) => p.distanceKm !== null && p.distanceKm <= radiusKm)
+      .filter((p) => p.distanceKm !== null && p.distanceKm <= radiusKm);
   }
 
   // 6. Sort
-  if (sortBy.value === 'newest') {
-    result.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-  } else if (sortBy.value === 'oldest') {
-    result.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
-  } else if (sortBy.value === 'most-liked') {
-    result.sort((a, b) => b.likes - a.likes)
-  } else if (sortBy.value === 'least-liked') {
-    result.sort((a, b) => a.likes - b.likes)
+  if (sortBy.value === "newest") {
+    result.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  } else if (sortBy.value === "oldest") {
+    result.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+  } else if (sortBy.value === "most-liked") {
+    result.sort((a, b) => b.likes - a.likes);
+  } else if (sortBy.value === "least-liked") {
+    result.sort((a, b) => a.likes - b.likes);
   }
 
-  return result
-})
+  return result;
+});
 
 const totalPages = computed(() =>
   Math.max(1, Math.ceil(filteredPosts.value.length / POSTS_PER_PAGE)),
-)
+);
+
+watch(
+  totalPages,
+  (maximum) => {
+    if (!Number.isInteger(currentPage.value) || currentPage.value < 1) {
+      currentPage.value = 1;
+    } else if (currentPage.value > maximum) {
+      currentPage.value = maximum;
+    }
+  },
+  { immediate: true },
+);
 
 const paginatedPosts = computed(() => {
-  const start = (currentPage.value - 1) * POSTS_PER_PAGE
-  return filteredPosts.value.slice(start, start + POSTS_PER_PAGE)
-})
+  const start = (currentPage.value - 1) * POSTS_PER_PAGE;
+  return filteredPosts.value.slice(start, start + POSTS_PER_PAGE);
+});
 
 // ─── Sync state → URL ──────────────────────────────────────
-let isSyncingFromSelf = false
+let isSyncingFromSelf = false;
 
 function syncUrl() {
-  const query = {}
+  const query = {};
 
-  if (searchQuery.value.trim()) query.q = searchQuery.value.trim()
-  if (filters.value.cuisine !== 'All') query.cuisine = filters.value.cuisine
-  if (filters.value.location !== 'All') query.location = filters.value.location
-  if (filters.value.priceRange !== 'All') query.priceRange = filters.value.priceRange
-  if (sortBy.value !== 'newest') query.sort = sortBy.value
-  if (currentPage.value > 1) query.page = currentPage.value
-  if (isNearMeActive.value) query.near = 'true'
+  if (searchQuery.value.trim()) query.q = searchQuery.value.trim();
+  if (filters.value.cuisine !== "All") query.cuisine = filters.value.cuisine;
+  if (filters.value.location !== "All") query.location = filters.value.location;
+  if (filters.value.priceRange !== "All")
+    query.priceRange = filters.value.priceRange;
+  if (sortBy.value !== "newest") query.sort = sortBy.value;
+  if (currentPage.value > 1) query.page = currentPage.value;
+  if (isNearMeActive.value) query.near = "true";
 
-  isSyncingFromSelf = true
-  router.replace({ name: 'search', query }).finally(() => {
+  isSyncingFromSelf = true;
+  router.replace({ name: "search", query }).finally(() => {
     setTimeout(() => {
-      isSyncingFromSelf = false
-    }, 0)
-  })
+      isSyncingFromSelf = false;
+    }, 0);
+  });
 }
 
 // Filters changed → reset to page 1, then sync URL
 watch(
   [searchQuery, filters, sortBy, isNearMeActive],
   () => {
-    if (currentPage.value !== 1) currentPage.value = 1
-    syncUrl()
+    if (currentPage.value !== 1) currentPage.value = 1;
+    syncUrl();
   },
   { deep: true },
-)
+);
 
 // Page changed → sync URL
-watch(currentPage, syncUrl)
+watch(currentPage, syncUrl);
 
 // ─── Sync URL → state (Back/Forward, pasted links) ─────────
 watch(
   () => route.query,
   (q) => {
-    if (isSyncingFromSelf) return
+    if (isSyncingFromSelf) return;
 
-    const newPage = Number(q.page) || 1
-    if (newPage !== currentPage.value) currentPage.value = newPage
+    const newPage = Number(q.page) || 1;
+    if (newPage !== currentPage.value) currentPage.value = newPage;
 
-    const newQ = String(q.q || '')
-    if (newQ !== searchQuery.value) searchQuery.value = newQ
+    const newQ = String(q.q || "");
+    if (newQ !== searchQuery.value) searchQuery.value = newQ;
 
-    const newSort = String(q.sort || 'newest')
-    if (newSort !== sortBy.value) sortBy.value = newSort
+    const newSort = String(q.sort || "newest");
+    if (newSort !== sortBy.value) sortBy.value = newSort;
 
-    const newNear = q.near === 'true'
+    const newNear = q.near === "true";
     if (newNear !== isNearMeActive.value) {
-      isNearMeActive.value = newNear
-      if (newNear && !userLocation.value) requestLocation()
+      isNearMeActive.value = newNear;
+      if (newNear && !userLocation.value) requestLocation();
     }
 
     const newFilters = {
-      cuisine: String(q.cuisine || 'All'),
-      location: String(q.location || 'All'),
-      priceRange: String(q.priceRange || 'All'),
-    }
+      cuisine: String(q.cuisine || "All"),
+      location: String(q.location || "All"),
+      priceRange: String(q.priceRange || "All"),
+    };
     if (JSON.stringify(newFilters) !== JSON.stringify(filters.value)) {
-      filters.value = newFilters
+      filters.value = newFilters;
     }
   },
-)
+);
 </script>
 
 <template>
@@ -265,20 +279,21 @@ watch(
 
         <!-- Results -->
         <div class="col-12 col-lg-9">
-          
           <!-- Results header -->
           <header class="results-header">
             <div class="d-flex flex-wrap align-items-center gap-3">
               <p class="results-count mb-0">
                 <strong>{{ filteredPosts.length }}</strong>
-                {{ filteredPosts.length === 1 ? 'result' : 'results' }}
+                {{ filteredPosts.length === 1 ? "result" : "results" }}
                 <span v-if="searchQuery">for "{{ searchQuery }}"</span>
-                <span v-if="isNearMeActive" class="text-success"> · within {{ radiusKm }}km</span>
+                <span v-if="isNearMeActive" class="text-success">
+                  · within {{ radiusKm }}km</span
+                >
               </p>
 
               <!-- NEAR ME BUTTON -->
-              <button 
-                type="button" 
+              <button
+                type="button"
                 class="near-me-btn"
                 :class="{ 'is-active': isNearMeActive }"
                 :disabled="isLocating"
@@ -287,11 +302,15 @@ watch(
                 <template v-if="isNearMeActive">
                   <i class="bi bi-geo-alt-fill me-1" aria-hidden="true"></i>
                   Near Me
-                  <i class="bi bi-x-circle-fill ms-1" aria-hidden="true" title="Clear Near Me"></i>
+                  <i
+                    class="bi bi-x-circle-fill ms-1"
+                    aria-hidden="true"
+                    title="Clear Near Me"
+                  ></i>
                 </template>
                 <template v-else>
                   <i class="bi bi-geo-alt me-1" aria-hidden="true"></i>
-                  {{ isLocating ? 'Locating…' : 'Near Me' }}
+                  {{ isLocating ? "Locating…" : "Near Me" }}
                 </template>
               </button>
             </div>
@@ -308,7 +327,11 @@ watch(
           </header>
 
           <!-- Location error -->
-          <div v-if="locationError" class="alert alert-warning mb-3" role="alert">
+          <div
+            v-if="locationError"
+            class="alert alert-warning mb-3"
+            role="alert"
+          >
             <i class="bi bi-exclamation-triangle-fill me-2"></i>
             {{ locationError }}
           </div>
@@ -330,9 +353,11 @@ watch(
               :key="post.id"
               class="col-12 col-sm-6 col-xl-4"
             >
-              <PostCard 
-                :post="post" 
-                :distance="post.distanceKm ? formatDistance(post.distanceKm) : null"
+              <PostCard
+                :post="post"
+                :distance="
+                  post.distanceKm ? formatDistance(post.distanceKm) : null
+                "
               />
             </div>
           </div>

@@ -2,6 +2,7 @@
 import { createRouter, createWebHistory } from "vue-router";
 import HomeView from "../views/HomeView.vue";
 import { useAuth } from "../services/auth";
+import { usePosts } from "../services/posts";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -109,6 +110,31 @@ router.beforeEach(async (to) => {
 
   if (["login", "register"].includes(to.name) && isLoggedIn.value) {
     return { name: "home" };
+  }
+});
+
+const postPageNames = [
+  "home",
+  "search",
+  "post-detail",
+  "edit-post",
+  "my-profile",
+  "user-profile",
+  "saved",
+];
+
+router.beforeResolve(async (to, from) => {
+  if (!postPageNames.includes(to.name)) return;
+
+  const { loadPosts, postsLoaded, postError } = usePosts();
+
+  // Search updates its query string while typing/filtering.
+  // Those changes can reuse the collection already loaded.
+  const needsRefresh =
+    to.path !== from.path || !postsLoaded.value || Boolean(postError.value);
+
+  if (needsRefresh) {
+    await loadPosts();
   }
 });
 

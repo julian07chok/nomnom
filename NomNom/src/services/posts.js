@@ -1,177 +1,69 @@
 import { computed, ref } from "vue";
-import seedPosts from "../data/posts.json";
+import { apiRequest } from "./api";
 
-const STORAGE_KEY = "nomnom-created-posts";
-const DELETED_POSTS_KEY = "nomnom-deleted-posts";
+const postList = ref([]);
+const isLoading = ref(false);
+const postError = ref("");
+const postsLoaded = ref(false);
 
-// ── Storage helpers ────────────────────────────────────────
-function loadArray(key) {
-  try {
-    const raw = localStorage.getItem(key);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
+let pendingRequest = null;
+
+function loadPosts() {
+  // Share an existing request if another component is loading posts.
+  if (pendingRequest) return pendingRequest;
+
+  pendingRequest = (async () => {
+    isLoading.value = true;
+    postError.value = "";
+
+    try {
+      const data = await apiRequest("posts.php");
+
+      if (!Array.isArray(data.posts)) {
+        throw new Error("The server returned an invalid post list.");
+      }
+
+      postList.value = data.posts;
+      postsLoaded.value = true;
+      return true;
+    } catch (error) {
+      postList.value = [];
+      postsLoaded.value = false;
+      postError.value = error.message || "Unable to load posts.";
+      return false;
+    } finally {
+      isLoading.value = false;
+    }
+  })().finally(() => {
+    pendingRequest = null;
+  });
+
+  return pendingRequest;
 }
 
-function saveArray(key, list) {
-  try {
-    localStorage.setItem(key, JSON.stringify(list));
-  } catch {
-    throw new Error(
-      "Unable to save this post. Browser storage may be full or unavailable. Try fewer or smaller photos.",
-    );
-  }
+// These remain exported so existing forms can still import them.
+// Their database implementations come in the next stages.
+function createPost() {
+  throw new Error("Post creation is temporarily unavailable.");
 }
 
-// ── Reactive state ─────────────────────────────────────────
-const createdPosts = ref(loadArray(STORAGE_KEY));
-const deletedPostIds = ref(loadArray(DELETED_POSTS_KEY));
-
-// ── Combined feed (created + seed, minus deleted) ──────────
-const posts = computed(() =>
-  [...createdPosts.value, ...seedPosts].filter(
-    (post) => !deletedPostIds.value.includes(post.id),
-  ),
-);
-
-// ── Unique id (works in all browsers) ──────────────────────
-// crypto.randomUUID() is undefined in older Safari / non-HTTPS.
-function uid() {
-  if (typeof crypto !== "undefined" && crypto.randomUUID) {
-    return crypto.randomUUID();
-  }
-  return `p-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+function updatePost() {
+  throw new Error("Post editing is temporarily unavailable.");
 }
 
-/**
- * Create a new post.
- * TODO: replace with POST /api/posts
- */
-function createPost(data, user) {
-  if (!user) {
-    throw new Error("Please log in before publishing.");
-  }
-
-  const post = {
-    ...data,
-    id: uid(),
-    authorId: user.id,
-    authorName: user.username,
-    authorAvatar: user.avatar,
-    likes: 0,
-    likedByMe: false,
-    savedByMe: false,
-    createdAt: new Date().toISOString(),
-    commentIds: [],
-  };
-
-  const updatedPosts = [post, ...createdPosts.value];
-  saveArray(STORAGE_KEY, updatedPosts);
-  createdPosts.value = updatedPosts;
-  return post;
-}
-
-/**
- * Update an existing post. Only the author can update.
- * TODO: replace with PUT /api/posts/:id
- */
-function updatePost(id, data, user) {
-  if (!user) {
-    throw new Error("Please log in before editing.");
-  }
-
-  const stringId = String(id);
-  const existing = [...createdPosts.value, ...seedPosts].find(
-    (post) => String(post.id) === stringId,
-  );
-
-  if (!existing) {
-    throw new Error("This post no longer exists.");
-  }
-
-  if (String(existing.authorId) !== String(user.id)) {
-    throw new Error("You can only edit your own posts.");
-  }
-
-  // If it's a seed post, we "fork" it into createdPosts so the
-  // edit is saved. Otherwise update in place.
-  const isSeed = !createdPosts.value.some(
-    (post) => String(post.id) === stringId,
-  );
-
-  const updatedPost = {
-    ...existing,
-    ...data,
-    id: existing.id, // never let the id change
-    authorId: existing.authorId,
-    authorName: existing.authorName,
-    authorAvatar: existing.authorAvatar,
-    createdAt: existing.createdAt,
-    updatedAt: new Date().toISOString(),
-  };
-
-  let updated;
-  if (isSeed) {
-    // Fork: prepend the edited copy so it shadows the seed post
-    updated = [updatedPost, ...createdPosts.value];
-  } else {
-    // Update in place
-    updated = createdPosts.value.map((post) =>
-      String(post.id) === stringId ? updatedPost : post,
-    );
-  }
-
-  saveArray(STORAGE_KEY, updated);
-  createdPosts.value = updated;
-  return updatedPost;
-}
-
-/**
- * Delete a post. Only the author can delete.
- * TODO: replace with DELETE /api/posts/:id
- */
-function deletePost(id, user) {
-  if (!user) {
-    throw new Error("Please log in before deleting.");
-  }
-
-  const stringId = String(id);
-  const existing = [...createdPosts.value, ...seedPosts].find(
-    (post) => String(post.id) === stringId,
-  );
-
-  if (!existing) {
-    throw new Error("This post no longer exists.");
-  }
-
-  if (String(existing.authorId) !== String(user.id)) {
-    throw new Error("You can only delete your own posts.");
-  }
-
-  // If it's a seed post, add its id to deletedPostIds.
-  // If it's a created post, remove it from createdPosts.
-  const isSeed = !createdPosts.value.some(
-    (post) => String(post.id) === stringId,
-  );
-
-  if (isSeed) {
-    const deleted = [...deletedPostIds.value, existing.id];
-    saveArray(DELETED_POSTS_KEY, deleted);
-    deletedPostIds.value = deleted;
-  } else {
-    const filtered = createdPosts.value.filter(
-      (post) => String(post.id) !== stringId,
-    );
-    saveArray(STORAGE_KEY, filtered);
-    createdPosts.value = filtered;
-  }
-
-  return existing;
+function deletePost() {
+  throw new Error("Post deletion is temporarily unavailable.");
 }
 
 export function usePosts() {
-  return { posts, createPost, updatePost, deletePost };
+  return {
+    posts: computed(() => postList.value),
+    isLoading: computed(() => isLoading.value),
+    postError: computed(() => postError.value),
+    postsLoaded: computed(() => postsLoaded.value),
+    loadPosts,
+    createPost,
+    updatePost,
+    deletePost,
+  };
 }

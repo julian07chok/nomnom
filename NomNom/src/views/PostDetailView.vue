@@ -1,211 +1,29 @@
 <!-- src/views/PostDetailView.vue -->
 <script setup>
-import { computed, ref, watch } from "vue";
-import { useRoute, useRouter } from "vue-router";
+import { computed } from "vue";
+import { useRoute } from "vue-router";
 import { usePosts } from "../services/posts";
 import { useAuth } from "../services/auth";
-import commentsData from "../data/comments.json";
 
 import PostGallery from "../components/post/PostGallery.vue";
-import PostActions from "../components/post/PostActions.vue";
-import CommentList from "../components/comment/CommentList.vue";
-import CommentForm from "../components/comment/CommentForm.vue";
+import UserAvatar from "../components/user/UserAvatar.vue";
 
 import "../assets/css/post-detail.css";
 
 const route = useRoute();
-const router = useRouter();
 
-const { posts, deletePost: deletePostFromService } = usePosts();
-const { currentUser, isLoggedIn, profileLinkFor } = useAuth();
+const { posts, isLoading, postError } = usePosts();
+const { profileLinkFor } = useAuth();
 
-// ────────────────────────────────────────────────────────────
-// Persistence helpers (mock only — swap for PHP later)
-// ────────────────────────────────────────────────────────────
-const SAVED_KEY = "nomnom-saved-posts";
-const LIKED_KEY = "nomnom-liked-posts";
-const EXTRA_COMMENTS_KEY = "nomnom-extra-comments";
-
-function readJSON(key, fallback) {
-  try {
-    const raw = localStorage.getItem(key);
-    if (!raw) return fallback;
-    const parsed = JSON.parse(raw);
-    return parsed ?? fallback;
-  } catch {
-    return fallback;
-  }
-}
-
-function writeJSON(key, value) {
-  try {
-    localStorage.setItem(key, JSON.stringify(value));
-  } catch {
-    // Storage unavailable — UI still works this session.
-  }
-}
-
-const savedByUser = ref(readJSON(SAVED_KEY, {}));
-const likedByUser = ref(readJSON(LIKED_KEY, {}));
-const extraComments = ref(readJSON(EXTRA_COMMENTS_KEY, []));
-
-// ─── 1. Post ────────────────────────────────────────────────
-const post = ref(null);
-const notFound = ref(false);
-
-function loadPost(id) {
-  const found = posts.value.find((p) => String(p.id) === String(id));
-
-  if (!found) {
-    notFound.value = true;
-    post.value = null;
-    return;
-  }
-
-  notFound.value = false;
-  post.value = { ...found };
-}
-
-watch(() => route.params.id, (newId) => loadPost(newId), { immediate: true });
-
-// Re-load if the underlying posts array changes (e.g. after delete)
-watch(posts, () => loadPost(route.params.id));
-
-// ─── 2. Owner check ────────────────────────────────────────
-const isOwner = computed(
+const post = computed(
   () =>
-    isLoggedIn.value &&
-    post.value?.authorName === currentUser.value?.username,
+    posts.value.find((item) => String(item.id) === String(route.params.id)) ??
+    null,
 );
 
-// ─── 3. Like / Save (persisted per user) ───────────────────
-const liked = computed(() => {
-  if (!currentUser.value || !post.value) return false;
-  const list = likedByUser.value[currentUser.value.id] || [];
-  return list.map(String).includes(String(post.value.id));
-});
-
-const saved = computed(() => {
-  if (!currentUser.value || !post.value) return false;
-  const list = savedByUser.value[currentUser.value.id] || [];
-  return list.map(String).includes(String(post.value.id));
-});
-
-const displayLikes = computed(() => {
-  if (!post.value) return 0;
-  return post.value.likes + (liked.value ? 1 : 0);
-});
-
-function toggleListInMap(mapRef, key, userId, postId) {
-  const map = { ...mapRef.value };
-  const current = (map[userId] || []).map(String);
-  const target = String(postId);
-  const idx = current.indexOf(target);
-
-  if (idx >= 0) current.splice(idx, 1);
-  else current.push(target);
-
-  map[userId] = current;
-  mapRef.value = map;
-  writeJSON(key, map);
-}
-
-function toggleLike() {
-  if (!isLoggedIn.value) {
-    router.push({
-      name: "login",
-      query: { redirect: route.fullPath },
-    });
-    return;
-  }
-  // TODO: replace with POST /api/posts/:id/like
-  toggleListInMap(likedByUser, LIKED_KEY, currentUser.value.id, post.value.id);
-}
-
-function toggleSave() {
-  if (!isLoggedIn.value) {
-    router.push({
-      name: "login",
-      query: { redirect: route.fullPath },
-    });
-    return;
-  }
-  // TODO: replace with POST /api/posts/:id/save
-  toggleListInMap(savedByUser, SAVED_KEY, currentUser.value.id, post.value.id);
-}
-
-// ─── 4. Owner actions ──────────────────────────────────────
-function goEdit() {
-  router.push({ name: "edit-post", params: { id: post.value.id } });
-}
-
-function deletePost() {
-  if (!confirm("Delete this post? This cannot be undone.")) return;
-
-  // TODO: replace with DELETE /api/posts/:id
-  try {
-    deletePostFromService(post.value.id, currentUser.value);
-  } catch (error) {
-    alert(error.message);
-    return;
-  }
-
-  router.push({ name: "home" });
-}
-
-// ─── 5. Comments ───────────────────────────────────────────
-function allCommentsFor(postId) {
-  const seeded = commentsData.filter((c) => c.postId === Number(postId));
-  const added = extraComments.value.filter(
-    (c) => Number(c.postId) === Number(postId),
-  );
-  return [...added, ...seeded];
-}
-
-const comments = ref([]);
-
-watch(
-  post,
-  (p) => {
-    comments.value = p ? allCommentsFor(p.id) : [];
-  },
-  { immediate: true },
+const notFound = computed(
+  () => !isLoading.value && !postError.value && !post.value,
 );
-
-function addComment({ text, images }) {
-  if (!isLoggedIn.value) return;
-
-  const newComment = {
-    id: `local-${Date.now()}`,
-    postId: post.value.id,
-    userId: currentUser.value.id,
-    userName: currentUser.value.username,
-    userAvatar: currentUser.value.avatar,
-    text: text || "",
-    images: images || [],
-    createdAt: new Date().toISOString(),
-  };
-
-  // TODO: replace with POST /api/posts/:id/comments
-  const updated = [newComment, ...extraComments.value];
-  extraComments.value = updated;
-  writeJSON(EXTRA_COMMENTS_KEY, updated);
-
-  comments.value = [newComment, ...comments.value];
-}
-
-function deleteComment(commentId) {
-  // TODO: replace with DELETE /api/comments/:id
-  const updated = extraComments.value.filter(
-    (c) => String(c.id) !== String(commentId),
-  );
-  extraComments.value = updated;
-  writeJSON(EXTRA_COMMENTS_KEY, updated);
-
-  comments.value = comments.value.filter(
-    (c) => String(c.id) !== String(commentId),
-  );
-}
 </script>
 
 <template>
@@ -222,11 +40,7 @@ function deleteComment(commentId) {
       <article v-else-if="post" class="post-article">
         <header class="post-header">
           <RouterLink :to="profileLinkFor(post.authorName)" class="post-author">
-            <img
-              :src="post.authorAvatar"
-              :alt="post.authorName"
-              class="post-author-avatar"
-            />
+            <UserAvatar :src="post.authorAvatar" :size="40" />
             <div>
               <p class="post-author-name">{{ post.authorName }}</p>
               <p class="post-date">
@@ -242,17 +56,10 @@ function deleteComment(commentId) {
 
         <PostGallery :images="post.gallery" :alt="post.title" />
 
-        <PostActions
-          :likes="displayLikes"
-          :liked="liked"
-          :saved="saved"
-          :is-owner="isOwner"
-          :is-logged-in="isLoggedIn"
-          @toggle-like="toggleLike"
-          @toggle-save="toggleSave"
-          @edit="goEdit"
-          @delete="deletePost"
-        />
+        <p class="text-secondary mt-3">
+          <i class="bi bi-heart" aria-hidden="true"></i>
+          {{ post.likes }} {{ post.likes === 1 ? "like" : "likes" }}
+        </p>
 
         <section class="post-info">
           <h2 class="post-restaurant">
@@ -279,15 +86,6 @@ function deleteComment(commentId) {
           <h2>About this place</h2>
           <p>{{ post.description }}</p>
         </section>
-
-        <!-- Comments -->
-        <CommentList
-          :comments="comments"
-          :current-user="currentUser?.username || ''"
-          @delete-comment="deleteComment"
-        />
-
-        <CommentForm :is-logged-in="isLoggedIn" @submit-comment="addComment" />
       </article>
     </div>
   </main>
