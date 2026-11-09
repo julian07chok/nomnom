@@ -23,6 +23,12 @@ dist-ssr
 *.sln
 *.sw?
 
+# Private backend configuration
+/backend/nomnom-api/config.local.php
+
+# User-uploaded files
+/backend/nomnom-api/uploads/
+
 # Repomix
 repomix-output.xml
 *repomix*.xml
