@@ -38,6 +38,10 @@ function loadPosts() {
         ...post,
         coverImage: resolveImageUrl(post.coverImage),
         gallery: post.gallery.map(resolveImageUrl),
+        galleryItems: post.galleryItems.map((image) => ({
+          id: image.id,
+          url: resolveImageUrl(image.url),
+        })),
       }));
       postsLoaded.value = true;
       return true;
@@ -113,6 +117,7 @@ async function updatePost(id, data) {
         location: data.location,
         cuisine: data.cuisine,
         priceRange: data.priceRange,
+        photos: data.photos,
       },
     },
   );

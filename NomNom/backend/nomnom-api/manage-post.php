@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . '/bootstrap.php';
+require_once __DIR__ . '/post-photos.php';
 
 $method = $_SERVER['REQUEST_METHOD'];
 
@@ -46,10 +47,21 @@ if (!is_string($id) || !ctype_digit($id) || (int) $id < 1) {
 $postId = (int) $id;
 $values = [];
 $imageUrls = [];
+$photoPlan = null;
+$newPaths = [];
 
 // Validate update data before starting the transaction.
 if ($method === 'PUT') {
     $data = readJsonBody();
+
+    try {
+        $photoPlan = parsePhotoPlan($data);
+    } catch (InvalidArgumentException $error) {
+        respond([
+            'ok' => false,
+            'message' => $error->getMessage(),
+        ], 422);
+    }
 
     $limits = [
         'title' => 100,
@@ -78,9 +90,19 @@ if ($method === 'PUT') {
     }
 
     $cuisines = [
-        'Malaysian', 'Chinese', 'Indian', 'Japanese', 'Korean',
-        'Thai', 'Vietnamese', 'Italian', 'Western', 'Cafe',
-        'Dessert', 'Fusion', 'Middle Eastern',
+        'Malaysian',
+        'Chinese',
+        'Indian',
+        'Japanese',
+        'Korean',
+        'Thai',
+        'Vietnamese',
+        'Italian',
+        'Western',
+        'Cafe',
+        'Dessert',
+        'Fusion',
+        'Middle Eastern',
     ];
 
     $locations = [
@@ -181,6 +203,14 @@ try {
             $postId,
             $userId,
         ]);
+        if ($photoPlan !== null) {
+            $imageUrls = applyPhotoPlan(
+                $pdo,
+                $postId,
+                $photoPlan,
+                $newPaths
+            );
+        }
     } else {
         // Remember image paths before cascading deletion removes rows.
         $statement = $pdo->prepare(
@@ -213,12 +243,25 @@ try {
         $pdo->rollBack();
     }
 
+    foreach ($newPaths as $path) {
+        if (is_file($path)) {
+            @unlink($path);
+        }
+    }
+
+    if ($error instanceof InvalidArgumentException) {
+        respond([
+            'ok' => false,
+            'message' => $error->getMessage(),
+        ], 422);
+    }
+
     throw $error;
 }
 
 // Remove uploaded files only after database deletion succeeds.
 // File cleanup failure must not report the database deletion as failed.
-if ($method === 'DELETE') {
+if (!empty($imageUrls)) {
     try {
         $config = require __DIR__ . '/config.local.php';
         $directory = $config['upload_dir'] ?? '';

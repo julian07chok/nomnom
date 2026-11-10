@@ -136,11 +136,11 @@ function loadPost() {
   form.cuisine = found.cuisine || "";
   form.priceRange = found.priceRange || "";
 
-  const gallery = found.gallery || [];
-  photos.value = gallery.map((src, index) => ({
+  photos.value = found.galleryItems.map((image, index) => ({
     id: uid(),
-    name: `photo-${index + 1}.jpg`,
-    src,
+    imageId: image.id,
+    name: `photo-${index + 1}`,
+    src: image.url,
   }));
 
   submitted.value = false;
@@ -166,7 +166,12 @@ function readPhoto(file) {
     reader.onload = () => {
       const image = new Image();
       image.onload = () =>
-        resolve({ id: uid(), name: file.name, src: reader.result });
+        resolve({
+          id: uid(),
+          imageId: null,
+          name: file.name,
+          src: reader.result,
+        });
       image.onerror = () =>
         reject(new Error(`${file.name} is not a readable image.`));
       image.src = reader.result;
@@ -193,12 +198,14 @@ function onDrop(event) {
 }
 
 function onFileSelected(event) {
-  const files = event.target.files;
+  const files = Array.from(event.target.files || []);
   event.target.value = "";
   addFiles(files);
 }
 
 async function addFiles(fileList) {
+  if (isReading.value || isPublishing.value) return;
+
   const files = Array.from(fileList || []);
   if (!files.length) return;
 
@@ -233,12 +240,14 @@ async function addFiles(fileList) {
 }
 
 function removePhoto(id) {
+  if (isReading.value || isPublishing.value) return;
   photos.value = photos.value.filter((photo) => photo.id !== id);
   photoError.value = "";
   publishError.value = "";
 }
 
 function movePhoto(index, direction) {
+  if (isReading.value || isPublishing.value) return;
   const target = index + direction;
   if (target < 0 || target >= photos.value.length) return;
   const list = [...photos.value];
@@ -305,6 +314,9 @@ async function save() {
       location: form.location,
       cuisine: form.cuisine,
       priceRange: form.priceRange,
+      photos: photos.value.map((photo) =>
+        photo.imageId != null ? { id: photo.imageId } : { dataUrl: photo.src },
+      ),
     });
   } catch (error) {
     publishError.value = error.message || "Unable to save changes.";
@@ -421,14 +433,42 @@ const headingSubtitle = computed(() =>
 
               <!-- Photos -->
               <section class="mb-4" aria-labelledby="photos-title">
-                <h2 id="photos-title" class="section-title">Food photos</h2>
+                <h2 id="photos-title" class="section-title">
+                  Food photos
+                  <span class="photo-hint">
+                    ({{ photos.length }} / {{ MAX_PHOTOS }})
+                  </span>
+                </h2>
 
-                <p class="form-text">
-                  Existing photos are kept when you save. Photo changes are not
-                  available yet.
+                <label for="post-photos" class="form-label">Add photos</label>
+
+                <input
+                  id="post-photos"
+                  ref="fileInput"
+                  class="form-control"
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  multiple
+                  :disabled="
+                    isReading || isPublishing || photos.length >= MAX_PHOTOS
+                  "
+                  :aria-invalid="Boolean(errors.photos || photoError)"
+                  aria-describedby="photos-help photos-error"
+                  @change="onFileSelected"
+                />
+
+                <p id="photos-help" class="form-text">
+                  Keep 1–5 photos, up to 500 KB each. The first photo becomes
+                  the cover.
                 </p>
 
-                <div class="row g-3">
+                <p id="photos-error" class="field-error" aria-live="polite">
+                  {{ photoError || errors.photos }}
+                </p>
+
+                <p v-if="isReading" role="status">Preparing photos…</p>
+
+                <div class="row g-3 mt-1">
                   <div
                     v-for="(photo, index) in photos"
                     :key="photo.id"
@@ -437,9 +477,43 @@ const headingSubtitle = computed(() =>
                     <div class="photo-preview">
                       <img :src="photo.src" :alt="`Photo ${index + 1}`" />
 
-                      <span v-if="index === 0" class="cover-label">
-                        Cover
-                      </span>
+                      <span v-if="index === 0" class="cover-label">Cover</span>
+
+                      <button
+                        class="remove-photo"
+                        type="button"
+                        :disabled="isReading || isPublishing"
+                        :aria-label="`Remove photo ${index + 1}`"
+                        @click="removePhoto(photo.id)"
+                      >
+                        <i class="bi bi-x-lg" aria-hidden="true"></i>
+                      </button>
+                    </div>
+
+                    <div class="d-flex gap-2 mt-2">
+                      <button
+                        class="btn btn-sm btn-outline-dark"
+                        type="button"
+                        :disabled="index === 0 || isReading || isPublishing"
+                        :aria-label="`Move photo ${index + 1} earlier`"
+                        @click="movePhoto(index, -1)"
+                      >
+                        <i class="bi bi-arrow-left" aria-hidden="true"></i>
+                      </button>
+
+                      <button
+                        class="btn btn-sm btn-outline-dark"
+                        type="button"
+                        :disabled="
+                          index === photos.length - 1 ||
+                          isReading ||
+                          isPublishing
+                        "
+                        :aria-label="`Move photo ${index + 1} later`"
+                        @click="movePhoto(index, 1)"
+                      >
+                        <i class="bi bi-arrow-right" aria-hidden="true"></i>
+                      </button>
                     </div>
                   </div>
                 </div>

@@ -92,7 +92,7 @@ if ($postId !== null && !$rows) {
 
 // Fetch images in one query, rather than one query per post.
 $imageSql = '
-    SELECT post_id, image_url
+    SELECT id, post_id, image_url
     FROM nomnom_post_images
 ';
 
@@ -117,14 +117,18 @@ foreach ($imageStatement->fetchAll() as $image) {
         $imagesByPost[$key] = [];
     }
 
-    $imagesByPost[$key][] = $image['image_url'];
+    $imagesByPost[$key][] = [
+    'id' => (int) $image['id'],
+    'url' => $image['image_url'],
+];
 }
 
 $posts = [];
 
 foreach ($rows as $row) {
     $id = (int) $row['id'];
-    $gallery = $imagesByPost[$id] ?? [];
+    $galleryItems = $imagesByPost[$id] ?? [];
+$gallery = array_column($galleryItems, 'url');
 
     $posts[] = [
         'id' => $id,
@@ -151,6 +155,7 @@ foreach ($rows as $row) {
 
         'coverImage' => $gallery[0] ?? '',
         'gallery' => $gallery,
+        'galleryItems' => $galleryItems,
 
         'likes' => (int) $row['like_count'],
         'likedByMe' => (bool) $row['liked_by_me'],
