@@ -1,6 +1,6 @@
 <!-- src/components/post/PostActions.vue -->
 <script setup>
-import '../../assets/css/post-actions.css'
+import "../../assets/css/post-actions.css";
 
 const props = defineProps({
   likes: { type: Number, required: true },
@@ -8,9 +8,10 @@ const props = defineProps({
   saved: { type: Boolean, default: false },
   isOwner: { type: Boolean, default: false },
   isLoggedIn: { type: Boolean, default: false },
-})
+  busy: { type: Boolean, default: false },
+});
 
-const emit = defineEmits(['toggle-like', 'toggle-save', 'edit', 'delete'])
+const emit = defineEmits(["toggle-like", "toggle-save", "edit", "delete"]);
 </script>
 
 <template>
@@ -21,21 +22,29 @@ const emit = defineEmits(['toggle-like', 'toggle-save', 'edit', 'delete'])
       :class="{ 'is-active': liked }"
       :aria-pressed="liked"
       @click="emit('toggle-like')"
+      :disabled="busy"
+      :aria-label="liked ? 'Unlike this post' : 'Like this post'"
     >
-      <i :class="liked ? 'bi bi-heart-fill' : 'bi bi-heart'" aria-hidden="true"></i>
+      <i
+        :class="liked ? 'bi bi-heart-fill' : 'bi bi-heart'"
+        aria-hidden="true"
+      ></i>
       <span>{{ likes }}</span>
     </button>
 
     <button
-      v-if="isLoggedIn"
       type="button"
       class="action-btn action-save"
       :class="{ 'is-active': saved }"
       :aria-pressed="saved"
       @click="emit('toggle-save')"
+      :disabled="busy"
     >
-      <i :class="saved ? 'bi bi-bookmark-fill' : 'bi bi-bookmark'" aria-hidden="true"></i>
-      <span>{{ saved ? 'Saved' : 'Save' }}</span>
+      <i
+        :class="saved ? 'bi bi-bookmark-fill' : 'bi bi-bookmark'"
+        aria-hidden="true"
+      ></i>
+      <span>{{ saved ? "Saved" : "Save" }}</span>
     </button>
 
     <div v-if="isOwner" class="owner-actions">

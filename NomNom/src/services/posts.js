@@ -138,6 +138,44 @@ async function deletePost(id) {
   });
 }
 
+async function changePostInteraction(id, type, active) {
+  const { initAuth, currentUser, isLoggedIn } = useAuth();
+
+  await initAuth();
+
+  if (!isLoggedIn.value) {
+    throw new Error("Please log in to continue.");
+  }
+
+  const viewerId = currentUser.value.id;
+
+  const result = await apiRequest(
+    `post-interactions.php?id=${encodeURIComponent(id)}&type=${type}`,
+    {
+      method: active ? "PUT" : "DELETE",
+    },
+  );
+
+  // Don't apply another account's flags if login changed mid-request.
+  if (currentUser.value?.id === viewerId) {
+    postList.value = postList.value.map((post) =>
+      String(post.id) === String(result.post.id)
+        ? { ...post, ...result.post }
+        : post,
+    );
+  }
+
+  return result.post;
+}
+
+function setLike(id, active) {
+  return changePostInteraction(id, "like", active);
+}
+
+function setSaved(id, active) {
+  return changePostInteraction(id, "save", active);
+}
+
 export function usePosts() {
   return {
     posts: computed(() => postList.value),
@@ -148,5 +186,7 @@ export function usePosts() {
     createPost,
     updatePost,
     deletePost,
+    setLike,
+    setSaved,
   };
 }

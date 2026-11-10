@@ -7,6 +7,7 @@ import { useAuth } from "../services/auth";
 
 import PostGallery from "../components/post/PostGallery.vue";
 import UserAvatar from "../components/user/UserAvatar.vue";
+import PostActions from "../components/post/PostActions.vue";
 
 import "../assets/css/post-detail.css";
 
@@ -14,15 +15,19 @@ const route = useRoute();
 const router = useRouter();
 const isDeleting = ref(false);
 const deleteError = ref("");
+const interactionBusy = ref(false);
+const interactionError = ref("");
 
 const {
   posts,
   isLoading,
   postError,
   deletePost: deletePostFromService,
+  setLike,
+  setSaved,
 } = usePosts();
 
-const { currentUser, profileLinkFor } = useAuth();
+const { currentUser, isLoggedIn, profileLinkFor } = useAuth();
 
 const post = computed(
   () =>
@@ -41,7 +46,13 @@ const isOwner = computed(
 );
 
 async function handleDelete() {
-  if (!post.value || isDeleting.value || !isOwner.value) return;
+  if (
+    !post.value ||
+    isDeleting.value ||
+    interactionBusy.value ||
+    !isOwner.value
+  )
+    return;
 
   if (!window.confirm("Delete this post? This cannot be undone.")) {
     return;
@@ -60,6 +71,33 @@ async function handleDelete() {
 
   await router.push({ name: "home" });
   isDeleting.value = false;
+}
+
+async function handleInteraction(type) {
+  if (!post.value || interactionBusy.value || isDeleting.value) return;
+
+  if (!isLoggedIn.value) {
+    await router.push({
+      name: "login",
+      query: { redirect: route.fullPath },
+    });
+    return;
+  }
+
+  interactionBusy.value = true;
+  interactionError.value = "";
+
+  try {
+    if (type === "like") {
+      await setLike(post.value.id, !post.value.likedByMe);
+    } else {
+      await setSaved(post.value.id, !post.value.savedByMe);
+    }
+  } catch (error) {
+    interactionError.value = error.message || "Unable to update this post.";
+  } finally {
+    interactionBusy.value = false;
+  }
 }
 </script>
 
@@ -93,14 +131,23 @@ async function handleDelete() {
 
         <PostGallery :images="post.gallery" :alt="post.title" />
 
-        <p class="text-secondary mt-3">
-          <i class="bi bi-heart" aria-hidden="true"></i>
-          {{ post.likes }} {{ post.likes === 1 ? "like" : "likes" }}
+        <PostActions
+          :likes="post.likes"
+          :liked="post.likedByMe"
+          :saved="post.savedByMe"
+          :is-logged-in="isLoggedIn"
+          :busy="interactionBusy || isDeleting"
+          @toggle-like="handleInteraction('like')"
+          @toggle-save="handleInteraction('save')"
+        />
+
+        <p v-if="interactionError" class="alert alert-danger" role="alert">
+          {{ interactionError }}
         </p>
 
         <div v-if="isOwner" class="d-flex flex-wrap gap-2 mb-4">
           <RouterLink
-            v-if="!isDeleting"
+            v-if="!isDeleting && !interactionBusy"
             class="btn btn-outline-dark"
             :to="{ name: 'edit-post', params: { id: post.id } }"
           >
@@ -111,7 +158,7 @@ async function handleDelete() {
           <button
             class="btn btn-outline-danger"
             type="button"
-            :disabled="isDeleting"
+            :disabled="isDeleting || interactionBusy"
             @click="handleDelete"
           >
             {{ isDeleting ? "Deleting…" : "Delete post" }}
