@@ -297,29 +297,27 @@ async function save() {
   isPublishing.value = true;
 
   try {
-    updatePost(
-      route.params.id,
-      {
-        title: form.title.trim(),
-        description: form.description.trim(),
-        restaurantName: form.restaurantName.trim(),
-        address: form.address.trim(),
-        location: form.location,
-        cuisine: form.cuisine,
-        priceRange: form.priceRange,
-        coverImage: photos.value[0].src,
-        gallery: photos.value.map((photo) => photo.src),
-      },
-      currentUser.value,
-    );
+    await updatePost(route.params.id, {
+      title: form.title.trim(),
+      description: form.description.trim(),
+      restaurantName: form.restaurantName.trim(),
+      address: form.address.trim(),
+      location: form.location,
+      cuisine: form.cuisine,
+      priceRange: form.priceRange,
+    });
   } catch (error) {
-    publishError.value = error.message;
+    publishError.value = error.message || "Unable to save changes.";
     isPublishing.value = false;
     return;
   }
 
+  await router.push({
+    name: "post-detail",
+    params: { id: route.params.id },
+  });
+
   isPublishing.value = false;
-  await router.push({ name: "post-detail", params: { id: route.params.id } });
 }
 
 // ── Delete ──────────────────────────────────────────────────
@@ -338,7 +336,7 @@ async function handleDelete() {
   publishError.value = "";
 
   try {
-    deletePost(route.params.id, currentUser.value);
+    await deletePost(route.params.id);
   } catch (error) {
     publishError.value = error.message;
     isPublishing.value = false;
@@ -387,7 +385,9 @@ const headingSubtitle = computed(() =>
           <div v-else-if="notOwner" class="edit-state">
             <h1>{{ headingTitle }}</h1>
             <p>{{ headingSubtitle }}</p>
-            <RouterLink class="publish-button" to="/">Back to Discover</RouterLink>
+            <RouterLink class="publish-button" to="/"
+              >Back to Discover</RouterLink
+            >
           </div>
 
           <!-- Edit form -->
@@ -421,130 +421,28 @@ const headingSubtitle = computed(() =>
 
               <!-- Photos -->
               <section class="mb-4" aria-labelledby="photos-title">
-                <h2 id="photos-title" class="section-title">
-                  Food photos
-                  <span class="photo-hint">
-                    ({{ photos.length }} / {{ MAX_PHOTOS }})
-                  </span>
-                </h2>
+                <h2 id="photos-title" class="section-title">Food photos</h2>
 
-                <div
-                  v-if="photos.length < MAX_PHOTOS"
-                  class="drop-zone"
-                  :class="{ 'is-dragging': dragOver }"
-                  role="button"
-                  tabindex="0"
-                  aria-label="Drop photos here or press Enter to browse"
-                  :aria-invalid="Boolean(errors.photos || photoError)"
-                  aria-describedby="photos-help photos-error"
-                  @click="pickFile"
-                  @keydown.enter.prevent="pickFile"
-                  @keydown.space.prevent="pickFile"
-                  @dragover.prevent="onDragOver"
-                  @dragenter.prevent="onDragOver"
-                  @dragleave.prevent="onDragLeave"
-                  @drop.prevent="onDrop"
-                >
-                  <i
-                    :class="
-                      isReading
-                        ? 'bi bi-arrow-repeat spin'
-                        : 'bi bi-cloud-arrow-up'
-                    "
-                    aria-hidden="true"
-                  ></i>
-
-                  <p class="drop-title">
-                    <template v-if="isReading">Preparing your photos…</template>
-                    <template v-else-if="dragOver">
-                      Drop your photos here
-                    </template>
-                    <template v-else>
-                      Add more photos — drag here or
-                      <span class="drop-link">browse files</span>
-                    </template>
-                  </p>
-
-                  <p class="drop-hint">
-                    JPG, PNG, or WebP · up to 500 KB each · max
-                    {{ MAX_PHOTOS }}
-                  </p>
-
-                  <input
-                    id="post-photos"
-                    ref="fileInput"
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp"
-                    multiple
-                    class="visually-hidden"
-                    :disabled="isReading || isPublishing"
-                    @change="onFileSelected"
-                  />
-                </div>
-
-                <p id="photos-help" class="form-text">
-                  The first photo becomes the cover. Use the arrows to reorder.
+                <p class="form-text">
+                  Existing photos are kept when you save. Photo changes are not
+                  available yet.
                 </p>
 
-                <p id="photos-error" class="field-error" aria-live="polite">
-                  {{ photoError || errors.photos }}
-                </p>
-
-                <div v-if="photos.length" class="row g-3 mt-1">
+                <div class="row g-3">
                   <div
                     v-for="(photo, index) in photos"
                     :key="photo.id"
                     class="col-6 col-md-4"
                   >
                     <div class="photo-preview">
-                      <img
-                        :src="photo.src"
-                        :alt="`Photo ${index + 1}`"
-                      />
+                      <img :src="photo.src" :alt="`Photo ${index + 1}`" />
 
-                      <span v-if="index === 0" class="cover-label">Cover</span>
-
-                      <button
-                        class="remove-photo"
-                        type="button"
-                        :aria-label="`Remove photo ${index + 1}`"
-                        :disabled="isReading || isPublishing"
-                        @click="removePhoto(photo.id)"
-                      >
-                        <i class="bi bi-x-lg" aria-hidden="true"></i>
-                      </button>
-
-                      <div class="reorder-controls">
-                        <button
-                          type="button"
-                          class="reorder-btn"
-                          :aria-label="`Move photo ${index + 1} left`"
-                          :disabled="index === 0 || isReading || isPublishing"
-                          @click="movePhoto(index, -1)"
-                        >
-                          <i class="bi bi-arrow-left" aria-hidden="true"></i>
-                        </button>
-                        <button
-                          type="button"
-                          class="reorder-btn"
-                          :aria-label="`Move photo ${index + 1} right`"
-                          :disabled="
-                            index === photos.length - 1 ||
-                            isReading ||
-                            isPublishing
-                          "
-                          @click="movePhoto(index, 1)"
-                        >
-                          <i class="bi bi-arrow-right" aria-hidden="true"></i>
-                        </button>
-                      </div>
+                      <span v-if="index === 0" class="cover-label">
+                        Cover
+                      </span>
                     </div>
                   </div>
                 </div>
-
-                <p v-if="photos.length >= MAX_PHOTOS" class="max-photos-note">
-                  Maximum photos reached. Remove one to add another.
-                </p>
               </section>
 
               <!-- Text fields -->
@@ -753,7 +651,9 @@ const headingSubtitle = computed(() =>
   color: var(--red);
   font-weight: 700;
   cursor: pointer;
-  transition: background-color 150ms ease, color 150ms ease;
+  transition:
+    background-color 150ms ease,
+    color 150ms ease;
 }
 
 .delete-button:hover:not(:disabled) {

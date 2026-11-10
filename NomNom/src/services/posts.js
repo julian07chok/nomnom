@@ -93,15 +93,44 @@ async function createPost(data) {
   return { id: Number(result.postId) };
 }
 
-// These remain exported so existing forms can still import them.
-// Their database implementations come in the next stages.
+async function updatePost(id, data) {
+  const { initAuth, isLoggedIn } = useAuth();
+  await initAuth();
 
-function updatePost() {
-  throw new Error("Post editing is temporarily unavailable.");
+  if (!isLoggedIn.value) {
+    throw new Error("Please log in before editing.");
+  }
+
+  const result = await apiRequest(
+    `manage-post.php?id=${encodeURIComponent(id)}`,
+    {
+      method: "PUT",
+      body: {
+        title: data.title,
+        description: data.description,
+        restaurantName: data.restaurantName,
+        address: data.address,
+        location: data.location,
+        cuisine: data.cuisine,
+        priceRange: data.priceRange,
+      },
+    },
+  );
+
+  return { id: Number(result.postId) };
 }
 
-function deletePost() {
-  throw new Error("Post deletion is temporarily unavailable.");
+async function deletePost(id) {
+  const { initAuth, isLoggedIn } = useAuth();
+  await initAuth();
+
+  if (!isLoggedIn.value) {
+    throw new Error("Please log in before deleting.");
+  }
+
+  await apiRequest(`manage-post.php?id=${encodeURIComponent(id)}`, {
+    method: "DELETE",
+  });
 }
 
 export function usePosts() {
