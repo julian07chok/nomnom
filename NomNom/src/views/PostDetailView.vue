@@ -1,13 +1,21 @@
 <!-- src/views/PostDetailView.vue -->
 <script setup>
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { usePosts } from "../services/posts";
 import { useAuth } from "../services/auth";
+import {
+  getComments,
+  createComment,
+  updateComment,
+  deleteComment,
+} from "../services/comments";
 
 import PostGallery from "../components/post/PostGallery.vue";
 import UserAvatar from "../components/user/UserAvatar.vue";
 import PostActions from "../components/post/PostActions.vue";
+import CommentForm from "../components/comment/CommentForm.vue";
+import CommentList from "../components/comment/CommentList.vue";
 
 import "../assets/css/post-detail.css";
 
@@ -34,6 +42,72 @@ const post = computed(
     posts.value.find((item) => String(item.id) === String(route.params.id)) ??
     null,
 );
+
+const comments = ref([]);
+const commentsLoading = ref(false);
+const commentsError = ref("");
+
+let commentRequestVersion = 0;
+
+async function loadComments() {
+  const postId = post.value?.id;
+  const version = ++commentRequestVersion;
+
+  comments.value = [];
+  commentsError.value = "";
+
+  if (!postId) {
+    commentsLoading.value = false;
+    return;
+  }
+
+  commentsLoading.value = true;
+
+  try {
+    const result = await getComments(postId);
+
+    if (version === commentRequestVersion) {
+      comments.value = result;
+    }
+  } catch (error) {
+    if (version === commentRequestVersion) {
+      commentsError.value = error.message || "Unable to load comments.";
+    }
+  } finally {
+    if (version === commentRequestVersion) {
+      commentsLoading.value = false;
+    }
+  }
+}
+
+watch(() => post.value?.id, loadComments, { immediate: true });
+
+async function submitComment(draft) {
+  const postId = post.value.id;
+  const result = await createComment(postId, draft);
+
+  if (post.value?.id === postId) {
+    comments.value = result;
+  }
+}
+
+async function saveComment(id, text) {
+  const postId = post.value.id;
+  const result = await updateComment(id, text);
+
+  if (post.value?.id === postId) {
+    comments.value = result;
+  }
+}
+
+async function removeComment(id) {
+  const postId = post.value.id;
+  const result = await deleteComment(id);
+
+  if (post.value?.id === postId) {
+    comments.value = result;
+  }
+}
 
 const notFound = computed(
   () => !isLoading.value && !postError.value && !post.value,
@@ -193,6 +267,40 @@ async function handleInteraction(type) {
         <section class="post-description">
           <h2>About this place</h2>
           <p>{{ post.description }}</p>
+        </section>
+
+        <section class="mt-5">
+          <p v-if="commentsLoading" role="status">Loading comments…</p>
+
+          <div v-else-if="commentsError">
+            <p class="alert alert-danger" role="alert">
+              {{ commentsError }}
+            </p>
+
+            <button
+              class="btn btn-outline-dark"
+              type="button"
+              @click="loadComments"
+            >
+              Try again
+            </button>
+          </div>
+
+          <template v-else>
+            <CommentList
+              :key="String(post.id)"
+              :comments="comments"
+              :current-user-id="currentUser?.id ?? null"
+              :save-comment="saveComment"
+              :remove-comment="removeComment"
+            />
+
+            <CommentForm
+              :key="`form-${post.id}`"
+              :is-logged-in="isLoggedIn"
+              :submit-comment="submitComment"
+            />
+          </template>
         </section>
       </article>
     </div>

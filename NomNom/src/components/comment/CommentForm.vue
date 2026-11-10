@@ -5,9 +5,10 @@ import "../../assets/css/comment-form.css";
 
 const props = defineProps({
   isLoggedIn: { type: Boolean, default: false },
+  submitComment: { type: Function, required: true },
 });
 
-const emit = defineEmits(["submit-comment"]);
+const isSubmitting = ref(false);
 
 const text = ref("");
 const photos = ref([]);
@@ -79,6 +80,7 @@ function onFileSelected(event) {
 }
 
 async function addFiles(files) {
+  if (isReading.value || isSubmitting.value) return;
   if (!files.length) return;
 
   photoError.value = "";
@@ -110,6 +112,7 @@ async function addFiles(files) {
 }
 
 function removePhoto(id) {
+  if (isReading.value || isSubmitting.value) return;
   photos.value = photos.value.filter((p) => p.id !== id);
   photoError.value = "";
 }
@@ -131,19 +134,27 @@ function validate() {
   return true;
 }
 
-function handleSubmit() {
-  if (isReading.value) return;
+async function handleSubmit() {
+  if (isReading.value || isSubmitting.value) return;
   if (!validate()) return;
 
-  emit("submit-comment", {
-    text: text.value.trim(),
-    images: photos.value.map((p) => p.src),
-  });
-
-  text.value = "";
-  photos.value = [];
-  photoError.value = "";
+  isSubmitting.value = true;
   error.value = "";
+
+  try {
+    await props.submitComment({
+      text: text.value.trim(),
+      images: photos.value.map((photo) => photo.src),
+    });
+
+    text.value = "";
+    photos.value = [];
+    photoError.value = "";
+  } catch (err) {
+    error.value = err.message || "Unable to post your comment.";
+  } finally {
+    isSubmitting.value = false;
+  }
 }
 </script>
 
@@ -174,6 +185,7 @@ function handleSubmit() {
           :maxlength="MAX_LEN"
           placeholder="Share your thoughts…"
           aria-describedby="comment-help"
+          :disabled="isSubmitting"
         ></textarea>
 
         <button
@@ -182,7 +194,7 @@ function handleSubmit() {
           :class="{ 'is-busy': isReading }"
           :aria-label="`Attach photos (up to ${MAX_PHOTOS})`"
           :title="`Attach photos (up to ${MAX_PHOTOS})`"
-          :disabled="isReading || photos.length >= MAX_PHOTOS"
+          :disabled="isReading || isSubmitting || photos.length >= MAX_PHOTOS"
           @click="pickFile"
         >
           <i
@@ -203,7 +215,7 @@ function handleSubmit() {
           accept="image/jpeg,image/png,image/webp"
           multiple
           class="visually-hidden"
-          :disabled="isReading"
+          :disabled="isReading || isSubmitting"
           @change="onFileSelected"
         />
       </div>
@@ -230,7 +242,7 @@ function handleSubmit() {
             type="button"
             class="comment-pending-remove"
             :aria-label="`Remove photo ${index + 1}`"
-            :disabled="isReading"
+            :disabled="isReading || isSubmitting"
             @click="removePhoto(photo.id)"
           >
             <i class="bi bi-x-lg" aria-hidden="true"></i>
@@ -240,8 +252,14 @@ function handleSubmit() {
 
       <p v-if="error" class="comment-error" role="alert">{{ error }}</p>
 
-      <button type="submit" class="comment-submit" :disabled="isReading">
-        {{ isReading ? "Preparing…" : "Post comment" }}
+      <button
+        type="submit"
+        class="comment-submit"
+        :disabled="isReading || isSubmitting"
+      >
+        {{
+          isSubmitting ? "Posting…" : isReading ? "Preparing…" : "Post comment"
+        }}
       </button>
     </form>
   </div>
