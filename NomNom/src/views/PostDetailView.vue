@@ -191,7 +191,9 @@ async function handleInteraction(type) {
           <RouterLink :to="profileLinkFor(post.authorName)" class="post-author">
             <UserAvatar :src="post.authorAvatar" :size="40" />
             <div>
-              <p class="post-author-name">{{ post.authorName }}</p>
+              <p class="post-author-name">
+                {{ post.authorDisplayName || post.authorName }}
+              </p>
               <p class="post-date">
                 {{ new Date(post.createdAt).toLocaleDateString() }}
               </p>

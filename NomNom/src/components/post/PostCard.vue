@@ -1,15 +1,15 @@
 <script setup>
-import '../../assets/css/post-card.css'
-import { useAuth } from '../../services/auth'
+import "../../assets/css/post-card.css";
+import { useAuth } from "../../services/auth";
 
 defineProps({
   post: {
     type: Object,
     required: true,
   },
-})
+});
 
-const { profileLinkFor } = useAuth()
+const { profileLinkFor } = useAuth();
 </script>
 
 <template>
@@ -43,16 +43,13 @@ const { profileLinkFor } = useAuth()
       </p>
 
       <footer class="post-footer">
-        <RouterLink
-          :to="profileLinkFor(post.authorName)"
-          class="post-author"
-        >
+        <RouterLink :to="profileLinkFor(post.authorName)" class="post-author">
           <img
             :src="post.authorAvatar"
             :alt="post.authorName"
             class="author-avatar"
           />
-          <span>{{ post.authorName }}</span>
+          <span>{{ post.authorDisplayName || post.authorName }}</span>
         </RouterLink>
 
         <span class="post-likes">

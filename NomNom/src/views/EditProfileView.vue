@@ -47,8 +47,8 @@ const bioError = computed(() => {
   return "";
 });
 
-const hasErrors = computed(
-  () => Boolean(displayNameError.value || bioError.value),
+const hasErrors = computed(() =>
+  Boolean(displayNameError.value || bioError.value),
 );
 
 // ── File handling ──────────────────────────────────────────
@@ -77,6 +77,7 @@ function onDragLeave() {
 }
 
 function handleFile(file) {
+  if (isSaving.value || isReadingFile.value) return;
   fileError.value = "";
   saveError.value = "";
 
@@ -117,6 +118,7 @@ function handleFile(file) {
 }
 
 function removePhoto() {
+  if (isSaving.value || isReadingFile.value) return;
   avatar.value = "";
   fileError.value = "";
 }
@@ -150,19 +152,17 @@ async function handleSave() {
       avatar: avatar.value, // either a data URL, a URL, or ""
     });
   } catch (error) {
-    // localStorage quota errors will surface here for large data URLs
     saveError.value =
       error.message || "Unable to save changes. Please try again.";
     isSaving.value = false;
     return;
   }
 
-  isSaving.value = false;
   savedSuccessfully.value = true;
 
-  setTimeout(() => {
-    router.push({ name: "my-profile" });
-  }, 800);
+  await router.push({ name: "my-profile" });
+
+  isSaving.value = false;
 }
 
 function handleCancel() {
@@ -191,11 +191,7 @@ function handleCancel() {
               {{ saveError }}
             </div>
 
-            <div
-              v-if="savedSuccessfully"
-              class="edit-success"
-              role="status"
-            >
+            <div v-if="savedSuccessfully" class="edit-success" role="status">
               Profile updated.
             </div>
 
@@ -319,6 +315,7 @@ function handleCancel() {
                   displayNameError ? 'display-name-error' : undefined
                 "
                 @input="saveError = ''"
+                :disabled="isSaving"
               />
               <p
                 v-if="displayNameError"
@@ -344,6 +341,7 @@ function handleCancel() {
                 :aria-invalid="Boolean(bioError)"
                 :aria-describedby="bioError ? 'bio-error' : 'bio-help'"
                 @input="saveError = ''"
+                :disabled="isSaving"
               ></textarea>
               <p v-if="bioError" id="bio-error" class="field-error">
                 {{ bioError }}

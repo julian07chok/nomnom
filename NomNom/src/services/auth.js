@@ -1,99 +1,5 @@
 import { computed, ref } from "vue";
-import users from "../data/users.json";
 import { apiRequest, setCsrfToken } from "./api";
-
-const STORAGE_KEY = "nomnom-demo-user-id";
-const REGISTERED_USERS_KEY = "nomnom-registered-users";
-const PROFILE_OVERRIDES_KEY = "nomnom-profile-overrides";
-
-// ── Locally-registered users ────────────────────────────────
-function loadRegisteredUsers() {
-  try {
-    const raw = localStorage.getItem(REGISTERED_USERS_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-}
-
-function saveRegisteredUsers(list) {
-  try {
-    localStorage.setItem(REGISTERED_USERS_KEY, JSON.stringify(list));
-  } catch {
-    // Storage unavailable — registration still works this session.
-  }
-}
-
-// ── Profile overrides ──────────────────────────────────────
-function loadProfileOverrides() {
-  try {
-    const raw = localStorage.getItem(PROFILE_OVERRIDES_KEY);
-    if (!raw) return {};
-    const parsed = JSON.parse(raw);
-    return parsed && typeof parsed === "object" ? parsed : {};
-  } catch {
-    return {};
-  }
-}
-
-function saveProfileOverrides(map) {
-  try {
-    localStorage.setItem(PROFILE_OVERRIDES_KEY, JSON.stringify(map));
-  } catch {
-    // Storage unavailable — edits still work this session.
-  }
-}
-
-/**
- * All users = demo users from users.json + locally-registered users,
- * with profile overrides applied on top.
- */
-export function allUsers() {
-  const overrides = loadProfileOverrides();
-  return [...users, ...loadRegisteredUsers()].map((user) => {
-    const patch = overrides[user.id];
-    return patch ? { ...user, ...patch } : user;
-  });
-}
-
-/**
- * Find a single user by username (case-insensitive).
- * Returns the public profile (no password).
- */
-export async function getUserByUsername(username) {
-  if (!username) return null;
-
-  try {
-    const data = await apiRequest(
-      `user.php?username=${encodeURIComponent(username)}`,
-    );
-
-    const profile = data.user;
-
-    return {
-      ...profile,
-      avatar: profile.avatar.startsWith("api/")
-        ? `${import.meta.env.BASE_URL}${profile.avatar}`
-        : profile.avatar,
-    };
-  } catch (error) {
-    if (error.status === 404) return null;
-    throw error;
-  }
-}
-
-function publicUser(user) {
-  if (!user) return null;
-
-  const { password, ...profile } = user;
-
-  return {
-    ...profile,
-    displayName: profile.displayName ?? profile.username,
-  };
-}
 
 const currentUser = ref(null);
 const isLoggedIn = computed(() => currentUser.value !== null);
@@ -101,8 +7,22 @@ const isLoggedIn = computed(() => currentUser.value !== null);
 let sessionLoaded = false;
 let sessionRequest = null;
 
+function normalizeProfile(user) {
+  if (!user) return null;
+
+  const avatar = typeof user.avatar === "string" ? user.avatar : "";
+
+  return {
+    ...user,
+    displayName: user.displayName ?? user.username,
+    avatar: avatar.startsWith("api/")
+      ? `${import.meta.env.BASE_URL}${avatar}`
+      : avatar,
+  };
+}
+
 function applySession(data) {
-  currentUser.value = data.user;
+  currentUser.value = normalizeProfile(data.user);
   setCsrfToken(data.csrfToken);
   sessionLoaded = true;
 }
@@ -121,20 +41,32 @@ async function initAuth() {
   return sessionRequest;
 }
 
-/**
- * Where should the "author" link point?
- * Own account → My Profile (/profile)
- * Someone else → User Profile (/users/:username)
- */
+export async function getUserByUsername(username) {
+  if (!username) return null;
+
+  try {
+    const data = await apiRequest(
+      `user.php?username=${encodeURIComponent(username)}`,
+    );
+
+    return normalizeProfile(data.user);
+  } catch (error) {
+    if (error.status === 404) return null;
+    throw error;
+  }
+}
+
 export function profileLinkFor(username) {
   if (!username) return "/";
+
   if (
     currentUser.value &&
     currentUser.value.username.toLowerCase() === String(username).toLowerCase()
   ) {
     return "/profile";
   }
-  return `/users/${username}`;
+
+  return `/users/${encodeURIComponent(username)}`;
 }
 
 async function login(identifier, password) {
@@ -177,28 +109,30 @@ async function register({
 }
 
 async function updateProfile({ displayName, bio, avatar }) {
+  await initAuth();
+
   if (!currentUser.value) {
-    throw new Error("You must be logged in to update your profile.");
+    throw new Error("Please log in to update your profile.");
   }
 
-  const userId = currentUser.value.id;
-
-  const overrides = loadProfileOverrides();
-  overrides[userId] = {
-    ...(overrides[userId] || {}),
+  const body = {
     displayName: displayName.trim(),
     bio: bio.trim(),
-    avatar: avatar.trim(),
-  };
-  saveProfileOverrides(overrides);
-
-  currentUser.value = {
-    ...currentUser.value,
-    displayName: displayName.trim(),
-    bio: bio.trim(),
-    avatar: avatar.trim(),
   };
 
+  // Omit an unchanged avatar so PHP retains its original stored path.
+  const requestedAvatar = avatar.trim();
+
+  if (requestedAvatar !== currentUser.value.avatar) {
+    body.avatar = requestedAvatar;
+  }
+
+  const data = await apiRequest("profile.php", {
+    method: "PUT",
+    body,
+  });
+
+  applySession(data);
   return currentUser.value;
 }
 

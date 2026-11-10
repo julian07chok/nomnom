@@ -36,6 +36,7 @@ function loadPosts() {
 
       postList.value = data.posts.map((post) => ({
         ...post,
+        authorAvatar: resolveImageUrl(post.authorAvatar),
         coverImage: resolveImageUrl(post.coverImage),
         gallery: post.gallery.map(resolveImageUrl),
         galleryItems: post.galleryItems.map((image) => ({

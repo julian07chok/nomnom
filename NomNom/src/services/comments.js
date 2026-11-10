@@ -1,12 +1,20 @@
 import { apiRequest } from "./api";
 import { useAuth } from "./auth";
 
+function resolveImageUrl(url) {
+  if (typeof url !== "string") return "";
+
+  return url.startsWith("api/") ? `${import.meta.env.BASE_URL}${url}` : url;
+}
+
 function normalizeComments(data) {
   return data.comments.map((comment) => ({
     ...comment,
-    images: comment.images.map((url) =>
-      url.startsWith("api/") ? `${import.meta.env.BASE_URL}${url}` : url,
-    ),
+    userAvatar: comment.userAvatar.startsWith("api/")
+      ? `${import.meta.env.BASE_URL}${comment.userAvatar}`
+      : comment.userAvatar,
+    userAvatar: resolveImageUrl(comment.userAvatar),
+    images: comment.images.map(resolveImageUrl),
   }));
 }
 
