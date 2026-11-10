@@ -12,8 +12,10 @@ import "../assets/css/user-profile.css";
 const route = useRoute();
 const { posts } = usePosts();
 
-// Find the user in the combined list (demo + registered + overrides)
-const profile = computed(() => getUserByUsername(route.params.username));
+// Find the user in the combined list
+const profile = ref(null);
+const profileLoading = ref(false);
+const profileError = ref("");
 
 // Find posts published by this user
 const userPosts = computed(() => {
@@ -28,21 +30,47 @@ const userPosts = computed(() => {
 const currentPage = ref(1);
 const perPage = 6;
 
-const totalPages = computed(() =>
-  Math.ceil(userPosts.value.length / perPage),
-);
+const totalPages = computed(() => Math.ceil(userPosts.value.length / perPage));
 
 const paginatedPosts = computed(() => {
   const start = (currentPage.value - 1) * perPage;
   return userPosts.value.slice(start, start + perPage);
 });
 
-// Reset when opening another user's profile
+let profileRequestVersion = 0;
+
+async function loadProfile() {
+  const version = ++profileRequestVersion;
+  const username = String(route.params.username || "");
+
+  profile.value = null;
+  profileError.value = "";
+  profileLoading.value = true;
+
+  try {
+    const result = await getUserByUsername(username);
+
+    if (version === profileRequestVersion) {
+      profile.value = result;
+    }
+  } catch (error) {
+    if (version === profileRequestVersion) {
+      profileError.value = error.message || "Unable to load this profile.";
+    }
+  } finally {
+    if (version === profileRequestVersion) {
+      profileLoading.value = false;
+    }
+  }
+}
+
 watch(
   () => route.params.username,
   () => {
     currentPage.value = 1;
+    loadProfile();
   },
+  { immediate: true },
 );
 
 const joinedDate = computed(() => {
@@ -58,7 +86,19 @@ const joinedDate = computed(() => {
 <template>
   <main class="profile-page py-5">
     <div class="container">
-      <template v-if="profile">
+      <p v-if="profileLoading" class="py-4" role="status">Loading profile…</p>
+
+      <div v-else-if="profileError" class="py-4">
+        <p class="alert alert-danger" role="alert">
+          {{ profileError }}
+        </p>
+
+        <button class="btn btn-outline-dark" type="button" @click="loadProfile">
+          Try again
+        </button>
+      </div>
+
+      <template v-else-if="profile">
         <!-- Profile Header -->
         <section class="profile-card mb-5">
           <div class="profile-cover"></div>

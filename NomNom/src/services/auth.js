@@ -62,19 +62,26 @@ export function allUsers() {
  * Find a single user by username (case-insensitive).
  * Returns the public profile (no password).
  */
-export function getUserByUsername(username) {
+export async function getUserByUsername(username) {
   if (!username) return null;
 
-  const normalized = String(username).toLowerCase();
-  const found = allUsers().find((u) => u.username.toLowerCase() === normalized);
+  try {
+    const data = await apiRequest(
+      `user.php?username=${encodeURIComponent(username)}`,
+    );
 
-  if (!found) return null;
+    const profile = data.user;
 
-  const { password, ...profile } = found;
-  return {
-    ...profile,
-    displayName: profile.displayName ?? profile.username,
-  };
+    return {
+      ...profile,
+      avatar: profile.avatar.startsWith("api/")
+        ? `${import.meta.env.BASE_URL}${profile.avatar}`
+        : profile.avatar,
+    };
+  } catch (error) {
+    if (error.status === 404) return null;
+    throw error;
+  }
 }
 
 function publicUser(user) {
