@@ -107,3 +107,37 @@
   outline: 3px solid var(--red);
   outline-offset: 3px;
 }
+
+@media (max-width: 575.98px) {
+  .nomnom-search {
+    gap: 6px;
+  }
+
+  .nomnom-search--home {
+    padding: 5px;
+  }
+
+  .nomnom-search--explore {
+    padding: 5px 10px;
+  }
+
+  .nomnom-search--home .nomnom-search__icon {
+    margin-left: 8px;
+  }
+
+  .nomnom-search__icon {
+    font-size: 1rem;
+  }
+
+  .nomnom-search__input {
+    padding: 8px 4px;
+    font-size: 1rem;
+  }
+
+  .nomnom-search__submit {
+    min-height: 40px;
+    padding: 8px 16px;
+    font-size: 0.85rem;
+    line-height: 1.2;
+  }
+}

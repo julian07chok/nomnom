@@ -236,6 +236,25 @@ select:focus-visible {
 }
 
 /* Responsive — mobile-first breakpoints */
+@media (max-width: 575.98px) {
+  .home-category-list {
+    gap: 7px;
+  }
+
+  .home-category-chip {
+    min-height: 40px;
+    padding: 7px 14px;
+    font-size: 0.8rem;
+    line-height: 1.2;
+  }
+
+  .home-page .near-me-btn,
+  .home-page .home-sort-select {
+    min-height: 40px;
+    padding: 7px 10px;
+    font-size: 0.8rem;
+  }
+}
 
 @media (min-width: 768px) {
   .home-hero {

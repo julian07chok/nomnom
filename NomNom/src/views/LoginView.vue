@@ -373,6 +373,14 @@ a:focus-visible {
   outline: 3px solid var(--red);
   outline-offset: 3px;
 }
+@media (max-width: 575.98px) {
+  .submit-button {
+    min-height: 40px;
+    padding: 8px 16px;
+    font-size: 0.85rem;
+    line-height: 1.2;
+  }
+}
 
 @media (min-width: 768px) {
   .login-page {

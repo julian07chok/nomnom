@@ -687,12 +687,12 @@ textarea:focus-visible,
     justify-content: flex-end;
   }
 
+  .btn-save,
   .btn-cancel {
-    min-width: 120px;
-  }
-
-  .btn-save {
-    min-width: 160px;
+    min-height: 40px;
+    padding: 8px 16px;
+    font-size: 0.85rem;
+    line-height: 1.2;
   }
 }
 

@@ -767,5 +767,12 @@ const headingSubtitle = computed(() =>
     width: 100%;
     justify-content: center;
   }
+
+  .delete-button {
+    min-height: 40px;
+    padding: 8px 16px;
+    font-size: 0.85rem;
+    line-height: 1.2;
+  }
 }
 </style>
