@@ -107,6 +107,7 @@
 .create-map-section {
   scroll-margin-top: 20px;
   outline: none;
+  margin: 24px 0;
 }
 
 /* Optional: a subtle outline on focus-visible so keyboard users

@@ -125,6 +125,8 @@ async function updatePost(id, data) {
         location: data.location,
         cuisine: data.cuisine,
         priceRange: data.priceRange,
+        latitude: data.latitude,
+        longitude: data.longitude,
         photos: data.photos,
       },
     },
