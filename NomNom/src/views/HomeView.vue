@@ -1,6 +1,7 @@
 <script setup>
-import { computed, onBeforeUnmount, ref } from "vue";
+import { computed, onBeforeUnmount, ref, watch } from "vue";
 import { useRouter } from "vue-router";
+import { useAuth } from "../services/auth";
 import { useDiscoverFeed } from "../composables/useDiscoverFeed";
 import { formatDistance } from "../utils/geo";
 
@@ -14,9 +15,18 @@ import "../assets/css/home.css";
 const router = useRouter();
 const radiusKm = 50;
 
+const { currentUser, isLoggedIn } = useAuth();
+
 const searchQuery = ref("");
 const activeCuisine = ref("All");
-const sortBy = ref("newest");
+const sortBy = ref(isLoggedIn.value ? "recommended" : "newest");
+
+watch(
+  () => currentUser.value?.id,
+  () => {
+    sortBy.value = isLoggedIn.value ? "recommended" : "newest";
+  },
+);
 
 const userLocation = ref(null);
 const isNearMeActive = ref(false);
@@ -44,8 +54,16 @@ const cuisines = [
 
 const feedFilters = computed(() => ({
   cuisine: activeCuisine.value,
-  sort: sortBy.value,
+
+  sort:
+    sortBy.value === "recommended" && !isLoggedIn.value
+      ? "newest"
+      : sortBy.value,
+
+  viewerId: currentUser.value?.id ?? null,
+
   lat: isNearMeActive.value ? (userLocation.value?.lat ?? null) : null,
+
   lng: isNearMeActive.value ? (userLocation.value?.lng ?? null) : null,
 }));
 
@@ -114,7 +132,7 @@ function clearFilters() {
   isLocating.value = false;
   searchQuery.value = "";
   activeCuisine.value = "All";
-  sortBy.value = "newest";
+  sortBy.value = isLoggedIn.value ? "recommended" : "newest";
   locationError.value = "";
   isNearMeActive.value = false;
   userLocation.value = null;
@@ -131,6 +149,22 @@ function onSearch() {
 
 onBeforeUnmount(() => {
   locationRequest++;
+});
+
+const feedTitle = computed(() => {
+  if (isLoggedIn.value && sortBy.value === "recommended") {
+    return activeCuisine.value === "All"
+      ? "Recommended for you"
+      : `${activeCuisine.value} for you`;
+  }
+
+  if (activeCuisine.value !== "All") {
+    return activeCuisine.value;
+  }
+
+  return sortBy.value === "most-liked"
+    ? "Most liked discoveries"
+    : "Latest discoveries";
 });
 </script>
 
@@ -200,9 +234,7 @@ onBeforeUnmount(() => {
         <header class="home-feed-header">
           <div>
             <h2 id="home-feed-title" class="home-feed-title">
-              {{
-                activeCuisine === "All" ? "Latest discoveries" : activeCuisine
-              }}
+              {{ feedTitle }}
             </h2>
             <p class="home-feed-count">
               {{ posts.length }}
@@ -243,7 +275,10 @@ onBeforeUnmount(() => {
             <!-- SORTING -->
             <label for="sort" class="home-sort-label">Sort by</label>
             <select id="sort" v-model="sortBy" class="home-sort-select">
+              <option v-if="isLoggedIn" value="recommended">For you</option>
+
               <option value="newest">Newest</option>
+
               <option value="most-liked">Most liked</option>
             </select>
           </div>

@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . '/bootstrap.php';
+require_once __DIR__ . '/recommendation-scores.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     header('Allow: GET');
@@ -55,8 +56,14 @@ $cuisines = [
 ];
 
 $sortOptions = [
-    'newest' => 'feed.created_at DESC, feed.id DESC',
-    'most-liked' => 'feed.like_count DESC, feed.created_at DESC, feed.id DESC',
+    'newest' =>
+    'feed.created_at DESC, feed.id DESC',
+
+    'most-liked' =>
+    'feed.like_count DESC, feed.created_at DESC, feed.id DESC',
+
+    'recommended' =>
+    'feed.recommendation_score DESC, feed.created_at DESC, feed.id DESC',
 ];
 
 if (!is_string($cuisine) || !in_array($cuisine, $cuisines, true)) {
@@ -68,6 +75,21 @@ if (!is_string($sort) || !isset($sortOptions[$sort])) {
 }
 
 $viewerId = (int) ($_SESSION['user_id'] ?? 0);
+
+// Guests receive the newest feed.
+if ($sort === 'recommended' && $viewerId === 0) {
+    $sort = 'newest';
+}
+
+$recommendationScores = [];
+
+if ($sort === 'recommended') {
+    $recommendationScores = getRecommendationScores(
+        $pdo,
+        $viewerId
+    );
+}
+
 $parameters = [$viewerId, $viewerId];
 
 $distanceSql = 'NULL';
@@ -113,6 +135,24 @@ if ($nearMe) {
     $parameters[] = (float) $lat;
 }
 
+$recommendationSql = '0';
+
+if ($recommendationScores) {
+    $cases = [];
+
+    foreach ($recommendationScores as $preferredCuisine => $score) {
+        // Cuisine names are bound parameters.
+        // Scores are explicitly converted to integers.
+        $cases[] = 'WHEN ? THEN ' . (int) $score;
+        $parameters[] = $preferredCuisine;
+    }
+
+    $recommendationSql =
+        'CASE p.cuisine '
+        . implode(' ', $cases)
+        . ' ELSE 0 END';
+}
+
 $baseSql = "
     SELECT
         p.id, p.title, p.restaurant_name, p.location,
@@ -140,6 +180,7 @@ $baseSql = "
         ) AS saved_by_me,
 
         $distanceSql AS distance_km,
+        $recommendationSql AS recommendation_score,
 
         (
             SELECT image_url
@@ -208,6 +249,8 @@ foreach ($rows as $row) {
         'authorAvatar' => $row['author_avatar'] ?? '',
         'coverImage' => $row['cover_image'] ?? '',
         'likes' => (int) $row['like_count'],
+        'recommendationScore' =>
+        (int) $row['recommendation_score'],
         'likedByMe' => (bool) $row['liked_by_me'],
         'savedByMe' => (bool) $row['saved_by_me'],
         'createdAt' => str_replace(' ', 'T', $row['created_at']) . 'Z',

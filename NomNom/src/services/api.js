@@ -32,6 +32,7 @@ export async function apiRequest(
     response = await fetch(`${API_BASE}${endpoint}`, {
       method,
       headers,
+      signal,
       credentials: "same-origin",
       body:
         body === undefined
