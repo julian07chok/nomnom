@@ -1,14 +1,14 @@
-<!-- src/components/post/PostActions.vue -->
 <script setup>
-import "../../assets/css/post-actions.css";
+import AppButton from "../common/AppButton.vue";
 
-const props = defineProps({
+defineProps({
   likes: { type: Number, required: true },
   liked: { type: Boolean, default: false },
   saved: { type: Boolean, default: false },
   isOwner: { type: Boolean, default: false },
   isLoggedIn: { type: Boolean, default: false },
   busy: { type: Boolean, default: false },
+  deleting: { type: Boolean, default: false },
 });
 
 const emit = defineEmits(["toggle-like", "toggle-save", "edit", "delete"]);
@@ -16,54 +16,57 @@ const emit = defineEmits(["toggle-like", "toggle-save", "edit", "delete"]);
 
 <template>
   <div class="post-actions">
-    <button
-      type="button"
-      class="action-btn action-like"
-      :class="{ 'is-active': liked }"
+    <AppButton
+      variant="secondary"
+      :class="{ 'is-liked': liked }"
+      :disabled="busy || deleting"
       :aria-pressed="liked"
+      :aria-label="`${liked ? 'Unlike' : 'Like'} this post; ${likes} likes`"
       @click="emit('toggle-like')"
-      :disabled="busy"
-      :aria-label="liked ? 'Unlike this post' : 'Like this post'"
     >
       <i
         :class="liked ? 'bi bi-heart-fill' : 'bi bi-heart'"
         aria-hidden="true"
       ></i>
-      <span>{{ likes }}</span>
-    </button>
+      {{ likes }}
+    </AppButton>
 
-    <button
-      type="button"
-      class="action-btn action-save"
-      :class="{ 'is-active': saved }"
+    <AppButton
+      variant="secondary"
+      :class="{ 'is-saved': saved }"
+      :disabled="busy || deleting"
       :aria-pressed="saved"
       @click="emit('toggle-save')"
-      :disabled="busy"
     >
       <i
         :class="saved ? 'bi bi-bookmark-fill' : 'bi bi-bookmark'"
         aria-hidden="true"
       ></i>
-      <span>{{ saved ? "Saved" : "Save" }}</span>
-    </button>
+      {{ saved ? "Saved" : "Save" }}
+    </AppButton>
 
-    <div v-if="isOwner" class="owner-actions">
-      <button
-        type="button"
-        class="action-btn action-edit"
-        @click="emit('edit')"
-      >
-        <i class="bi bi-pencil-square" aria-hidden="true"></i>
-        <span>Edit</span>
-      </button>
-      <button
-        type="button"
-        class="action-btn action-delete"
-        @click="emit('delete')"
-      >
-        <i class="bi bi-trash" aria-hidden="true"></i>
-        <span>Delete</span>
-      </button>
-    </div>
+    <AppButton
+      v-if="isOwner"
+      variant="secondary"
+      :disabled="busy || deleting"
+      @click="emit('edit')"
+    >
+      <i class="bi bi-pencil-square" aria-hidden="true"></i>
+      Edit
+    </AppButton>
+
+    <AppButton
+      v-if="isOwner"
+      variant="danger"
+      :disabled="busy"
+      :loading="deleting"
+      loading-text="Deleting…"
+      @click="emit('delete')"
+    >
+      <i class="bi bi-trash" aria-hidden="true"></i>
+      Delete
+    </AppButton>
   </div>
 </template>
+
+<style scoped src="../../assets/css/post-actions.css"></style>

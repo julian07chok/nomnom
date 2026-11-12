@@ -6,6 +6,7 @@ import { usePosts } from "../services/posts";
 
 import UserAvatar from "../components/user/UserAvatar.vue";
 import Pagination from "../components/common/Pagination.vue";
+import PostCuisineBadge from "../components/post/PostCuisineBadge.vue";
 
 import "../assets/css/my-profile.css";
 
@@ -235,6 +236,7 @@ async function handleLogout() {
                 class="profile-photo-img"
                 loading="lazy"
               />
+              <PostCuisineBadge :cuisine="post.cuisine" />
 
               <!-- Saved Indicator -->
               <span
@@ -248,6 +250,10 @@ async function handleLogout() {
 
             <!-- Post Information -->
             <div class="profile-post-content">
+              <p class="profile-post-location">
+                <i class="bi bi-geo-alt-fill" aria-hidden="true"></i>
+                {{ post.location }}
+              </p>
               <!-- Title and Category -->
               <div class="profile-post-heading">
                 <h3 class="profile-post-title">
@@ -255,10 +261,6 @@ async function handleLogout() {
                     {{ post.title }}
                   </RouterLink>
                 </h3>
-
-                <span class="profile-post-category">
-                  {{ post.cuisine }}
-                </span>
               </div>
 
               <!-- Author and Likes -->

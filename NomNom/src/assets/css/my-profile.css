@@ -349,7 +349,8 @@
 .my-profile-page .profile-photo-bookmark {
   position: absolute;
   top: 8px;
-  right: 8px;
+  left: 8px;
+  right: auto;
 
   display: flex;
   align-items: center;
@@ -417,24 +418,14 @@
   color: #cd4639;
 }
 
-/* Cuisine category badge */
-
-.my-profile-page .profile-post-category {
-  flex-shrink: 0;
-  max-width: 45%;
-
-  padding: 5px 8px;
-  border-radius: 999px;
-
-  background: #dce9fc;
-  color: #483934;
-
-  font-size: 0.7rem;
-  font-weight: 600;
-  line-height: 1.2;
-  text-align: center;
-
-  overflow-wrap: anywhere;
+.my-profile-page .profile-post-location {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0 0 8px;
+  color: var(--text);
+  opacity: 0.75;
+  font-size: 0.8rem;
 }
 
 /* ==========================================
@@ -645,11 +636,6 @@
     font-size: 0.82rem;
   }
 
-  .my-profile-page .profile-post-category {
-    padding: 4px 6px;
-    font-size: 0.62rem;
-  }
-
   /* Compact author and likes */
 
   .my-profile-page .profile-post-author {
@@ -674,6 +660,10 @@
 
   .my-profile-page .profile-empty {
     padding: 48px 20px;
+  }
+
+    .my-profile-page .profile-post-location {
+    font-size: 0.7rem;
   }
 }
 

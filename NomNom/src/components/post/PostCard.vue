@@ -2,6 +2,7 @@
 import "../../assets/css/post-card.css";
 import { useAuth } from "../../services/auth";
 import UserAvatar from "../user/UserAvatar.vue";
+import PostCuisineBadge from "./PostCuisineBadge.vue";
 
 defineProps({
   post: {
@@ -22,12 +23,11 @@ const { profileLinkFor } = useAuth();
         class="post-cover"
         loading="lazy"
       />
-      <span class="price-badge">{{ post.priceRange }}</span>
+      <PostCuisineBadge :cuisine="post.cuisine" />
     </RouterLink>
 
     <div class="post-body">
       <div class="post-meta">
-        <span class="cuisine-pill">{{ post.cuisine }}</span>
         <span class="location">
           <i class="bi bi-geo-alt-fill" aria-hidden="true"></i>
           {{ post.location }}
