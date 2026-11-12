@@ -31,13 +31,6 @@
   text-decoration: none;
 }
 
-.post-author-avatar {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  object-fit: cover;
-}
-
 .post-author-name {
   margin: 0;
   font-weight: 700;
