@@ -6,6 +6,7 @@ import { getDistanceKm, formatDistance } from "../utils/geo";
 import PostCard from "../components/post/PostCard.vue";
 import PaginationControls from "../components/common/Pagination.vue";
 import SearchBar from "../components/common/SearchBar.vue";
+import PostMap from "../components/post/PostMap.vue";
 import "../assets/css/home.css";
 
 const router = useRouter();
@@ -183,33 +184,22 @@ function onSearch() {
             across Malaysia.
           </p>
 
-          <SearchBar
-            v-model="searchQuery"
-            variant="home"
-            placeholder="Search dishes, restaurants, or locations…"
-            @submit="onSearch"
-          />
+          <SearchBar v-model="searchQuery" variant="home" placeholder="Search dishes, restaurants, or locations…"
+            @submit="onSearch" />
         </div>
       </div>
     </section>
 
+    <!-- Interactive map (NEW) -->
+    <PostMap :posts="posts" />
+
     <!-- Cuisine categories -->
     <section class="home-categories-section">
       <div class="container">
-        <ul
-          class="home-category-list"
-          role="tablist"
-          aria-label="Cuisine categories"
-        >
+        <ul class="home-category-list" role="tablist" aria-label="Cuisine categories">
           <li v-for="cuisine in cuisines" :key="cuisine">
-            <button
-              type="button"
-              class="home-category-chip"
-              :class="{ 'is-active': activeCuisine === cuisine }"
-              role="tab"
-              :aria-selected="activeCuisine === cuisine"
-              @click="selectCuisine(cuisine)"
-            >
+            <button type="button" class="home-category-chip" :class="{ 'is-active': activeCuisine === cuisine }"
+              role="tab" :aria-selected="activeCuisine === cuisine" @click="selectCuisine(cuisine)">
               {{ cuisine }}
             </button>
           </li>
@@ -231,28 +221,18 @@ function onSearch() {
               {{ filteredPosts.length }}
               {{ filteredPosts.length === 1 ? "post" : "posts" }}
               <span v-if="isNearMeActive" class="text-success">
-                · within {{ radiusKm }}km</span
-              >
+                · within {{ radiusKm }}km</span>
             </p>
           </div>
 
           <div class="home-feed-controls">
             <!-- TOGGLE NEAR ME BUTTON -->
-            <button
-              type="button"
-              class="near-me-btn"
-              :class="{ 'is-active': isNearMeActive }"
-              :disabled="isLocating"
-              @click="toggleNearMe"
-            >
+            <button type="button" class="near-me-btn" :class="{ 'is-active': isNearMeActive }" :disabled="isLocating"
+              @click="toggleNearMe">
               <template v-if="isNearMeActive">
                 <i class="bi bi-geo-alt-fill me-1" aria-hidden="true"></i>
                 Near Me
-                <i
-                  class="bi bi-x-circle-fill ms-1"
-                  aria-hidden="true"
-                  title="Clear Near Me filter"
-                ></i>
+                <i class="bi bi-x-circle-fill ms-1" aria-hidden="true" title="Clear Near Me filter"></i>
               </template>
               <template v-else>
                 <i class="bi bi-geo-alt me-1" aria-hidden="true"></i>
@@ -270,11 +250,7 @@ function onSearch() {
         </header>
 
         <!-- Location error -->
-        <div
-          v-if="locationError"
-          class="alert alert-warning d-flex align-items-center mb-4"
-          role="alert"
-        >
+        <div v-if="locationError" class="alert alert-warning d-flex align-items-center mb-4" role="alert">
           <i class="bi bi-exclamation-triangle-fill me-2"></i>
           {{ locationError }}
         </div>
@@ -295,29 +271,15 @@ function onSearch() {
 
         <!-- Post grid -->
         <div v-else class="row g-3 g-md-4">
-          <div
-            v-for="post in paginatedPosts"
-            :key="post.id"
-            class="col-6 col-lg-4"
-          >
-            <PostCard
-              :post="post"
-              :distance="
-                post.distanceKm ? formatDistance(post.distanceKm) : null
-              "
-            />
+          <div v-for="post in paginatedPosts" :key="post.id" class="col-6 col-lg-4">
+            <PostCard :post="post" :distance="post.distanceKm ? formatDistance(post.distanceKm) : null
+              " />
           </div>
         </div>
 
         <!-- Pagination -->
-        <PaginationControls
-          v-if="totalPages > 1"
-          v-model:currentPage="currentPage"
-          :total-pages="totalPages"
-          :total-items="filteredPosts.length"
-          :per-page="POSTS_PER_PAGE"
-          scroll-target-id="home-feed-top"
-        />
+        <PaginationControls v-if="totalPages > 1" v-model:currentPage="currentPage" :total-pages="totalPages"
+          :total-items="filteredPosts.length" :per-page="POSTS_PER_PAGE" scroll-target-id="home-feed-top" />
       </div>
     </section>
   </main>
