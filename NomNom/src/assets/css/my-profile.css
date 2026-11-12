@@ -1,4 +1,4 @@
-/* Page */
+/* My Profile page */
 .my-profile-page {
   min-height: 80vh;
   background: #fffcf3;
@@ -20,7 +20,7 @@
 
 .my-profile-page .profile-content {
   position: relative;
-  padding: 76px 20px 24px;
+  padding: 20px;
 }
 
 .my-profile-page .profile-info {
@@ -75,19 +75,23 @@
   font-size: 0.9rem;
 }
 
-/* Actions: top right of the white profile area */
+/* Phone actions beside the avatar */
 .my-profile-page .profile-actions {
   position: absolute;
   top: 20px;
   right: 20px;
-  left: 20px;
+  left: 132px;
   display: flex;
   align-items: center;
   justify-content: flex-end;
+  align-content: center;
+  flex-wrap: wrap;
   gap: 8px;
+  min-height: 100px;
   margin: 0;
 }
 
+/* Profile buttons */
 .my-profile-page .profile-button {
   display: inline-flex;
   align-items: center;
@@ -232,7 +236,7 @@
   font-weight: 800;
 }
 
-/* Posts heading */
+/* My Profile posts heading */
 .my-profile-page .my-posts-section {
   padding-bottom: 48px;
 }
@@ -260,8 +264,8 @@
   line-height: 1.6;
 }
 
-/* Post grid: two columns on mobile */
-.my-profile-page .profile-photo-grid {
+/* Shared profile grid: two columns on phones */
+:is(.my-profile-page, .profile-page) .profile-photo-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   align-items: stretch;
@@ -269,7 +273,7 @@
   width: 100%;
 }
 
-.my-profile-page .profile-post-card {
+:is(.my-profile-page, .profile-page) .profile-post-card {
   display: flex;
   flex-direction: column;
   min-width: 0;
@@ -279,8 +283,8 @@
   background: #fffde0;
 }
 
-/* Post images */
-.my-profile-page .profile-photo-link {
+/* Shared post images */
+:is(.my-profile-page, .profile-page) .profile-photo-link {
   position: relative;
   display: block;
   width: 100%;
@@ -290,7 +294,7 @@
   text-decoration: none;
 }
 
-.my-profile-page .profile-photo-img {
+:is(.my-profile-page, .profile-page) .profile-photo-img {
   position: absolute;
   inset: 0;
   display: block;
@@ -301,7 +305,7 @@
   transition: transform 200ms ease;
 }
 
-.my-profile-page .profile-photo-bookmark {
+:is(.my-profile-page, .profile-page) .profile-photo-bookmark {
   position: absolute;
   top: 8px;
   left: 8px;
@@ -317,8 +321,8 @@
   pointer-events: none;
 }
 
-/* Post information */
-.my-profile-page .profile-post-content {
+/* Shared post information */
+:is(.my-profile-page, .profile-page) .profile-post-content {
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -327,7 +331,7 @@
   padding: 10px;
 }
 
-.my-profile-page .profile-post-heading {
+:is(.my-profile-page, .profile-page) .profile-post-heading {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
@@ -335,7 +339,7 @@
   min-width: 0;
 }
 
-.my-profile-page .profile-post-title {
+:is(.my-profile-page, .profile-page) .profile-post-title {
   display: -webkit-box;
   flex: 1;
   min-width: 0;
@@ -350,16 +354,16 @@
   line-clamp: 2;
 }
 
-.my-profile-page .profile-post-title a {
+:is(.my-profile-page, .profile-page) .profile-post-title a {
   color: inherit;
   text-decoration: none;
 }
 
-.my-profile-page .profile-post-title a:hover {
+:is(.my-profile-page, .profile-page) .profile-post-title a:hover {
   color: #cd4639;
 }
 
-.my-profile-page .profile-post-location {
+:is(.my-profile-page, .profile-page) .profile-post-location {
   display: flex;
   align-items: center;
   gap: 4px;
@@ -369,8 +373,8 @@
   opacity: 0.75;
 }
 
-/* Post footer */
-.my-profile-page .profile-post-footer {
+/* Shared post footer */
+:is(.my-profile-page, .profile-page) .profile-post-footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -379,7 +383,7 @@
   margin-top: auto;
 }
 
-.my-profile-page .profile-post-author {
+:is(.my-profile-page, .profile-page) .profile-post-author {
   display: inline-flex;
   align-items: center;
   gap: 5px;
@@ -388,11 +392,11 @@
   text-decoration: none;
 }
 
-.my-profile-page .profile-post-author:hover {
+:is(.my-profile-page, .profile-page) .profile-post-author:hover {
   color: #cd4639;
 }
 
-.my-profile-page .profile-post-avatar {
+:is(.my-profile-page, .profile-page) .profile-post-avatar {
   flex-shrink: 0;
   width: 24px;
   height: 24px;
@@ -401,7 +405,7 @@
   object-fit: cover;
 }
 
-.my-profile-page .profile-post-username {
+:is(.my-profile-page, .profile-page) .profile-post-username {
   min-width: 0;
   overflow: hidden;
   color: #483934;
@@ -411,7 +415,7 @@
   text-overflow: ellipsis;
 }
 
-.my-profile-page .profile-post-likes {
+:is(.my-profile-page, .profile-page) .profile-post-likes {
   display: inline-flex;
   align-items: center;
   flex-shrink: 0;
@@ -420,12 +424,12 @@
   font-size: 0.75rem;
 }
 
-.my-profile-page .profile-post-likes i {
+:is(.my-profile-page, .profile-page) .profile-post-likes i {
   color: #ed3434;
   font-size: 1rem;
 }
 
-/* Empty collection */
+/* My Profile empty collection */
 .my-profile-page .profile-empty {
   display: flex;
   flex-direction: column;
@@ -461,9 +465,9 @@
 /* Keyboard focus */
 .my-profile-page .profile-button:focus-visible,
 .my-profile-page .profile-tab:focus-visible,
-.my-profile-page .profile-photo-link:focus-visible,
-.my-profile-page .profile-post-title a:focus-visible,
-.my-profile-page .profile-post-author:focus-visible {
+:is(.my-profile-page, .profile-page) .profile-photo-link:focus-visible,
+:is(.my-profile-page, .profile-page) .profile-post-title a:focus-visible,
+:is(.my-profile-page, .profile-page) .profile-post-author:focus-visible {
   outline: 3px solid #cd4639;
   outline-offset: 2px;
 }
@@ -472,16 +476,6 @@
 @media (min-width: 576px) {
   .my-profile-page .profile-cover {
     height: 110px;
-  }
-
-  .my-profile-page .profile-content {
-    padding: 80px 24px 24px;
-  }
-
-  .my-profile-page .profile-actions {
-    top: 24px;
-    right: 24px;
-    left: 24px;
   }
 
   .my-profile-page .profile-actions .profile-button {
@@ -512,40 +506,40 @@
     font-size: 1.6rem;
   }
 
-  .my-profile-page .profile-photo-grid {
+  :is(.my-profile-page, .profile-page) .profile-photo-grid {
     gap: 12px;
   }
 
-  .my-profile-page .profile-post-content {
+  :is(.my-profile-page, .profile-page) .profile-post-content {
     padding: 12px;
   }
 
-  .my-profile-page .profile-post-heading {
+  :is(.my-profile-page, .profile-page) .profile-post-heading {
     gap: 8px;
   }
 
-  .my-profile-page .profile-post-title {
+  :is(.my-profile-page, .profile-page) .profile-post-title {
     font-size: 0.95rem;
   }
 
-  .my-profile-page .profile-post-location {
+  :is(.my-profile-page, .profile-page) .profile-post-location {
     font-size: 0.8rem;
   }
 
-  .my-profile-page .profile-post-author {
+  :is(.my-profile-page, .profile-page) .profile-post-author {
     gap: 8px;
   }
 
-  .my-profile-page .profile-post-avatar {
+  :is(.my-profile-page, .profile-page) .profile-post-avatar {
     width: 28px;
     height: 28px;
   }
 
-  .my-profile-page .profile-post-username {
+  :is(.my-profile-page, .profile-page) .profile-post-username {
     font-size: 0.8rem;
   }
 
-  .my-profile-page .profile-post-likes {
+  :is(.my-profile-page, .profile-page) .profile-post-likes {
     gap: 5px;
     font-size: 0.85rem;
   }
@@ -555,43 +549,24 @@
   }
 }
 
-/* Phones: avatar left, buttons right */
-@media (max-width: 767.98px) {
+/* Tablet */
+@media (min-width: 768px) {
   .my-profile-page .profile-content {
-    padding: 20px;
+    padding: 32px;
   }
 
   .my-profile-page .profile-actions {
-    top: 20px;
-    right: 20px;
-    left: 132px;
-    min-height: 100px;
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    flex-wrap: wrap;
-    align-content: center;
-    gap: 8px;
+    top: 32px;
+    right: 32px;
+    left: auto;
+    min-height: 0;
+    max-width: 220px;
   }
-}
 
-/* Tablet */
-@media (min-width: 768px) {
-.my-profile-page .profile-content {
-  padding: 32px;
-}
-
-
-.my-profile-page .profile-actions {
-  top: 32px;
-  right: 32px;
-  left: auto;
-  max-width: 220px;
-}
-.my-profile-page .profile-heading-row {
-  min-height: 36px;
-  padding-right: 230px;
-}
+  .my-profile-page .profile-heading-row {
+    min-height: 36px;
+    padding-right: 230px;
+  }
 
   .my-profile-page .profile-info {
     flex-direction: row;
@@ -604,24 +579,24 @@
     justify-content: space-between;
   }
 
-  .my-profile-page .profile-photo-grid {
+  :is(.my-profile-page, .profile-page) .profile-photo-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 16px;
   }
 
-  .my-profile-page .profile-post-card {
+  :is(.my-profile-page, .profile-page) .profile-post-card {
     border-radius: 18px;
   }
 
-  .my-profile-page .profile-post-content {
+  :is(.my-profile-page, .profile-page) .profile-post-content {
     padding: 14px;
   }
 
-  .my-profile-page .profile-post-title {
+  :is(.my-profile-page, .profile-page) .profile-post-title {
     font-size: 1rem;
   }
 
-  .my-profile-page .profile-post-avatar {
+  :is(.my-profile-page, .profile-page) .profile-post-avatar {
     width: 32px;
     height: 32px;
   }
@@ -636,13 +611,10 @@
   .my-profile-page .profile-actions {
     top: 40px;
     right: 40px;
-    left: auto;
     max-width: 250px;
   }
 
-  /* Reserve room for the buttons beside the name */
   .my-profile-page .profile-heading-row {
-    min-height: 36px;
     padding-right: 270px;
   }
 
@@ -669,15 +641,17 @@
     padding-left: 16px;
   }
 
-  .my-profile-page .profile-photo-grid {
+  :is(.my-profile-page, .profile-page) .profile-photo-grid {
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 20px;
   }
 }
 
-/* Pointer hover */
+/* Image hover */
 @media (hover: hover) {
-  .my-profile-page .profile-photo-link:hover .profile-photo-img {
+  :is(.my-profile-page, .profile-page)
+    .profile-photo-link:hover
+    .profile-photo-img {
     transform: scale(1.04);
   }
 }
@@ -686,7 +660,7 @@
 @media (prefers-reduced-motion: reduce) {
   .my-profile-page .profile-button,
   .my-profile-page .profile-tab,
-  .my-profile-page .profile-photo-img {
+  :is(.my-profile-page, .profile-page) .profile-photo-img {
     transition: none;
   }
 }

@@ -74,7 +74,7 @@ const displayedPosts = computed(() => {
 // ==========================================
 
 const currentPage = ref(1);
-const perPage = 12;
+const perPage = 6;
 
 const totalPages = computed(() =>
   Math.max(1, Math.ceil(displayedPosts.value.length / perPage)),

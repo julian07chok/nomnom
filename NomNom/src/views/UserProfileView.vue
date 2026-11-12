@@ -5,8 +5,9 @@ import { getUserByUsername } from "../services/auth";
 import { usePosts } from "../services/posts";
 
 import UserAvatar from "../components/user/UserAvatar.vue";
-import PostCard from "../components/post/PostCard.vue";
 import Pagination from "../components/common/Pagination.vue";
+import PostCuisineBadge from "../components/post/PostCuisineBadge.vue";
+import "../assets/css/my-profile.css";
 import "../assets/css/user-profile.css";
 
 const route = useRoute();
@@ -155,13 +156,60 @@ const joinedDate = computed(() => {
             <span class="text-secondary small"> Newest first </span>
           </div>
 
-          <div
-            v-if="paginatedPosts.length"
-            class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-4"
-          >
-            <div v-for="post in paginatedPosts" :key="post.id" class="col">
-              <PostCard :post="post" />
-            </div>
+          <div v-if="paginatedPosts.length" class="profile-photo-grid">
+            <article
+              v-for="post in paginatedPosts"
+              :key="post.id"
+              class="profile-post-card"
+            >
+              <RouterLink
+                :to="`/posts/${post.id}`"
+                class="profile-photo-link"
+                :aria-label="`View ${post.title}`"
+              >
+                <img
+                  :src="post.coverImage"
+                  :alt="post.title"
+                  class="profile-photo-img"
+                  loading="lazy"
+                />
+
+                <PostCuisineBadge :cuisine="post.cuisine" />
+              </RouterLink>
+
+              <div class="profile-post-content">
+                <p class="profile-post-location">
+                  <i class="bi bi-geo-alt-fill" aria-hidden="true"></i>
+                  {{ post.location }}
+                </p>
+
+                <div class="profile-post-heading">
+                  <h3 class="profile-post-title">
+                    <RouterLink :to="`/posts/${post.id}`">
+                      {{ post.title }}
+                    </RouterLink>
+                  </h3>
+                </div>
+
+                <div class="profile-post-footer">
+                  <RouterLink
+                    :to="`/users/${post.authorName}`"
+                    class="profile-post-author"
+                  >
+                    <UserAvatar :src="post.authorAvatar" :size="24" />
+
+                    <span class="profile-post-username">
+                      {{ post.authorName }}
+                    </span>
+                  </RouterLink>
+
+                  <div class="profile-post-likes">
+                    <i class="bi bi-heart-fill" aria-hidden="true"></i>
+                    <span>{{ post.likes }}</span>
+                  </div>
+                </div>
+              </div>
+            </article>
           </div>
 
           <div v-else class="text-center py-5">
