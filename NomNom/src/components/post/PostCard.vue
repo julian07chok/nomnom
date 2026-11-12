@@ -1,6 +1,7 @@
 <script setup>
 import "../../assets/css/post-card.css";
 import { useAuth } from "../../services/auth";
+import UserAvatar from "../user/UserAvatar.vue";
 
 defineProps({
   post: {
@@ -15,12 +16,7 @@ const { profileLinkFor } = useAuth();
 <template>
   <article class="post-card">
     <RouterLink :to="`/posts/${post.id}`" class="post-cover-link">
-      <img
-        :src="post.coverImage"
-        :alt="post.title"
-        class="post-cover"
-        loading="lazy"
-      />
+      <UserAvatar :src="post.authorAvatar" :size="28" />
       <span class="price-badge">{{ post.priceRange }}</span>
     </RouterLink>
 

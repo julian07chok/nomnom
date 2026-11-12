@@ -1,15 +1,14 @@
-import { createApp } from 'vue'
-import './assets/css/style.css'
-import router from './router'
-import App from './App.vue'
-
+import { createApp } from "vue";
+import router from "./router";
+import App from "./App.vue";
 
 // Bootstrap CSS
-import 'bootstrap/dist/css/bootstrap.min.css'
+import "bootstrap/dist/css/bootstrap.min.css";
 // Bootstrap Icons
-import 'bootstrap-icons/font/bootstrap-icons.css'
+import "bootstrap-icons/font/bootstrap-icons.css";
 // Bootstrap JS (for modals, dropdowns, etc.)
-import 'bootstrap/dist/js/bootstrap.bundle.min.js'
+import "bootstrap/dist/js/bootstrap.bundle.min.js";
 
+import "./assets/css/style.css";
 
-createApp(App).use(router).mount('#app')
+createApp(App).use(router).mount("#app");
