@@ -13,7 +13,7 @@ const route = useRoute();
 const router = useRouter();
 const { posts } = usePosts();
 
-const POSTS_PER_PAGE = 6;
+const POSTS_PER_PAGE = 4;
 const radiusKm = 50; // Radius in kilometers for Near Me
 
 // ─── Local state (initialised from URL) ────────────────────
@@ -250,7 +250,12 @@ watch(
       <!-- Search bar -->
       <section class="search-header">
         <h1 class="search-title">Explore</h1>
-        <SearchBar v-model="searchQuery" variant="explore" :show-submit="false" clearable />
+        <SearchBar
+          v-model="searchQuery"
+          variant="explore"
+          :show-submit="false"
+          clearable
+        />
       </section>
 
       <!-- Layout: filters sidebar + results -->
@@ -274,12 +279,21 @@ watch(
                 </span>
               </p>
 
-              <button type="button" class="near-me-btn" :class="{ 'is-active': isNearMeActive }" :disabled="isLocating"
-                @click="toggleNearMe">
+              <button
+                type="button"
+                class="near-me-btn"
+                :class="{ 'is-active': isNearMeActive }"
+                :disabled="isLocating"
+                @click="toggleNearMe"
+              >
                 <template v-if="isNearMeActive">
                   <i class="bi bi-geo-alt-fill" aria-hidden="true"></i>
                   Near Me
-                  <i class="bi bi-x-circle-fill" aria-hidden="true" title="Clear Near Me"></i>
+                  <i
+                    class="bi bi-x-circle-fill"
+                    aria-hidden="true"
+                    title="Clear Near Me"
+                  ></i>
                 </template>
                 <template v-else>
                   <i class="bi bi-geo-alt" aria-hidden="true"></i>
@@ -300,7 +314,11 @@ watch(
           </header>
 
           <!-- Location error -->
-          <div v-if="locationError" class="alert alert-warning mb-3" role="alert">
+          <div
+            v-if="locationError"
+            class="alert alert-warning mb-3"
+            role="alert"
+          >
             <i class="bi bi-exclamation-triangle-fill me-2"></i>
             {{ locationError }}
           </div>
@@ -317,13 +335,26 @@ watch(
 
           <!-- Grid -->
           <div v-else class="row g-3 g-md-4">
-            <div v-for="post in paginatedPosts" :key="post.id" class="col-6 col-xl-4">
-              <PostCard :post="post" :distance="post.distanceKm ? formatDistance(post.distanceKm) : null
-                " />
+            <div
+              v-for="post in paginatedPosts"
+              :key="post.id"
+              class="col-6 col-xl-4"
+            >
+              <PostCard
+                :post="post"
+                :distance="
+                  post.distanceKm ? formatDistance(post.distanceKm) : null
+                "
+              />
             </div>
           </div>
 
-          <Pagination v-if="totalPages > 1" v-model:currentPage="currentPage" :total-pages="totalPages" />
+          <Pagination
+            v-model:currentPage="currentPage"
+            :total-pages="totalPages"
+            :per-page="POSTS_PER_PAGE"
+            :total-items="filteredPosts.length"
+          />
         </div>
       </div>
     </div>

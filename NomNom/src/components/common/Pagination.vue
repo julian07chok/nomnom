@@ -1,32 +1,32 @@
 <!-- src/components/common/Pagination.vue -->
 <script setup>
-import { nextTick } from 'vue'
-import Paginate from 'vuejs-paginate-next'
-import '../../assets/css/pagination.css'
+import { nextTick } from "vue";
+import Paginate from "vuejs-paginate-next";
+import "../../assets/css/pagination.css";
 
 const props = defineProps({
   currentPage: { type: Number, required: true },
   totalPages: { type: Number, required: true },
-  perPage: { type: Number, default: 6 },
+  perPage: { type: Number, default: 4 },
   totalItems: { type: Number, default: 0 },
-  scrollTargetId: { type: String, default: '' },
-})
+  scrollTargetId: { type: String, default: "" },
+});
 
-const emit = defineEmits(['update:currentPage'])
+const emit = defineEmits(["update:currentPage"]);
 
 async function clickCallback(pageNum) {
-  const page = Number(pageNum)
-  if (page < 1 || page > props.totalPages || page === props.currentPage) return
+  const page = Number(pageNum);
+  if (page < 1 || page > props.totalPages || page === props.currentPage) return;
 
-  emit('update:currentPage', page)
+  emit("update:currentPage", page);
 
-  await nextTick()
+  await nextTick();
 
   if (props.scrollTargetId) {
-    const target = document.getElementById(props.scrollTargetId)
+    const target = document.getElementById(props.scrollTargetId);
     if (target) {
-      const y = target.getBoundingClientRect().top + window.scrollY - 20
-      window.scrollTo({ top: y, behavior: 'smooth' })
+      const y = target.getBoundingClientRect().top + window.scrollY - 20;
+      window.scrollTo({ top: y, behavior: "smooth" });
     }
   }
 }
