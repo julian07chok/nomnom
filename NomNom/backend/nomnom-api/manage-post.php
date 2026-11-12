@@ -120,6 +120,27 @@ if ($method === 'PUT') {
     $cuisine = trim(stringField($data, 'cuisine'));
     $priceRange = trim(stringField($data, 'priceRange'));
 
+    $latitude = isset($data['latitude']) && is_numeric($data['latitude'])
+    ? (float) $data['latitude']
+    : null;
+$longitude = isset($data['longitude']) && is_numeric($data['longitude'])
+    ? (float) $data['longitude']
+    : null;
+
+if (
+    $latitude === null
+    || $longitude === null
+    || $latitude < -90
+    || $latitude > 90
+    || $longitude < -180
+    || $longitude > 180
+) {
+    respond([
+        'ok' => false,
+        'message' => 'Please pin the restaurant location on the map.',
+    ], 422);
+}
+
     if (!isset($locations[$location])) {
         respond([
             'ok' => false,
@@ -198,8 +219,8 @@ try {
             $location,
             $cuisine,
             $priceRange,
-            $locations[$location][0],
-            $locations[$location][1],
+            $latitude,
+            $longitude,
             $postId,
             $userId,
         ]);
