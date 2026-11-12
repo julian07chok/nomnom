@@ -280,8 +280,7 @@ const hasLocation = () =>
 
     <p class="location-picker-help">
       <i class="bi bi-info-circle" aria-hidden="true"></i>
-      Tip: right-click on Google Maps and choose "What's here?" to copy
-      coordinates.
+      Tip: Use "Find on map" from the address field, or click the map to set the location manually.
     </p>
   </section>
 </template>
