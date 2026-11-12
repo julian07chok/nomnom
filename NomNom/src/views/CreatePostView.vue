@@ -5,6 +5,7 @@ import { useAuth } from "../services/auth";
 import { usePosts } from "../services/posts";
 import LocationPicker from "../components/post/LocationPicker.vue";
 import AppButton from "../components/common/AppButton.vue";
+import ConfirmDialog from "../components/common/ConfirmDialog.vue";
 
 const router = useRouter();
 const { currentUser } = useAuth();
@@ -21,6 +22,7 @@ const submitted = ref(false);
 const dragOver = ref(false);
 const latitude = ref(null);
 const longitude = ref(null);
+const feedbackDialog = ref(null);
 
 const MAX_PHOTOS = 5;
 const MAX_FILE_SIZE = 500 * 1024;
@@ -311,7 +313,15 @@ async function publish() {
     return;
   }
 
-  // The existing route guard reloads the database collection.
+  const acknowledged = await feedbackDialog.value.open({
+    title: "Post published!",
+    message: "Your food discovery is now available to the community.",
+    confirmText: "View post",
+    showCancel: false,
+  });
+
+  if (acknowledged === null) return;
+
   await router.push({
     name: "post-detail",
     params: { id: createdPost.id },
@@ -520,6 +530,7 @@ async function publish() {
         </div>
       </div>
     </div>
+    <ConfirmDialog ref="feedbackDialog" />
   </main>
 </template>
 
