@@ -1,7 +1,7 @@
 // handle JSON requests, API errors, session cookies,
 // and the security token used by our upcoming registration/login endpoints.
 
-const API_BASE = `${import.meta.env.BASE_URL}api/`;
+const API_BASE = `${import.meta.env.BASE_URL}nomnom-api/`;
 
 let csrfToken = "";
 
