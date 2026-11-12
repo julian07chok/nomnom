@@ -35,10 +35,6 @@ const isProfileActive = () =>
           Create post
         </RouterLink>
 
-        <RouterLink class="nav-link" to="/saved" active-class="is-active">
-          Saved places
-        </RouterLink>
-
         <RouterLink
           v-if="isLoggedIn"
           class="profile-avatar-link"
