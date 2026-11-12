@@ -10,6 +10,7 @@ import {
   updateComment,
   deleteComment,
 } from "../services/comments";
+import { recordPostView } from "../services/recommendation";
 
 import PostGallery from "../components/post/PostGallery.vue";
 import UserAvatar from "../components/user/UserAvatar.vue";
@@ -83,6 +84,17 @@ async function loadComments() {
 }
 
 watch(() => post.value?.id, loadComments, { immediate: true });
+watch(
+  [() => post.value?.id, () => currentUser.value?.id],
+  ([postId, userId]) => {
+    if (!postId || !userId) return;
+
+    void recordPostView(postId).catch((error) => {
+      console.warn("Unable to record post view:", error.message);
+    });
+  },
+  { immediate: true },
+);
 
 async function submitComment(draft) {
   const postId = post.value.id;

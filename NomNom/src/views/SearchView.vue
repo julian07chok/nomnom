@@ -1,8 +1,10 @@
 <script setup>
-import { computed, ref, watch } from "vue";
+import { computed, onBeforeUnmount, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { getDistanceKm, formatDistance } from "../utils/geo";
 import { usePosts } from "../services/posts";
+import { useAuth } from "../services/auth";
+import { recordSearch } from "../services/recommendation";
 import PostCard from "../components/post/PostCard.vue";
 import PostFilters from "../components/post/PostFilters.vue";
 import Pagination from "../components/common/Pagination.vue";
@@ -12,6 +14,7 @@ import "../assets/css/search.css";
 const route = useRoute();
 const router = useRouter();
 const { posts } = usePosts();
+const { currentUser } = useAuth();
 
 const POSTS_PER_PAGE = 4;
 const radiusKm = 50; // Radius in kilometers for Near Me
@@ -242,6 +245,34 @@ watch(
     }
   },
 );
+
+let searchHistoryTimer = null;
+
+watch(
+  [() => searchQuery.value.trim(), () => currentUser.value?.id],
+  ([query, userId]) => {
+    clearTimeout(searchHistoryTimer);
+
+    const length = Array.from(query).length;
+
+    if (!userId || length < 2 || length > 100) {
+      return;
+    }
+
+    searchHistoryTimer = setTimeout(() => {
+      if (currentUser.value?.id !== userId) return;
+
+      void recordSearch(query).catch((error) => {
+        console.warn("Unable to record search:", error.message);
+      });
+    }, 1000);
+  },
+  { immediate: true },
+);
+
+onBeforeUnmount(() => {
+  clearTimeout(searchHistoryTimer);
+});
 </script>
 
 <template>
