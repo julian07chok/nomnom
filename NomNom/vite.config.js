@@ -3,6 +3,7 @@ import { defineConfig } from "vite";
 
 // https://vite.dev/config/
 export default defineConfig({
+  base: "/cos30043/s105684522/nomnom/",
   plugins: [vue()],
 
   // request works like:
