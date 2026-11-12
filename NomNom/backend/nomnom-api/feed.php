@@ -6,15 +6,15 @@ require_once __DIR__ . '/recommendation-scores.php';
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     header('Allow: GET');
 
-    respond([
+    respond(array(
         'ok' => false,
         'message' => 'Method not allowed.',
-    ], 405);
+    ), 405);
 }
 
 function feedInteger($name, $default, $minimum, $maximum)
 {
-    $value = $_GET[$name] ?? (string) $default;
+    $value = isset($_GET[$name]) ? $_GET[$name] : (string) $default;
 
     if (
         !is_string($value)
@@ -23,10 +23,10 @@ function feedInteger($name, $default, $minimum, $maximum)
         || (int) $value < $minimum
         || (int) $value > $maximum
     ) {
-        respond([
+        respond(array(
             'ok' => false,
             'message' => 'Invalid ' . $name . '.',
-        ], 400);
+        ), 400);
     }
 
     return (int) $value;
@@ -35,10 +35,10 @@ function feedInteger($name, $default, $minimum, $maximum)
 $offset = feedInteger('offset', 0, 0, 1000000);
 $limit = feedInteger('limit', 6, 1, 12);
 
-$cuisine = $_GET['cuisine'] ?? 'All';
-$sort = $_GET['sort'] ?? 'newest';
+$cuisine = isset($_GET['cuisine']) ? $_GET['cuisine'] : 'All';
+$sort = isset($_GET['sort']) ? $_GET['sort'] : 'newest';
 
-$cuisines = [
+$cuisines = array(
     'All',
     'Malaysian',
     'Chinese',
@@ -53,9 +53,9 @@ $cuisines = [
     'Dessert',
     'Fusion',
     'Middle Eastern',
-];
+);
 
-$sortOptions = [
+$sortOptions = array(
     'newest' =>
     'feed.created_at DESC, feed.id DESC',
 
@@ -64,24 +64,24 @@ $sortOptions = [
 
     'recommended' =>
     'feed.recommendation_score DESC, feed.created_at DESC, feed.id DESC',
-];
+);
 
 if (!is_string($cuisine) || !in_array($cuisine, $cuisines, true)) {
-    respond(['ok' => false, 'message' => 'Invalid cuisine.'], 400);
+    respond(array('ok' => false, 'message' => 'Invalid cuisine.'), 400);
 }
 
 if (!is_string($sort) || !isset($sortOptions[$sort])) {
-    respond(['ok' => false, 'message' => 'Invalid sort option.'], 400);
+    respond(array('ok' => false, 'message' => 'Invalid sort option.'), 400);
 }
 
-$viewerId = (int) ($_SESSION['user_id'] ?? 0);
+$viewerId = isset($_SESSION['user_id']) ? (int) $_SESSION['user_id'] : 0;
 
 // Guests receive the newest feed.
 if ($sort === 'recommended' && $viewerId === 0) {
     $sort = 'newest';
 }
 
-$recommendationScores = [];
+$recommendationScores = array();
 
 if ($sort === 'recommended') {
     $recommendationScores = getRecommendationScores(
@@ -90,14 +90,14 @@ if ($sort === 'recommended') {
     );
 }
 
-$parameters = [$viewerId, $viewerId];
+$parameters = array($viewerId, $viewerId);
 
 $distanceSql = 'NULL';
 $nearMe = isset($_GET['lat']) || isset($_GET['lng']);
 
 if ($nearMe) {
-    $lat = $_GET['lat'] ?? null;
-    $lng = $_GET['lng'] ?? null;
+    $lat = isset($_GET['lat']) ? $_GET['lat'] : null;
+    $lng = isset($_GET['lng']) ? $_GET['lng'] : null;
 
     if (
         !is_string($lat)
@@ -111,7 +111,7 @@ if ($nearMe) {
         || (float) $lng < -180
         || (float) $lng > 180
     ) {
-        respond(['ok' => false, 'message' => 'Invalid coordinates.'], 400);
+        respond(array('ok' => false, 'message' => 'Invalid coordinates.'), 400);
     }
 
     $distanceSql = '
@@ -138,11 +138,9 @@ if ($nearMe) {
 $recommendationSql = '0';
 
 if ($recommendationScores) {
-    $cases = [];
+    $cases = array();
 
     foreach ($recommendationScores as $preferredCuisine => $score) {
-        // Cuisine names are bound parameters.
-        // Scores are explicitly converted to integers.
         $cases[] = 'WHEN ? THEN ' . (int) $score;
         $parameters[] = $preferredCuisine;
     }
@@ -195,7 +193,7 @@ $baseSql = "
 ";
 
 $sql = "SELECT * FROM ($baseSql) AS feed";
-$conditions = [];
+$conditions = array();
 
 if ($cuisine !== 'All') {
     $conditions[] = 'feed.cuisine = ?';
@@ -213,7 +211,6 @@ if ($conditions) {
 
 $sql .= ' ORDER BY ' . $sortOptions[$sort];
 
-// Validated integers only. One extra row tells us whether more exist.
 $fetchLimit = $limit + 1;
 $sql .= " LIMIT $fetchLimit OFFSET $offset";
 
@@ -227,10 +224,10 @@ if ($hasMore) {
     array_pop($rows);
 }
 
-$posts = [];
+$posts = array();
 
 foreach ($rows as $row) {
-    $posts[] = [
+    $posts[] = array(
         'id' => (int) $row['id'],
         'title' => $row['title'],
         'restaurantName' => $row['restaurant_name'],
@@ -246,20 +243,20 @@ foreach ($rows as $row) {
         'authorId' => (int) $row['author_id'],
         'authorName' => $row['author_name'],
         'authorDisplayName' => $row['author_display_name'],
-        'authorAvatar' => $row['author_avatar'] ?? '',
-        'coverImage' => $row['cover_image'] ?? '',
+        'authorAvatar' => isset($row['author_avatar']) ? $row['author_avatar'] : '',
+        'coverImage' => isset($row['cover_image']) ? $row['cover_image'] : '',
         'likes' => (int) $row['like_count'],
         'recommendationScore' =>
         (int) $row['recommendation_score'],
         'likedByMe' => (bool) $row['liked_by_me'],
         'savedByMe' => (bool) $row['saved_by_me'],
         'createdAt' => str_replace(' ', 'T', $row['created_at']) . 'Z',
-    ];
+    );
 }
 
-respond([
+respond(array(
     'ok' => true,
     'posts' => $posts,
     'hasMore' => $hasMore,
     'nextOffset' => $offset + count($posts),
-]);
+));

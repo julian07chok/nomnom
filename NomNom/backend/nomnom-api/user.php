@@ -5,22 +5,22 @@ require_once __DIR__ . '/bootstrap.php';
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     header('Allow: GET');
 
-    respond([
+    respond(array(
         'ok' => false,
         'message' => 'Method not allowed.',
-    ], 405);
+    ), 405);
 }
 
-$username = $_GET['username'] ?? '';
+$username = isset($_GET['username']) ? $_GET['username'] : '';
 
 if (
     !is_string($username)
     || !preg_match('/\A[a-zA-Z0-9_]{3,50}\z/', $username)
 ) {
-    respond([
+    respond(array(
         'ok' => false,
         'message' => 'Invalid username.',
-    ], 422);
+    ), 422);
 }
 
 $statement = $pdo->prepare(
@@ -30,26 +30,24 @@ $statement = $pdo->prepare(
      LIMIT 1'
 );
 
-$statement->execute([strtolower($username)]);
+$statement->execute(array(strtolower($username)));
 $user = $statement->fetch();
 
 if (!$user) {
-    respond([
+    respond(array(
         'ok' => false,
         'message' => 'User not found.',
-    ], 404);
+    ), 404);
 }
 
-// Only public profile information is returned.
-// Do not use bootstrap's publicUser() here because it includes email.
-respond([
+respond(array(
     'ok' => true,
-    'user' => [
+    'user' => array(
         'id' => (int) $user['id'],
         'username' => $user['username'],
         'displayName' => $user['display_name'],
-        'avatar' => $user['avatar_url'] ?? '',
-        'bio' => $user['bio'] ?? '',
+        'avatar' => isset($user['avatar_url']) ? $user['avatar_url'] : '',
+        'bio' => isset($user['bio']) ? $user['bio'] : '',
         'createdAt' => str_replace(' ', 'T', $user['created_at']) . 'Z',
-    ],
-]);
+    ),
+));

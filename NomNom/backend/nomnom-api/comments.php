@@ -5,13 +5,13 @@ require_once __DIR__ . '/post-photos.php';
 
 function commentIdParameter($name)
 {
-    $value = $_GET[$name] ?? '';
+    $value = isset($_GET[$name]) ? $_GET[$name] : '';
 
     if (!is_string($value) || !ctype_digit($value) || (int) $value < 1) {
-        respond([
+        respond(array(
             'ok' => false,
             'message' => 'Invalid ' . $name . '.',
-        ], 400);
+        ), 400);
     }
 
     return (int) $value;
@@ -29,7 +29,7 @@ function readPostComments($pdo, $postId)
          ORDER BY c.created_at DESC, c.id DESC'
     );
 
-    $statement->execute([$postId]);
+    $statement->execute(array($postId));
     $rows = $statement->fetchAll();
 
     $statement = $pdo->prepare(
@@ -40,29 +40,35 @@ function readPostComments($pdo, $postId)
          ORDER BY ci.comment_id, ci.sort_order, ci.id'
     );
 
-    $statement->execute([$postId]);
+    $statement->execute(array($postId));
 
-    $images = [];
+    $images = array();
 
     foreach ($statement->fetchAll() as $image) {
-        $images[(int) $image['comment_id']][] = $image['image_url'];
+        $cid = (int) $image['comment_id'];
+        if (!isset($images[$cid])) {
+            $images[$cid] = array();
+        }
+        $images[$cid][] = $image['image_url'];
     }
 
-    $comments = [];
+    $comments = array();
 
     foreach ($rows as $row) {
-        $comments[] = [
-            'id' => (int) $row['id'],
+        $id = (int) $row['id'];
+
+        $comments[] = array(
+            'id' => $id,
             'postId' => (int) $row['post_id'],
             'userId' => (int) $row['user_id'],
             'userName' => $row['username'],
             'displayName' => $row['display_name'],
-            'userAvatar' => $row['avatar_url'] ?? '',
+            'userAvatar' => isset($row['avatar_url']) ? $row['avatar_url'] : '',
             'text' => $row['comment_text'],
-            'images' => $images[(int) $row['id']] ?? [],
+            'images' => isset($images[$id]) ? $images[$id] : array(),
             'createdAt' => str_replace(' ', 'T', $row['created_at']) . 'Z',
             'updatedAt' => str_replace(' ', 'T', $row['updated_at']) . 'Z',
-        ];
+        );
     }
 
     return $comments;
@@ -70,13 +76,13 @@ function readPostComments($pdo, $postId)
 
 $method = $_SERVER['REQUEST_METHOD'];
 
-if (!in_array($method, ['GET', 'POST', 'PUT', 'DELETE'], true)) {
+if (!in_array($method, array('GET', 'POST', 'PUT', 'DELETE'), true)) {
     header('Allow: GET, POST, PUT, DELETE');
 
-    respond([
+    respond(array(
         'ok' => false,
         'message' => 'Method not allowed.',
-    ], 405);
+    ), 405);
 }
 
 if ($method === 'GET') {
@@ -86,47 +92,49 @@ if ($method === 'GET') {
         'SELECT id FROM nomnom_posts WHERE id = ?'
     );
 
-    $statement->execute([$postId]);
+    $statement->execute(array($postId));
 
     if (!$statement->fetch()) {
-        respond([
+        respond(array(
             'ok' => false,
             'message' => 'Post not found.',
-        ], 404);
+        ), 404);
     }
 
-    respond([
+    respond(array(
         'ok' => true,
         'comments' => readPostComments($pdo, $postId),
-    ]);
+    ));
 }
 
 // All writes require a session and CSRF token.
-$token = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
+$token = isset($_SERVER['HTTP_X_CSRF_TOKEN']) ? $_SERVER['HTTP_X_CSRF_TOKEN'] : '';
 
 if (
     !is_string($token)
     || !hash_equals($_SESSION['csrf_token'], $token)
 ) {
-    respond([
+    respond(array(
         'ok' => false,
         'message' => 'Your security token expired. Refresh and try again.',
-    ], 403);
+    ), 403);
 }
 
-$userId = (int) ($_SESSION['user_id'] ?? 0);
+$userId = isset($_SESSION['user_id']) ? (int) $_SESSION['user_id'] : 0;
 
 if (!$userId || !findUserById($pdo, $userId)) {
-    respond([
+    respond(array(
         'ok' => false,
         'message' => 'Please log in to comment.',
-    ], 401);
+    ), 401);
 }
 
-$photoPlan = [];
-$newPaths = [];
-$removedUrls = [];
+$photoPlan = array();
+$newPaths = array();
+$removedUrls = array();
 $commentId = null;
+$text = '';
+$data = array();
 
 if ($method === 'POST' || $method === 'PUT') {
     $data = readJsonBody();
@@ -134,48 +142,47 @@ if ($method === 'POST' || $method === 'PUT') {
     $length = preg_match_all('/./us', $text);
 
     if ($length === false || $length > 500) {
-        respond([
+        respond(array(
             'ok' => false,
             'message' => 'Comment must be 500 characters or fewer.',
-        ], 422);
+        ), 422);
     }
 }
 
 if ($method === 'POST') {
     $postId = commentIdParameter('post_id');
-    $images = $data['images'] ?? [];
+    $images = isset($data['images']) ? $data['images'] : array();
 
     if (
         !is_array($images)
         || count($images) > 3
         || ($images && array_keys($images) !== range(0, count($images) - 1))
     ) {
-        respond([
+        respond(array(
             'ok' => false,
             'message' => 'You can attach up to three photos.',
-        ], 422);
+        ), 422);
     }
 
     if ($text === '' && !$images) {
-        respond([
+        respond(array(
             'ok' => false,
             'message' => 'Write a comment or attach a photo.',
-        ], 422);
+        ), 422);
     }
 
     if ($images) {
         try {
-            // Reuse our existing size, MIME, and dimension checks.
-            $photoPlan = parsePhotoPlan([
+            $photoPlan = parsePhotoPlan(array(
                 'photos' => array_map(function ($image) {
-                    return ['dataUrl' => $image];
+                    return array('dataUrl' => $image);
                 }, $images),
-            ]);
+            ));
         } catch (InvalidArgumentException $error) {
-            respond([
+            respond(array(
                 'ok' => false,
                 'message' => $error->getMessage(),
-            ], 422);
+            ), 422);
         }
     }
 } else {
@@ -185,36 +192,39 @@ if ($method === 'POST') {
         'SELECT post_id FROM nomnom_comments WHERE id = ?'
     );
 
-    $statement->execute([$commentId]);
+    $statement->execute(array($commentId));
     $found = $statement->fetch();
 
     if (!$found) {
-        respond([
+        respond(array(
             'ok' => false,
             'message' => 'Comment not found.',
-        ], 404);
+        ), 404);
     }
 
     $postId = (int) $found['post_id'];
 }
 
+// ── PHP 5.4: no finally, no Throwable. Use catch(Exception) ──
+$comments = null;
+$error = null;
+
 try {
     $pdo->beginTransaction();
 
-    // Keep lock order consistent with post deletion.
     $statement = $pdo->prepare(
         'SELECT id FROM nomnom_posts WHERE id = ? FOR UPDATE'
     );
 
-    $statement->execute([$postId]);
+    $statement->execute(array($postId));
 
     if (!$statement->fetch()) {
         $pdo->rollBack();
 
-        respond([
+        respond(array(
             'ok' => false,
             'message' => 'Post no longer exists.',
-        ], 404);
+        ), 404);
     }
 
     if ($method !== 'POST') {
@@ -225,25 +235,25 @@ try {
              FOR UPDATE'
         );
 
-        $statement->execute([$commentId]);
+        $statement->execute(array($commentId));
         $existing = $statement->fetch();
 
         if (!$existing) {
             $pdo->rollBack();
 
-            respond([
+            respond(array(
                 'ok' => false,
                 'message' => 'Comment no longer exists.',
-            ], 404);
+            ), 404);
         }
 
         if ((int) $existing['user_id'] !== $userId) {
             $pdo->rollBack();
 
-            respond([
+            respond(array(
                 'ok' => false,
                 'message' => 'You can only edit or delete your own comments.',
-            ], 403);
+            ), 403);
         }
     }
 
@@ -254,12 +264,12 @@ try {
              VALUES (?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())'
         );
 
-        $statement->execute([$postId, $userId, $text]);
+        $statement->execute(array($postId, $userId, $text));
         $commentId = (int) $pdo->lastInsertId();
 
         if ($photoPlan) {
             $config = require __DIR__ . '/config.local.php';
-            $directory = $config['upload_dir'] ?? '';
+            $directory = isset($config['upload_dir']) ? $config['upload_dir'] : '';
 
             if (
                 !is_string($directory)
@@ -295,11 +305,11 @@ try {
                     throw new RuntimeException('Could not save a comment photo.');
                 }
 
-                $statement->execute([
+                $statement->execute(array(
                     $commentId,
                     'api/image.php?name=' . $filename,
                     $order,
-                ]);
+                ));
             }
         }
     } elseif ($method === 'PUT') {
@@ -309,15 +319,15 @@ try {
              WHERE comment_id = ?'
         );
 
-        $statement->execute([$commentId]);
+        $statement->execute(array($commentId));
 
         if ($text === '' && (int) $statement->fetchColumn() === 0) {
             $pdo->rollBack();
 
-            respond([
+            respond(array(
                 'ok' => false,
                 'message' => 'A comment without photos cannot be empty.',
-            ], 422);
+            ), 422);
         }
 
         $statement = $pdo->prepare(
@@ -326,7 +336,7 @@ try {
              WHERE id = ? AND user_id = ?'
         );
 
-        $statement->execute([$text, $commentId, $userId]);
+        $statement->execute(array($text, $commentId, $userId));
     } else {
         $statement = $pdo->prepare(
             'SELECT image_url
@@ -334,20 +344,20 @@ try {
              WHERE comment_id = ?'
         );
 
-        $statement->execute([$commentId]);
+        $statement->execute(array($commentId));
         $removedUrls = $statement->fetchAll(PDO::FETCH_COLUMN);
 
         $statement = $pdo->prepare(
             'DELETE FROM nomnom_comments WHERE id = ? AND user_id = ?'
         );
 
-        $statement->execute([$commentId, $userId]);
+        $statement->execute(array($commentId, $userId));
     }
 
     $comments = readPostComments($pdo, $postId);
 
     $pdo->commit();
-} catch (Throwable $error) {
+} catch (Exception $e) {
     if ($pdo->inTransaction()) {
         $pdo->rollBack();
     }
@@ -358,6 +368,10 @@ try {
         }
     }
 
+    $error = $e;
+}
+
+if ($error !== null) {
     throw $error;
 }
 
@@ -365,7 +379,7 @@ try {
 if ($removedUrls) {
     try {
         $config = require __DIR__ . '/config.local.php';
-        $directory = $config['upload_dir'] ?? '';
+        $directory = isset($config['upload_dir']) ? $config['upload_dir'] : '';
 
         if (!is_string($directory) || !is_dir($directory)) {
             throw new RuntimeException('Upload directory is unavailable.');
@@ -389,7 +403,7 @@ if ($removedUrls) {
                 continue;
             }
 
-            $check->execute([$url, $url, $url]);
+            $check->execute(array($url, $url, $url));
 
             if ((int) $check->fetchColumn() > 0) {
                 continue;
@@ -403,12 +417,12 @@ if ($removedUrls) {
                 error_log('NomNom: could not remove comment photo ' . $matches[1]);
             }
         }
-    } catch (Throwable $error) {
-        error_log('NomNom comment cleanup: ' . $error->getMessage());
+    } catch (Exception $e) {
+        error_log('NomNom comment cleanup: ' . $e->getMessage());
     }
 }
 
-respond([
+respond(array(
     'ok' => true,
     'comments' => $comments,
-], $method === 'POST' ? 201 : 200);
+), $method === 'POST' ? 201 : 200);

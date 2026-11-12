@@ -2,13 +2,13 @@
 
 ini_set('display_errors', '0');
 
-if (!in_array($_SERVER['REQUEST_METHOD'], ['GET', 'HEAD'], true)) {
+if (!in_array($_SERVER['REQUEST_METHOD'], array('GET', 'HEAD'), true)) {
     header('Allow: GET, HEAD');
     http_response_code(405);
     exit;
 }
 
-$name = $_GET['name'] ?? '';
+$name = isset($_GET['name']) ? $_GET['name'] : '';
 
 if (
     !is_string($name)
@@ -19,7 +19,7 @@ if (
 }
 
 $config = require __DIR__ . '/config.local.php';
-$directory = $config['upload_dir'] ?? '';
+$directory = isset($config['upload_dir']) ? $config['upload_dir'] : '';
 
 if (!is_string($directory) || !is_dir($directory)) {
     http_response_code(503);
@@ -33,11 +33,11 @@ if (!is_file($path)) {
     exit;
 }
 
-$contentTypes = [
+$contentTypes = array(
     'jpg' => 'image/jpeg',
     'png' => 'image/png',
     'webp' => 'image/webp',
-];
+);
 
 $extension = pathinfo($name, PATHINFO_EXTENSION);
 

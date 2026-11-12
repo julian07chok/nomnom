@@ -15,10 +15,10 @@ if (
     || strlen($password) > 72
     || strpos($password, "\0") !== false
 ) {
-    respond([
+    respond(array(
         'ok' => false,
         'message' => 'Incorrect email/username or password.',
-    ], 401);
+    ), 401);
 }
 
 $statement = $pdo->prepare(
@@ -28,7 +28,7 @@ $statement = $pdo->prepare(
      LIMIT 1'
 );
 
-$statement->execute([$identifier, $identifier]);
+$statement->execute(array($identifier, $identifier));
 $user = $statement->fetch();
 
 // A valid dummy bcrypt hash keeps password verification running
@@ -40,16 +40,16 @@ $hash = $user
 $passwordMatches = password_verify($password, $hash);
 
 if (!$user || !$passwordMatches) {
-    respond([
+    respond(array(
         'ok' => false,
         'message' => 'Incorrect email/username or password.',
-    ], 401);
+    ), 401);
 }
 
 startUserSession($user['id']);
 
-respond([
+respond(array(
     'ok' => true,
     'user' => publicUser($user),
     'csrfToken' => $_SESSION['csrf_token'],
-]);
+));

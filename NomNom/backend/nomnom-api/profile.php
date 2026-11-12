@@ -5,31 +5,31 @@ require_once __DIR__ . '/bootstrap.php';
 if ($_SERVER['REQUEST_METHOD'] !== 'PUT') {
     header('Allow: PUT');
 
-    respond([
+    respond(array(
         'ok' => false,
         'message' => 'Method not allowed.',
-    ], 405);
+    ), 405);
 }
 
-$token = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
+$token = isset($_SERVER['HTTP_X_CSRF_TOKEN']) ? $_SERVER['HTTP_X_CSRF_TOKEN'] : '';
 
 if (
     !is_string($token)
     || !hash_equals($_SESSION['csrf_token'], $token)
 ) {
-    respond([
+    respond(array(
         'ok' => false,
         'message' => 'Your security token expired. Refresh and try again.',
-    ], 403);
+    ), 403);
 }
 
-$userId = (int) ($_SESSION['user_id'] ?? 0);
+$userId = isset($_SESSION['user_id']) ? (int) $_SESSION['user_id'] : 0;
 
 if (!$userId) {
-    respond([
+    respond(array(
         'ok' => false,
         'message' => 'Please log in to update your profile.',
-    ], 401);
+    ), 401);
 }
 
 $data = readJsonBody();
@@ -41,20 +41,19 @@ $nameLength = preg_match_all('/./us', $displayName);
 $bioLength = preg_match_all('/./us', $bio);
 
 if ($nameLength === false || $nameLength < 2 || $nameLength > 50) {
-    respond([
+    respond(array(
         'ok' => false,
         'message' => 'Display name must contain 2–50 characters.',
-    ], 422);
+    ), 422);
 }
 
 if ($bioLength === false || $bioLength > 500) {
-    respond([
+    respond(array(
         'ok' => false,
         'message' => 'Bio must be 500 characters or fewer.',
-    ], 422);
+    ), 422);
 }
 
-// If avatar is omitted, keep the stored avatar.
 $changeAvatar = array_key_exists('avatar', $data);
 $avatarValue = null;
 $avatarBytes = null;
@@ -72,10 +71,10 @@ if ($changeAvatar) {
                 $matches
             )
         ) {
-            respond([
+            respond(array(
                 'ok' => false,
                 'message' => 'Use a JPG, PNG, or WebP avatar up to 2 MB.',
-            ], 422);
+            ), 422);
         }
 
         $avatarBytes = base64_decode(
@@ -88,17 +87,17 @@ if ($changeAvatar) {
             || strlen($avatarBytes) < 1
             || strlen($avatarBytes) > 2 * 1024 * 1024
         ) {
-            respond([
+            respond(array(
                 'ok' => false,
                 'message' => 'Avatar must be 2 MB or smaller.',
-            ], 422);
+            ), 422);
         }
 
-        $types = [
+        $types = array(
             'image/jpeg' => 'jpg',
             'image/png' => 'png',
             'image/webp' => 'webp',
-        ];
+        );
 
         $finfo = new finfo(FILEINFO_MIME_TYPE);
         $mimeType = $finfo->buffer($avatarBytes);
@@ -108,12 +107,12 @@ if ($changeAvatar) {
             !isset($types[$mimeType])
             || $mimeType !== $matches[1]
             || !$info
-            || ($info['mime'] ?? '') !== $mimeType
+            || (!isset($info['mime']) || $info['mime'] !== $mimeType)
         ) {
-            respond([
+            respond(array(
                 'ok' => false,
                 'message' => 'Please choose a valid image file.',
-            ], 422);
+            ), 422);
         }
 
         if (
@@ -121,15 +120,14 @@ if ($changeAvatar) {
             || $info[1] > 8000
             || $info[0] * $info[1] > 25000000
         ) {
-            respond([
+            respond(array(
                 'ok' => false,
                 'message' => 'Avatar dimensions are too large. Resize it first.',
-            ], 422);
+            ), 422);
         }
 
         $extension = $types[$mimeType];
     } elseif ($avatarValue !== '') {
-        // Support the existing "paste an image URL" feature.
         $scheme = strtolower(
             (string) parse_url($avatarValue, PHP_URL_SCHEME)
         );
@@ -137,18 +135,21 @@ if ($changeAvatar) {
         if (
             strlen($avatarValue) > 2048
             || !filter_var($avatarValue, FILTER_VALIDATE_URL)
-            || !in_array($scheme, ['http', 'https'], true)
+            || !in_array($scheme, array('http', 'https'), true)
         ) {
-            respond([
+            respond(array(
                 'ok' => false,
                 'message' => 'Enter a valid HTTP or HTTPS image URL.',
-            ], 422);
+            ), 422);
         }
     }
 }
 
 $newPath = null;
 $oldAvatar = '';
+$newAvatar = '';
+$user = null;
+$error = null;
 
 try {
     $pdo->beginTransaction();
@@ -160,24 +161,24 @@ try {
          FOR UPDATE'
     );
 
-    $statement->execute([$userId]);
+    $statement->execute(array($userId));
     $existing = $statement->fetch();
 
     if (!$existing) {
         $pdo->rollBack();
 
-        respond([
+        respond(array(
             'ok' => false,
             'message' => 'Account no longer exists. Please log in again.',
-        ], 401);
+        ), 401);
     }
 
-    $oldAvatar = $existing['avatar_url'] ?? '';
+    $oldAvatar = isset($existing['avatar_url']) ? $existing['avatar_url'] : '';
     $newAvatar = $changeAvatar ? $avatarValue : $oldAvatar;
 
     if ($avatarBytes !== null) {
         $config = require __DIR__ . '/config.local.php';
-        $directory = $config['upload_dir'] ?? '';
+        $directory = isset($config['upload_dir']) ? $config['upload_dir'] : '';
 
         if (
             !is_string($directory)
@@ -215,17 +216,17 @@ try {
          WHERE id = ?'
     );
 
-    $statement->execute([
+    $statement->execute(array(
         $displayName,
         $bio,
         $newAvatar === '' ? null : $newAvatar,
         $userId,
-    ]);
+    ));
 
     $user = findUserById($pdo, $userId);
 
     $pdo->commit();
-} catch (Throwable $error) {
+} catch (Exception $e) {
     if ($pdo->inTransaction()) {
         $pdo->rollBack();
     }
@@ -234,6 +235,10 @@ try {
         @unlink($newPath);
     }
 
+    $error = $e;
+}
+
+if ($error !== null) {
     throw $error;
 }
 
@@ -254,11 +259,11 @@ if ($changeAvatar && $oldAvatar !== $newAvatar) {
                     (SELECT COUNT(*) FROM nomnom_comment_images WHERE image_url = ?)'
             );
 
-            $check->execute([$oldAvatar, $oldAvatar, $oldAvatar]);
+            $check->execute(array($oldAvatar, $oldAvatar, $oldAvatar));
 
             if ((int) $check->fetchColumn() === 0) {
                 $config = require __DIR__ . '/config.local.php';
-                $directory = $config['upload_dir'] ?? '';
+                $directory = isset($config['upload_dir']) ? $config['upload_dir'] : '';
 
                 if (!is_string($directory) || !is_dir($directory)) {
                     throw new RuntimeException('Upload directory is unavailable.');
@@ -273,13 +278,13 @@ if ($changeAvatar && $oldAvatar !== $newAvatar) {
                 }
             }
         }
-    } catch (Throwable $error) {
-        error_log('NomNom avatar cleanup: ' . $error->getMessage());
+    } catch (Exception $e) {
+        error_log('NomNom avatar cleanup: ' . $e->getMessage());
     }
 }
 
-respond([
+respond(array(
     'ok' => true,
     'user' => publicUser($user),
     'csrfToken' => $_SESSION['csrf_token'],
-]);
+));

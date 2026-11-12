@@ -4,80 +4,79 @@ require_once __DIR__ . '/bootstrap.php';
 
 $method = $_SERVER['REQUEST_METHOD'];
 
-if (!in_array($method, ['PUT', 'DELETE'], true)) {
+if (!in_array($method, array('PUT', 'DELETE'), true)) {
     header('Allow: PUT, DELETE');
 
-    respond([
+    respond(array(
         'ok' => false,
         'message' => 'Method not allowed.',
-    ], 405);
+    ), 405);
 }
 
-$token = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
+$token = isset($_SERVER['HTTP_X_CSRF_TOKEN']) ? $_SERVER['HTTP_X_CSRF_TOKEN'] : '';
 
 if (
     !is_string($token)
     || !hash_equals($_SESSION['csrf_token'], $token)
 ) {
-    respond([
+    respond(array(
         'ok' => false,
         'message' => 'Your security token expired. Refresh and try again.',
-    ], 403);
+    ), 403);
 }
 
-$userId = (int) ($_SESSION['user_id'] ?? 0);
+$userId = isset($_SESSION['user_id']) ? (int) $_SESSION['user_id'] : 0;
 
 if (!$userId || !findUserById($pdo, $userId)) {
-    respond([
+    respond(array(
         'ok' => false,
         'message' => 'Please log in to continue.',
-    ], 401);
+    ), 401);
 }
 
-$id = $_GET['id'] ?? '';
-$type = $_GET['type'] ?? '';
+$id = isset($_GET['id']) ? $_GET['id'] : '';
+$type = isset($_GET['type']) ? $_GET['type'] : '';
 
-$tables = [
+$tables = array(
     'like' => 'nomnom_post_likes',
     'save' => 'nomnom_saved_posts',
-];
+);
 
 if (!is_string($id) || !ctype_digit($id) || (int) $id < 1) {
-    respond([
+    respond(array(
         'ok' => false,
         'message' => 'Invalid post ID.',
-    ], 400);
+    ), 400);
 }
 
 if (!is_string($type) || !isset($tables[$type])) {
-    respond([
+    respond(array(
         'ok' => false,
         'message' => 'Invalid interaction type.',
-    ], 400);
+    ), 400);
 }
 
 $postId = (int) $id;
-
-// The table name comes only from our fixed whitelist.
 $table = $tables[$type];
+$error = null;
+$state = null;
 
 try {
     $pdo->beginTransaction();
 
-    // Serialize interaction changes for this post.
     $statement = $pdo->prepare(
         'SELECT id FROM nomnom_posts WHERE id = ? FOR UPDATE'
     );
 
-    $statement->execute([$postId]);
+    $statement->execute(array($postId));
 
     if (!$statement->fetch()) {
         $pdo->rollBack();
 
-        respond([
+        respond(array(
             'ok' => false,
             'message' => 'This post no longer exists.',
-        ], 404);
+        ), 404);
     }
 
     if ($method === 'PUT') {
@@ -87,13 +86,13 @@ try {
              ON DUPLICATE KEY UPDATE created_at = created_at"
         );
 
-        $statement->execute([$userId, $postId]);
+        $statement->execute(array($userId, $postId));
     } else {
         $statement = $pdo->prepare(
             "DELETE FROM $table WHERE user_id = ? AND post_id = ?"
         );
 
-        $statement->execute([$userId, $postId]);
+        $statement->execute(array($userId, $postId));
     }
 
     $statement = $pdo->prepare(
@@ -117,31 +116,35 @@ try {
             ) AS saved_by_me'
     );
 
-    $statement->execute([
+    $statement->execute(array(
         $postId,
         $userId,
         $postId,
         $userId,
         $postId,
-    ]);
+    ));
 
     $state = $statement->fetch();
 
     $pdo->commit();
-} catch (Throwable $error) {
+} catch (Exception $e) {
     if ($pdo->inTransaction()) {
         $pdo->rollBack();
     }
 
+    $error = $e;
+}
+
+if ($error !== null) {
     throw $error;
 }
 
-respond([
+respond(array(
     'ok' => true,
-    'post' => [
+    'post' => array(
         'id' => $postId,
         'likes' => (int) $state['like_count'],
         'likedByMe' => (bool) $state['liked_by_me'],
         'savedByMe' => (bool) $state['saved_by_me'],
-    ],
-]);
+    ),
+));

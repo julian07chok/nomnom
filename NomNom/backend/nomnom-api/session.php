@@ -5,10 +5,10 @@ require __DIR__ . '/bootstrap.php';
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     header('Allow: GET');
 
-    respond([
+    respond(array(
         'ok' => false,
         'message' => 'Method not allowed.',
-    ], 405);
+    ), 405);
 }
 
 $user = null;
@@ -21,7 +21,7 @@ if (isset($_SESSION['user_id'])) {
          WHERE id = ?'
     );
 
-    $statement->execute([$_SESSION['user_id']]);
+    $statement->execute(array($_SESSION['user_id']));
     $row = $statement->fetch();
 
     if ($row) {
@@ -31,8 +31,8 @@ if (isset($_SESSION['user_id'])) {
     }
 }
 
-respond([
+respond(array(
     'ok' => true,
     'user' => $user,
     'csrfToken' => $_SESSION['csrf_token'],
-]);
+));

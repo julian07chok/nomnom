@@ -4,24 +4,24 @@ require_once __DIR__ . '/bootstrap.php';
 
 requirePost();
 
-$userId = (int) ($_SESSION['user_id'] ?? 0);
+$userId = isset($_SESSION['user_id']) ? (int) $_SESSION['user_id'] : 0;
 
 if (!$userId || !findUserById($pdo, $userId)) {
-    respond([
+    respond(array(
         'ok' => false,
         'message' => 'Please log in before publishing.',
-    ], 401);
+    ), 401);
 }
 
 // Validate text fields on the server too.
-$limits = [
+$limits = array(
     'title' => 100,
     'description' => 2000,
     'restaurantName' => 120,
     'address' => 250,
-];
+);
 
-$values = [];
+$values = array();
 
 foreach ($limits as $field => $maximum) {
     $value = trim(stringField($_POST, $field));
@@ -34,34 +34,32 @@ foreach ($limits as $field => $maximum) {
         || $length === false
         || $length > $maximum
     ) {
-        respond([
+        respond(array(
             'ok' => false,
             'message' => $field . ' is required and must be within '
                 . $maximum . ' characters.',
-        ], 422);
+        ), 422);
     }
 
     $values[$field] = $value;
 }
 
-$cuisines = [
+$cuisines = array(
     'Malaysian', 'Chinese', 'Indian', 'Japanese', 'Korean',
     'Thai', 'Vietnamese', 'Italian', 'Western', 'Cafe',
     'Dessert', 'Fusion', 'Middle Eastern',
-];
+);
 
-// These are approximate city-centre coordinates,
-// matching the current frontend feature.
-$locations = [
-    'Kuala Lumpur' => [3.1390, 101.6869],
-    'Petaling Jaya' => [3.1073, 101.6068],
-    'Subang Jaya' => [3.0567, 101.5851],
-    'Cyberjaya' => [2.9181, 101.6547],
-    'Penang' => [5.4141, 100.3288],
-    'Johor Bahru' => [1.4927, 103.7414],
-    'Melaka' => [2.1896, 102.2501],
-    'Ipoh' => [4.5975, 101.0901],
-];
+$locations = array(
+    'Kuala Lumpur' => array(3.1390, 101.6869),
+    'Petaling Jaya' => array(3.1073, 101.6068),
+    'Subang Jaya' => array(3.0567, 101.5851),
+    'Cyberjaya' => array(2.9181, 101.6547),
+    'Penang' => array(5.4141, 100.3288),
+    'Johor Bahru' => array(1.4927, 103.7414),
+    'Melaka' => array(2.1896, 102.2501),
+    'Ipoh' => array(4.5975, 101.0901),
+);
 
 $location = trim(stringField($_POST, 'location'));
 
@@ -80,38 +78,38 @@ if (
     || $longitude < -180
     || $longitude > 180
 ) {
-    respond([
+    respond(array(
         'ok' => false,
         'message' => 'Please pin the restaurant location on the map.',
-    ], 422);
+    ), 422);
 }
 
 $cuisine = trim(stringField($_POST, 'cuisine'));
 $priceRange = trim(stringField($_POST, 'priceRange'));
 
 if (!isset($locations[$location])) {
-    respond([
+    respond(array(
         'ok' => false,
         'message' => 'Please select a valid location.',
-    ], 422);
+    ), 422);
 }
 
 if (!in_array($cuisine, $cuisines, true)) {
-    respond([
+    respond(array(
         'ok' => false,
         'message' => 'Please select a valid cuisine.',
-    ], 422);
+    ), 422);
 }
 
-if (!in_array($priceRange, ['$', '$$', '$$$'], true)) {
-    respond([
+if (!in_array($priceRange, array('$', '$$', '$$$'), true)) {
+    respond(array(
         'ok' => false,
         'message' => 'Please select a valid price range.',
-    ], 422);
+    ), 422);
 }
 
 // Validate every photo before saving anything.
-$photos = $_FILES['photos'] ?? null;
+$photos = isset($_FILES['photos']) ? $_FILES['photos'] : null;
 
 if (
     !is_array($photos)
@@ -120,42 +118,42 @@ if (
     || count($photos['error']) < 1
     || count($photos['error']) > 5
 ) {
-    respond([
+    respond(array(
         'ok' => false,
         'message' => 'Please upload between one and five photos.',
-    ], 422);
+    ), 422);
 }
 
-$allowedTypes = [
+$allowedTypes = array(
     'image/jpeg' => 'jpg',
     'image/png' => 'png',
     'image/webp' => 'webp',
-];
+);
 
 $finfo = new finfo(FILEINFO_MIME_TYPE);
-$validatedPhotos = [];
+$validatedPhotos = array();
 
 foreach ($photos['error'] as $index => $error) {
-    $temporaryPath = $photos['tmp_name'][$index] ?? null;
+    $temporaryPath = isset($photos['tmp_name'][$index]) ? $photos['tmp_name'][$index] : null;
 
     if (
         $error !== UPLOAD_ERR_OK
         || !is_string($temporaryPath)
         || !is_uploaded_file($temporaryPath)
     ) {
-        respond([
+        respond(array(
             'ok' => false,
             'message' => 'A photo could not be uploaded. Try selecting it again.',
-        ], 422);
+        ), 422);
     }
 
     $size = filesize($temporaryPath);
 
     if ($size === false || $size < 1 || $size > 500 * 1024) {
-        respond([
+        respond(array(
             'ok' => false,
             'message' => 'Each photo must be 500 KB or smaller.',
-        ], 422);
+        ), 422);
     }
 
     $mimeType = $finfo->file($temporaryPath);
@@ -164,12 +162,12 @@ foreach ($photos['error'] as $index => $error) {
     if (
         !isset($allowedTypes[$mimeType])
         || !$imageInfo
-        || ($imageInfo['mime'] ?? '') !== $mimeType
+        || (!isset($imageInfo['mime']) || $imageInfo['mime'] !== $mimeType)
     ) {
-        respond([
+        respond(array(
             'ok' => false,
             'message' => 'Photos must be valid JPG, PNG, or WebP images.',
-        ], 422);
+        ), 422);
     }
 
     if (
@@ -177,21 +175,21 @@ foreach ($photos['error'] as $index => $error) {
         || $imageInfo[1] > 8000
         || $imageInfo[0] * $imageInfo[1] > 25000000
     ) {
-        respond([
+        respond(array(
             'ok' => false,
             'message' => 'A photo is too large in dimensions. Resize it first.',
-        ], 422);
+        ), 422);
     }
 
-    $validatedPhotos[] = [
+    $validatedPhotos[] = array(
         'temporaryPath' => $temporaryPath,
         'filename' => bin2hex(random_bytes(16))
             . '.' . $allowedTypes[$mimeType],
-    ];
+    );
 }
 
 $config = require __DIR__ . '/config.local.php';
-$uploadDirectory = $config['upload_dir'] ?? '';
+$uploadDirectory = isset($config['upload_dir']) ? $config['upload_dir'] : '';
 
 if (
     !is_string($uploadDirectory)
@@ -201,7 +199,9 @@ if (
     throw new RuntimeException('Upload directory is missing or not writable.');
 }
 
-$savedPaths = [];
+$savedPaths = array();
+$postId = null;
+$error = null;
 
 try {
     $pdo->beginTransaction();
@@ -216,18 +216,18 @@ try {
                 UTC_TIMESTAMP(), UTC_TIMESTAMP())'
     );
 
-    $statement->execute([
-    $userId,
-    $values['title'],
-    $values['description'],
-    $values['restaurantName'],
-    $values['address'],
-    $location,
-    $cuisine,
-    $priceRange,
-    $latitude,
-    $longitude,
-]);
+    $statement->execute(array(
+        $userId,
+        $values['title'],
+        $values['description'],
+        $values['restaurantName'],
+        $values['address'],
+        $location,
+        $cuisine,
+        $priceRange,
+        $latitude,
+        $longitude,
+    ));
 
     $postId = (int) $pdo->lastInsertId();
 
@@ -248,15 +248,15 @@ try {
 
         $savedPaths[] = $destination;
 
-        $imageStatement->execute([
+        $imageStatement->execute(array(
             $postId,
             'api/image.php?name=' . $photo['filename'],
             $order,
-        ]);
+        ));
     }
 
     $pdo->commit();
-} catch (Throwable $error) {
+} catch (Exception $e) {
     if ($pdo->inTransaction()) {
         $pdo->rollBack();
     }
@@ -267,10 +267,14 @@ try {
         }
     }
 
+    $error = $e;
+}
+
+if ($error !== null) {
     throw $error;
 }
 
-respond([
+respond(array(
     'ok' => true,
     'postId' => $postId,
-], 201);
+), 201);

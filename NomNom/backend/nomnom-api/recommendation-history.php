@@ -4,27 +4,27 @@ require_once __DIR__ . '/bootstrap.php';
 
 requirePost();
 
-$userId = (int) ($_SESSION['user_id'] ?? 0);
+$userId = isset($_SESSION['user_id']) ? (int) $_SESSION['user_id'] : 0;
 
 if (!$userId) {
-    respond([
+    respond(array(
         'ok' => false,
         'message' => 'Please log in.',
-    ], 401);
+    ), 401);
 }
 
 $data = readJsonBody();
-$type = $data['type'] ?? null;
+$type = isset($data['type']) ? $data['type'] : null;
 
 // Record a viewed post.
 if ($type === 'view') {
-    $postId = $data['postId'] ?? null;
+    $postId = isset($data['postId']) ? $data['postId'] : null;
 
     if (!is_int($postId) || $postId < 1) {
-        respond([
+        respond(array(
             'ok' => false,
             'message' => 'Invalid post ID.',
-        ], 422);
+        ), 422);
     }
 
     $statement = $pdo->prepare(
@@ -33,22 +33,21 @@ if ($type === 'view') {
          WHERE id = ?'
     );
 
-    $statement->execute([$postId]);
+    $statement->execute(array($postId));
     $post = $statement->fetch();
 
     if (!$post) {
-        respond([
+        respond(array(
             'ok' => false,
             'message' => 'Post not found.',
-        ], 404);
+        ), 404);
     }
 
-    // Do not use views of your own posts as a preference.
     if ((int) $post['author_id'] === $userId) {
-        respond([
+        respond(array(
             'ok' => true,
             'recorded' => false,
-        ]);
+        ));
     }
 
     $statement = $pdo->prepare(
@@ -67,12 +66,12 @@ if ($type === 'view') {
             last_viewed_at = UTC_TIMESTAMP()'
     );
 
-    $statement->execute([$userId, $postId]);
+    $statement->execute(array($userId, $postId));
 
-    respond([
+    respond(array(
         'ok' => true,
         'recorded' => true,
-    ]);
+    ));
 }
 
 // Record a search keyword.
@@ -82,20 +81,26 @@ if ($type === 'search') {
     $query = preg_replace('/\s+/u', ' ', trim($query));
 
     if ($query === null) {
-        respond([
+        respond(array(
             'ok' => false,
             'message' => 'Invalid search text.',
-        ], 422);
+        ), 422);
     }
 
-    $query = mb_strtolower($query, 'UTF-8');
-    $length = mb_strlen($query, 'UTF-8');
+    // PHP 5.4 doesn't always have mbstring — use fallback
+    if (function_exists('mb_strtolower')) {
+        $query = mb_strtolower($query, 'UTF-8');
+        $length = mb_strlen($query, 'UTF-8');
+    } else {
+        $query = strtolower($query);
+        $length = strlen($query);
+    }
 
     if ($length < 2 || $length > 100) {
-        respond([
+        respond(array(
             'ok' => false,
             'message' => 'Search text must contain 2–100 characters.',
-        ], 422);
+        ), 422);
     }
 
     $statement = $pdo->prepare(
@@ -114,15 +119,15 @@ if ($type === 'search') {
             last_searched_at = UTC_TIMESTAMP()'
     );
 
-    $statement->execute([$userId, $query]);
+    $statement->execute(array($userId, $query));
 
-    respond([
+    respond(array(
         'ok' => true,
         'recorded' => true,
-    ]);
+    ));
 }
 
-respond([
+respond(array(
     'ok' => false,
     'message' => 'Invalid interaction type.',
-], 422);
+), 422);

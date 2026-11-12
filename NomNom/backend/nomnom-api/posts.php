@@ -10,17 +10,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     header('Allow: GET, POST');
 
-    respond([
+    respond(array(
         'ok' => false,
         'message' => 'Method not allowed.',
-    ], 405);
+    ), 405);
 }
 
-// Guests can read posts.
-// Logged-in users also receive their own like/save status.
-$viewerId = (int) ($_SESSION['user_id'] ?? 0);
+$viewerId = isset($_SESSION['user_id']) ? (int) $_SESSION['user_id'] : 0;
 
-// Optional ID for reading one specific post.
 $postId = null;
 
 if (isset($_GET['id'])) {
@@ -29,10 +26,10 @@ if (isset($_GET['id'])) {
         || !ctype_digit($_GET['id'])
         || (int) $_GET['id'] < 1
     ) {
-        respond([
+        respond(array(
             'ok' => false,
             'message' => 'Invalid post ID.',
-        ], 400);
+        ), 400);
     }
 
     $postId = (int) $_GET['id'];
@@ -69,7 +66,7 @@ $sql = '
     INNER JOIN nomnom_users u ON u.id = p.author_id
 ';
 
-$parameters = [$viewerId, $viewerId];
+$parameters = array($viewerId, $viewerId);
 
 if ($postId !== null) {
     $sql .= ' WHERE p.id = ?';
@@ -84,19 +81,18 @@ $statement->execute($parameters);
 $rows = $statement->fetchAll();
 
 if ($postId !== null && !$rows) {
-    respond([
+    respond(array(
         'ok' => false,
         'message' => 'Post not found.',
-    ], 404);
+    ), 404);
 }
 
-// Fetch images in one query, rather than one query per post.
 $imageSql = '
     SELECT id, post_id, image_url
     FROM nomnom_post_images
 ';
 
-$imageParameters = [];
+$imageParameters = array();
 
 if ($postId !== null) {
     $imageSql .= ' WHERE post_id = ?';
@@ -108,29 +104,29 @@ $imageSql .= ' ORDER BY post_id, sort_order, id';
 $imageStatement = $pdo->prepare($imageSql);
 $imageStatement->execute($imageParameters);
 
-$imagesByPost = [];
+$imagesByPost = array();
 
 foreach ($imageStatement->fetchAll() as $image) {
     $key = (int) $image['post_id'];
 
     if (!isset($imagesByPost[$key])) {
-        $imagesByPost[$key] = [];
+        $imagesByPost[$key] = array();
     }
 
-    $imagesByPost[$key][] = [
-    'id' => (int) $image['id'],
-    'url' => $image['image_url'],
-];
+    $imagesByPost[$key][] = array(
+        'id' => (int) $image['id'],
+        'url' => $image['image_url'],
+    );
 }
 
-$posts = [];
+$posts = array();
 
 foreach ($rows as $row) {
     $id = (int) $row['id'];
-    $galleryItems = $imagesByPost[$id] ?? [];
-$gallery = array_column($galleryItems, 'url');
+    $galleryItems = isset($imagesByPost[$id]) ? $imagesByPost[$id] : array();
+    $gallery = array_column($galleryItems, 'url');
 
-    $posts[] = [
+    $posts[] = array(
         'id' => $id,
         'title' => $row['title'],
         'description' => $row['description'],
@@ -151,9 +147,9 @@ $gallery = array_column($galleryItems, 'url');
         'authorId' => (int) $row['author_id'],
         'authorName' => $row['author_name'],
         'authorDisplayName' => $row['author_display_name'],
-        'authorAvatar' => $row['author_avatar'] ?? '',
+        'authorAvatar' => isset($row['author_avatar']) ? $row['author_avatar'] : '',
 
-        'coverImage' => $gallery[0] ?? '',
+        'coverImage' => isset($gallery[0]) ? $gallery[0] : '',
         'gallery' => $gallery,
         'galleryItems' => $galleryItems,
 
@@ -172,10 +168,10 @@ $gallery = array_column($galleryItems, 'url');
             'T',
             $row['updated_at']
         ) . 'Z',
-    ];
+    );
 }
 
-respond([
+respond(array(
     'ok' => true,
     'posts' => $posts,
-]);
+));

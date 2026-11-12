@@ -12,18 +12,18 @@ try {
         'SELECT COUNT(*) FROM nomnom_users'
     );
 
-    echo json_encode([
+    echo json_encode(array(
         'ok' => true,
         'message' => 'Connected to the local NomNom database.',
         'userCount' => (int) $statement->fetchColumn(),
-    ]);
-} catch (Throwable $error) {
+    ));
+} catch (Exception $error) {
     error_log('NomNom database connection: ' . $error->getMessage());
 
     http_response_code(500);
 
-    echo json_encode([
+    echo json_encode(array(
         'ok' => false,
         'message' => 'Database connection failed. Check the Apache error log.',
-    ]);
+    ));
 }

@@ -3,7 +3,7 @@
 function getRecommendationScores($pdo, $userId)
 {
     if ($userId < 1) {
-        return [];
+        return array();
     }
 
     $sql = "
@@ -103,7 +103,7 @@ function getRecommendationScores($pdo, $userId)
 
     $statement = $pdo->prepare($sql);
 
-    $statement->execute([
+    $statement->execute(array(
         $userId,
         $userId,
         $userId,
@@ -111,9 +111,9 @@ function getRecommendationScores($pdo, $userId)
         $userId,
         $userId,
         $userId,
-    ]);
+    ));
 
-    $scores = [];
+    $scores = array();
 
     foreach ($statement->fetchAll() as $row) {
         $scores[$row['cuisine']] = (int) $row['score'];

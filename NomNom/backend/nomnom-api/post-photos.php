@@ -20,15 +20,15 @@ function parsePhotoPlan($data)
         );
     }
 
-    $allowedTypes = [
+    $allowedTypes = array(
         'image/jpeg' => 'jpg',
         'image/png' => 'png',
         'image/webp' => 'webp',
-    ];
+    );
 
     $finfo = new finfo(FILEINFO_MIME_TYPE);
-    $plan = [];
-    $seenIds = [];
+    $plan = array();
+    $seenIds = array();
 
     foreach ($photos as $photo) {
         if (!is_array($photo) || count($photo) !== 1) {
@@ -49,11 +49,11 @@ function parsePhotoPlan($data)
             }
 
             $seenIds[] = $id;
-            $plan[] = ['id' => $id];
+            $plan[] = array('id' => $id);
             continue;
         }
 
-        $dataUrl = $photo['dataUrl'] ?? null;
+        $dataUrl = isset($photo['dataUrl']) ? $photo['dataUrl'] : null;
 
         if (
             !is_string($dataUrl)
@@ -91,7 +91,7 @@ function parsePhotoPlan($data)
             !isset($allowedTypes[$mimeType])
             || $mimeType !== $matches[1]
             || !$info
-            || ($info['mime'] ?? '') !== $mimeType
+            || (!isset($info['mime']) || $info['mime'] !== $mimeType)
         ) {
             throw new InvalidArgumentException('Invalid image file.');
         }
@@ -106,10 +106,10 @@ function parsePhotoPlan($data)
             );
         }
 
-        $plan[] = [
+        $plan[] = array(
             'bytes' => $bytes,
             'extension' => $allowedTypes[$mimeType],
-        ];
+        );
     }
 
     return $plan;
@@ -124,17 +124,16 @@ function applyPhotoPlan($pdo, $postId, $plan, &$newPaths)
          FOR UPDATE'
     );
 
-    $statement->execute([$postId]);
+    $statement->execute(array($postId));
 
-    $existing = [];
+    $existing = array();
 
     foreach ($statement->fetchAll() as $row) {
         $existing[(int) $row['id']] = $row['image_url'];
     }
 
-    $keptIds = [];
+    $keptIds = array();
 
-    // Check every retained image belongs to this post before changing anything.
     foreach ($plan as $photo) {
         if (isset($photo['id'])) {
             if (!isset($existing[$photo['id']])) {
@@ -147,7 +146,7 @@ function applyPhotoPlan($pdo, $postId, $plan, &$newPaths)
         }
     }
 
-    $removedUrls = [];
+    $removedUrls = array();
 
     foreach ($existing as $id => $url) {
         if (!in_array($id, $keptIds, true)) {
@@ -155,12 +154,11 @@ function applyPhotoPlan($pdo, $postId, $plan, &$newPaths)
         }
     }
 
-    // Rebuild ordering inside the transaction to avoid unique-order clashes.
     $statement = $pdo->prepare(
         'DELETE FROM nomnom_post_images WHERE post_id = ?'
     );
 
-    $statement->execute([$postId]);
+    $statement->execute(array($postId));
 
     $insertExisting = $pdo->prepare(
         'INSERT INTO nomnom_post_images
@@ -176,18 +174,18 @@ function applyPhotoPlan($pdo, $postId, $plan, &$newPaths)
 
     foreach ($plan as $order => $photo) {
         if (isset($photo['id'])) {
-            $insertExisting->execute([
+            $insertExisting->execute(array(
                 $photo['id'],
                 $postId,
                 $existing[$photo['id']],
                 $order,
-            ]);
+            ));
 
             continue;
         }
 
         $config = require __DIR__ . '/config.local.php';
-        $directory = $config['upload_dir'] ?? '';
+        $directory = isset($config['upload_dir']) ? $config['upload_dir'] : '';
 
         if (
             !is_string($directory)
@@ -206,7 +204,6 @@ function applyPhotoPlan($pdo, $postId, $plan, &$newPaths)
             . DIRECTORY_SEPARATOR
             . $filename;
 
-        // Include partial writes in rollback cleanup.
         $newPaths[] = $path;
 
         $written = file_put_contents(
@@ -219,11 +216,11 @@ function applyPhotoPlan($pdo, $postId, $plan, &$newPaths)
             throw new RuntimeException('Could not save a photo.');
         }
 
-        $insertNew->execute([
+        $insertNew->execute(array(
             $postId,
             'api/image.php?name=' . $filename,
             $order,
-        ]);
+        ));
     }
 
     return $removedUrls;
