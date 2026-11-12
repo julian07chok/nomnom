@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onBeforeUnmount, ref, watch } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { getDistanceKm, formatDistance } from "../utils/geo";
 import { usePosts } from "../services/posts";
@@ -16,7 +16,8 @@ const router = useRouter();
 const { posts } = usePosts();
 const { currentUser } = useAuth();
 
-const POSTS_PER_PAGE = 4;
+const laptopScreen = window.matchMedia("(min-width: 992px)");
+const perPage = ref(laptopScreen.matches ? 6 : 4);
 const radiusKm = 50; // Radius in kilometers for Near Me
 
 // ─── Local state (initialised from URL) ────────────────────
@@ -158,7 +159,7 @@ const filteredPosts = computed(() => {
 });
 
 const totalPages = computed(() =>
-  Math.max(1, Math.ceil(filteredPosts.value.length / POSTS_PER_PAGE)),
+  Math.max(1, Math.ceil(filteredPosts.value.length / perPage.value)),
 );
 
 watch(
@@ -174,10 +175,10 @@ watch(
 );
 
 const paginatedPosts = computed(() => {
-  const start = (currentPage.value - 1) * POSTS_PER_PAGE;
-  return filteredPosts.value.slice(start, start + POSTS_PER_PAGE);
-});
+  const start = (currentPage.value - 1) * perPage.value;
 
+  return filteredPosts.value.slice(start, start + perPage.value);
+});
 // ─── Sync state → URL ──────────────────────────────────────
 let isSyncingFromSelf = false;
 
@@ -272,6 +273,19 @@ watch(
 
 onBeforeUnmount(() => {
   clearTimeout(searchHistoryTimer);
+});
+
+function updatePageSize(event) {
+  currentPage.value = 1;
+  perPage.value = event.matches ? 6 : 4;
+}
+
+onMounted(() => {
+  laptopScreen.addEventListener("change", updatePageSize);
+});
+
+onBeforeUnmount(() => {
+  laptopScreen.removeEventListener("change", updatePageSize);
 });
 </script>
 
@@ -369,7 +383,7 @@ onBeforeUnmount(() => {
             <div
               v-for="post in paginatedPosts"
               :key="post.id"
-              class="col-6 col-xl-4"
+              class="col-6 col-lg-4"
             >
               <PostCard
                 :post="post"
@@ -383,7 +397,7 @@ onBeforeUnmount(() => {
           <Pagination
             v-model:currentPage="currentPage"
             :total-pages="totalPages"
-            :per-page="POSTS_PER_PAGE"
+            :per-page="perPage"
             :total-items="filteredPosts.length"
           />
         </div>
