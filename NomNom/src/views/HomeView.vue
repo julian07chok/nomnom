@@ -170,28 +170,37 @@ function onSearch() {
 
 <template>
   <main class="home-page">
-    <!-- Hero -->
+    <!-- Hero + Map -->
     <section class="home-hero">
       <div class="container">
-        <div class="home-hero-content">
-          <p class="home-hero-eyebrow">🍜 Community food journal</p>
-          <h1 class="home-hero-title">
-            Discover your next
-            <span class="home-hero-title-accent">favourite bite</span>
-          </h1>
-          <p class="home-hero-subtitle">
-            Real reviews, honest photos, and hidden gems — shared by food lovers
-            across Malaysia.
-          </p>
+        <div class="row align-items-center g-4 g-lg-5">
 
-          <SearchBar v-model="searchQuery" variant="home" placeholder="Search dishes, restaurants, or locations…"
-            @submit="onSearch" />
+          <!-- Left column: title, subtitle, search bar -->
+          <div class="col-12 col-lg-6">
+            <div class="home-hero-content">
+              <p class="home-hero-eyebrow">🍜 Community food journal</p>
+              <h1 class="home-hero-title">
+                Discover your next
+                <span class="home-hero-title-accent">favourite bite</span>
+              </h1>
+              <p class="home-hero-subtitle">
+                Real reviews, honest photos, and hidden gems — shared by food lovers
+                across Malaysia.
+              </p>
+
+              <SearchBar v-model="searchQuery" variant="home" placeholder="Search dishes, restaurants, or locations…"
+                @submit="onSearch" />
+            </div>
+          </div>
+
+          <!-- Right column: interactive map (desktop only) -->
+          <div class="col-12 col-lg-6">
+            <PostMap :posts="posts" />
+          </div>
+
         </div>
       </div>
     </section>
-
-    <!-- Interactive map (NEW) -->
-    <PostMap :posts="posts" />
 
     <!-- Cuisine categories -->
     <section class="home-categories-section">

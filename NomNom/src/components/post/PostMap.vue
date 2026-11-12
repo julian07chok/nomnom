@@ -7,10 +7,10 @@ import 'leaflet/dist/leaflet.css'
 import '../../assets/css/post-map.css'
 
 const props = defineProps({
-  posts: {
-    type: Array,
-    required: true,
-  },
+    posts: {
+        type: Array,
+        required: true,
+    },
 })
 
 const router = useRouter()
@@ -26,49 +26,49 @@ const DEFAULT_ZOOM = 11
 
 // Build markers from posts that have valid coordinates
 const postsWithCoords = computed(() =>
-  props.posts.filter(
-    (p) =>
-      p.latitude !== null &&
-      p.longitude !== null &&
-      !Number.isNaN(Number(p.latitude)) &&
-      !Number.isNaN(Number(p.longitude)),
-  ),
+    props.posts.filter(
+        (p) =>
+            p.latitude !== null &&
+            p.longitude !== null &&
+            !Number.isNaN(Number(p.latitude)) &&
+            !Number.isNaN(Number(p.longitude)),
+    ),
 )
 
 // Custom pin icon (SVG, no external asset needed)
 function createPinIcon() {
-  return L.divIcon({
-    className: 'nomnom-marker',
-    html: `
+    return L.divIcon({
+        className: 'nomnom-marker',
+        html: `
       <div class="nomnom-marker-pin">
         <i class="bi bi-shop" aria-hidden="true"></i>
       </div>
     `,
-    iconSize: [36, 44],
-    iconAnchor: [18, 44],
-    popupAnchor: [0, -40],
-  })
+        iconSize: [36, 44],
+        iconAnchor: [18, 44],
+        popupAnchor: [0, -40],
+    })
 }
 
 function escapeHtml(value) {
-  return String(value ?? '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;')
+    return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;')
 }
 
 function buildPopupHtml(post) {
-  const cover = post.coverImage || ''
-  const title = escapeHtml(post.title)
-  const restaurant = escapeHtml(post.restaurantName)
-  const cuisine = escapeHtml(post.cuisine)
-  const price = escapeHtml(post.priceRange)
-  const location = escapeHtml(post.location)
-  const id = Number(post.id)
+    const cover = post.coverImage || ''
+    const title = escapeHtml(post.title)
+    const restaurant = escapeHtml(post.restaurantName)
+    const cuisine = escapeHtml(post.cuisine)
+    const price = escapeHtml(post.priceRange)
+    const location = escapeHtml(post.location)
+    const id = Number(post.id)
 
-  return `
+    return `
     <div class="nomnom-popup">
       ${cover ? `<img src="${cover}" alt="" class="nomnom-popup-img" loading="lazy" />` : ''}
       <div class="nomnom-popup-body">
@@ -92,121 +92,114 @@ function buildPopupHtml(post) {
 }
 
 function renderMarkers() {
-  if (!map) return
+    if (!map) return
 
-  // Remove old markers
-  if (markerLayer) {
-    markerLayer.clearLayers()
-  } else {
-    markerLayer = L.layerGroup().addTo(map)
-  }
+    // Remove old markers
+    if (markerLayer) {
+        markerLayer.clearLayers()
+    } else {
+        markerLayer = L.layerGroup().addTo(map)
+    }
 
-  const icon = createPinIcon()
-  const bounds = []
+    const icon = createPinIcon()
+    const bounds = []
 
-  for (const post of postsWithCoords.value) {
-    const lat = Number(post.latitude)
-    const lng = Number(post.longitude)
+    for (const post of postsWithCoords.value) {
+        const lat = Number(post.latitude)
+        const lng = Number(post.longitude)
 
-    const marker = L.marker([lat, lng], { icon })
-    marker.bindPopup(buildPopupHtml(post), {
-      maxWidth: 260,
-      className: 'nomnom-popup-wrapper',
-    })
+        const marker = L.marker([lat, lng], { icon })
+        marker.bindPopup(buildPopupHtml(post), {
+            maxWidth: 260,
+            className: 'nomnom-popup-wrapper',
+        })
 
-    // Custom nav (so Vue Router handles the click instead of full page reload)
-    marker.on('popupopen', (event) => {
-      const popupEl = event.popup.getElement()
-      const link = popupEl?.querySelector('.nomnom-popup-link')
+        // Custom nav (so Vue Router handles the click instead of full page reload)
+        marker.on('popupopen', (event) => {
+            const popupEl = event.popup.getElement()
+            const link = popupEl?.querySelector('.nomnom-popup-link')
 
-      if (link) {
-        link.addEventListener(
-          'click',
-          (e) => {
-            e.preventDefault()
-            const postId = e.currentTarget.dataset.postId
-            router.push({ name: 'post-detail', params: { id: postId } })
-            map.closePopup()
-          },
-          { once: true },
-        )
-      }
-    })
+            if (link) {
+                link.addEventListener(
+                    'click',
+                    (e) => {
+                        e.preventDefault()
+                        const postId = e.currentTarget.dataset.postId
+                        router.push({ name: 'post-detail', params: { id: postId } })
+                        map.closePopup()
+                    },
+                    { once: true },
+                )
+            }
+        })
 
-    marker.addTo(markerLayer)
-    bounds.push([lat, lng])
-  }
+        marker.addTo(markerLayer)
+        bounds.push([lat, lng])
+    }
 
-  // Auto-fit to markers, or reset to KL if none
-  if (bounds.length === 1) {
-    map.setView(bounds[0], 14)
-  } else if (bounds.length > 1) {
-    map.fitBounds(bounds, { padding: [40, 40], maxZoom: 14 })
-  } else {
-    map.setView(DEFAULT_CENTER, DEFAULT_ZOOM)
-  }
+    // Auto-fit to markers, or reset to KL if none
+    if (bounds.length === 1) {
+        map.setView(bounds[0], 14)
+    } else if (bounds.length > 1) {
+        map.fitBounds(bounds, { padding: [40, 40], maxZoom: 14 })
+    } else {
+        map.setView(DEFAULT_CENTER, DEFAULT_ZOOM)
+    }
 }
 
 onMounted(() => {
-  if (!mapContainer.value) return
+    if (!mapContainer.value) return
 
-  map = L.map(mapContainer.value, {
-    center: DEFAULT_CENTER,
-    zoom: DEFAULT_ZOOM,
-    scrollWheelZoom: false, // don't hijack page scroll on mobile
-    zoomControl: true,
-  })
+    map = L.map(mapContainer.value, {
+        center: DEFAULT_CENTER,
+        zoom: DEFAULT_ZOOM,
+        scrollWheelZoom: false, // don't hijack page scroll on mobile
+        zoomControl: true,
+    })
 
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution:
-      '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors',
-    maxZoom: 19,
-  }).addTo(map)
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution:
+            '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors',
+        maxZoom: 19,
+    }).addTo(map)
 
-  // Enable wheel zoom only when the map is clicked (good UX on scroll pages)
-  map.on('click', () => map.scrollWheelZoom.enable())
-  map.on('mouseout', () => map.scrollWheelZoom.disable())
+    // Enable wheel zoom only when the map is clicked (good UX on scroll pages)
+    map.on('click', () => map.scrollWheelZoom.enable())
+    map.on('mouseout', () => map.scrollWheelZoom.disable())
 
-  mapReady.value = true
-  renderMarkers()
+    mapReady.value = true
+    renderMarkers()
 })
 
 // Update markers when the posts prop changes
 watch(postsWithCoords, renderMarkers, { deep: true })
 
 onBeforeUnmount(() => {
-  if (map) {
-    map.remove()
-    map = null
-  }
+    if (map) {
+        map.remove()
+        map = null
+    }
 })
 </script>
 
 <template>
-  <section class="post-map-section" aria-labelledby="post-map-heading">
-    <div class="container">
-      <header class="post-map-header">
-        <h2 id="post-map-heading" class="post-map-title">
-          <i class="bi bi-map" aria-hidden="true"></i>
-          Explore on the map
-        </h2>
-        <p class="post-map-subtitle">
-          {{ postsWithCoords.length }}
-          {{ postsWithCoords.length === 1 ? 'restaurant' : 'restaurants' }}
-          on the map. Click a pin to see the post.
+    <section class="post-map-section" aria-labelledby="post-map-heading">
+        <header class="post-map-header">
+            <h2 id="post-map-heading" class="post-map-title">
+                <i class="bi bi-map" aria-hidden="true"></i>
+                Explore on the map
+            </h2>
+            <p class="post-map-subtitle">
+                {{ postsWithCoords.length }}
+                {{ postsWithCoords.length === 1 ? 'restaurant' : 'restaurants' }}
+                on the map. Click a pin to see the post.
+            </p>
+        </header>
+
+        <div ref="mapContainer" class="post-map" role="region" aria-label="Restaurant map"></div>
+
+        <p v-if="!postsWithCoords.length" class="post-map-empty">
+            No restaurants with location data yet.
         </p>
-      </header>
-
-      <div
-        ref="mapContainer"
-        class="post-map"
-        role="region"
-        aria-label="Restaurant map"
-      ></div>
-
-      <p v-if="!postsWithCoords.length" class="post-map-empty">
-        No restaurants with location data yet.
-      </p>
-    </div>
-  </section>
+    </section>
 </template>

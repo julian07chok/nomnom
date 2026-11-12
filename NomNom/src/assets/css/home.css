@@ -5,12 +5,35 @@
 
 /* Hero */
 .home-hero {
-  padding: 48px 0 40px;
+  padding: 40px 0 32px;
   background: linear-gradient(180deg, #dce9fc 0%, #fffcf3 100%);
 }
 
 .home-hero-content {
   max-width: 720px;
+}
+
+.home-hero .post-map-section {
+  padding: 0;
+  background: transparent;
+}
+
+.home-hero .post-map {
+  height: 380px;
+  box-shadow: 0 20px 40px rgb(72 57 52 / 15%);
+}
+
+.home-hero .post-map-header {
+  margin-bottom: 12px;
+  text-align: left;          /* was center */
+}
+
+.home-hero .post-map-title {
+  font-size: 1.15rem;        /* was 1.5rem — smaller inside the column */
+}
+
+.home-hero .post-map-subtitle {
+  font-size: 0.85rem;
 }
 
 .home-hero-eyebrow {
@@ -265,5 +288,36 @@ select:focus-visible {
     flex-direction: row;
     align-items: flex-end;
     justify-content: space-between;
+  }
+}
+
+/* Mobile: map sits below the search bar, with a bit of space */
+@media (max-width: 991.98px) {
+  .home-hero {
+    padding: 40px 0 32px;
+  }
+
+  .home-hero .post-map {
+    height: 340px;
+  }
+
+  /* Optional: add a bit of top margin between search bar and map */
+  .home-hero .post-map-section {
+    margin-top: 8px;
+  }
+}
+
+/* Desktop (≥992px): side-by-side hero + map */
+@media (min-width: 992px) {
+  .home-hero {
+    padding: 64px 0 56px;
+  }
+
+  .home-hero .post-map {
+    height: 460px;
+  }
+
+  .home-hero .post-map-section {
+    margin-top: 0;
   }
 }
