@@ -64,6 +64,28 @@ $locations = [
 ];
 
 $location = trim(stringField($_POST, 'location'));
+
+$latitude = isset($_POST['latitude']) && is_numeric($_POST['latitude'])
+    ? (float) $_POST['latitude']
+    : null;
+$longitude = isset($_POST['longitude']) && is_numeric($_POST['longitude'])
+    ? (float) $_POST['longitude']
+    : null;
+
+if (
+    $latitude === null
+    || $longitude === null
+    || $latitude < -90
+    || $latitude > 90
+    || $longitude < -180
+    || $longitude > 180
+) {
+    respond([
+        'ok' => false,
+        'message' => 'Please pin the restaurant location on the map.',
+    ], 422);
+}
+
 $cuisine = trim(stringField($_POST, 'cuisine'));
 $priceRange = trim(stringField($_POST, 'priceRange'));
 
@@ -195,17 +217,17 @@ try {
     );
 
     $statement->execute([
-        $userId,
-        $values['title'],
-        $values['description'],
-        $values['restaurantName'],
-        $values['address'],
-        $location,
-        $cuisine,
-        $priceRange,
-        $locations[$location][0],
-        $locations[$location][1],
-    ]);
+    $userId,
+    $values['title'],
+    $values['description'],
+    $values['restaurantName'],
+    $values['address'],
+    $location,
+    $cuisine,
+    $priceRange,
+    $latitude,
+    $longitude,
+]);
 
     $postId = (int) $pdo->lastInsertId();
 

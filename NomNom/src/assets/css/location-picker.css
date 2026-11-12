@@ -1,0 +1,151 @@
+/* src/assets/css/location-picker.css */
+
+.location-picker {
+  margin: 24px 0;
+  padding: 20px;
+  border: 1px solid rgb(72 57 52 / 15%);
+  border-radius: 20px;
+  background: #fffcf3;
+}
+
+.location-picker-header {
+  margin-bottom: 16px;
+}
+
+.location-picker-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 6px;
+  color: #483934;
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+
+.location-picker-title i {
+  color: #cd4639;
+}
+
+.location-picker-hint {
+  margin: 0;
+  color: #483934;
+  font-size: 0.9rem;
+  opacity: 0.75;
+  line-height: 1.6;
+}
+
+.location-picker-map {
+  width: 100%;
+  height: 340px;
+  border: 2px solid #483934;
+  border-radius: 14px;
+  overflow: hidden;
+  margin-bottom: 16px;
+  z-index: 1;
+}
+
+.location-picker-fields {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  align-items: end;
+}
+
+.location-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.location-label {
+  color: #483934;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.location-input {
+  padding: 10px 14px;
+  border: 1px solid rgb(72 57 52 / 25%);
+  border-radius: 12px;
+  background: #fffcf3;
+  color: #483934;
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+}
+
+.location-input:focus {
+  outline: none;
+  border-color: #483934;
+  box-shadow: 0 0 0 3px rgb(205 70 57 / 15%);
+}
+
+.location-clear {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 16px;
+  border: 1px solid rgb(205 70 57 / 40%);
+  border-radius: 12px;
+  background: transparent;
+  color: #cd4639;
+  font-weight: 700;
+  cursor: pointer;
+  align-self: end;
+}
+
+.location-clear:hover {
+  background: #cd4639;
+  color: #fffcf3;
+}
+
+.location-picker-help {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 12px 0 0;
+  color: #483934;
+  font-size: 0.8rem;
+  opacity: 0.65;
+}
+
+/* Marker pin (same style as HomeView) */
+.nomnom-marker-pin {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 44px;
+  border-radius: 50% 50% 50% 0;
+  background: #cd4639;
+  transform: rotate(-45deg);
+  box-shadow: 0 4px 10px rgb(0 0 0 / 25%);
+  border: 2px solid #fffcf3;
+}
+
+.nomnom-marker-pin i {
+  color: #fffcf3;
+  font-size: 1rem;
+  transform: rotate(45deg);
+}
+
+.nomnom-marker {
+  background: transparent;
+  border: none;
+}
+
+@media (min-width: 576px) {
+  .location-picker-fields {
+    grid-template-columns: 1fr 1fr auto;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .location-picker-map {
+    height: 260px;
+  }
+
+  .location-picker {
+    padding: 16px;
+  }
+}

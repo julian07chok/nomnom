@@ -86,6 +86,10 @@ async function createPost(data) {
     body.append(field, data[field]);
   }
 
+  // Coordinates
+  body.append("latitude", data.latitude);
+  body.append("longitude", data.longitude);
+
   for (const file of data.files) {
     body.append("photos[]", file);
   }

@@ -3,6 +3,7 @@ import { reactive, ref } from "vue";
 import { useRouter } from "vue-router";
 import { useAuth } from "../services/auth";
 import { usePosts } from "../services/posts";
+import LocationPicker from "../components/post/LocationPicker.vue";
 import AppButton from "../components/common/AppButton.vue";
 
 const router = useRouter();
@@ -18,6 +19,8 @@ const isReading = ref(false);
 const isPublishing = ref(false);
 const submitted = ref(false);
 const dragOver = ref(false);
+const latitude = ref(null);
+const longitude = ref(null);
 
 const MAX_PHOTOS = 5;
 const MAX_FILE_SIZE = 500 * 1024;
@@ -256,6 +259,10 @@ function validate() {
     errors.photos = "Please add at least one photo.";
   }
 
+  if (latitude.value == null || longitude.value == null) {
+    errors.location = "Please pin the restaurant's location on the map.";
+  }
+
   return Object.keys(errors).length === 0;
 }
 
@@ -294,6 +301,8 @@ async function publish() {
       location: form.location,
       cuisine: form.cuisine,
       priceRange: form.priceRange,
+      latitude: latitude.value,
+      longitude: longitude.value,
       files: photos.value.map((photo) => photo.file),
     });
   } catch (error) {
@@ -325,24 +334,15 @@ async function publish() {
             </p>
           </header>
 
-          <form
-            ref="formElement"
-            class="create-card"
-            novalidate
-            :aria-busy="isReading || isPublishing"
-            @submit.prevent="publish"
-          >
+          <form ref="formElement" class="create-card" novalidate :aria-busy="isReading || isPublishing"
+            @submit.prevent="publish">
             <p class="text-muted">All fields are required.</p>
 
             <div v-if="publishError" class="alert alert-danger" role="alert">
               {{ publishError }}
             </div>
 
-            <p
-              v-if="submitted && Object.keys(errors).length"
-              class="field-error"
-              role="alert"
-            >
+            <p v-if="submitted && Object.keys(errors).length" class="field-error" role="alert">
               Please complete the required fields below.
             </p>
 
@@ -358,34 +358,18 @@ async function publish() {
               </h2>
 
               <!-- Drag-and-drop zone -->
-              <div
-                class="drop-zone"
-                :class="{ 'is-dragging': dragOver }"
-                @click="pickFile"
-                @dragover.prevent="onDragOver"
-                @dragenter.prevent="onDragOver"
-                @dragleave.prevent="onDragLeave"
-                @drop.prevent="onDrop"
-                role="button"
-                tabindex="0"
-                aria-label="Choose photos or drag them here"
-                :aria-disabled="isReading || isPublishing"
-                @keydown.enter.prevent="pickFile"
-                @keydown.space.prevent="pickFile"
-              >
-                <i
-                  :class="
-                    isReading
-                      ? 'bi bi-arrow-repeat spin'
-                      : 'bi bi-cloud-arrow-up'
-                  "
-                  aria-hidden="true"
-                ></i>
+              <div class="drop-zone" :class="{ 'is-dragging': dragOver }" @click="pickFile"
+                @dragover.prevent="onDragOver" @dragenter.prevent="onDragOver" @dragleave.prevent="onDragLeave"
+                @drop.prevent="onDrop" role="button" tabindex="0" aria-label="Choose photos or drag them here"
+                :aria-disabled="isReading || isPublishing" @keydown.enter.prevent="pickFile"
+                @keydown.space.prevent="pickFile">
+                <i :class="isReading
+                  ? 'bi bi-arrow-repeat spin'
+                  : 'bi bi-cloud-arrow-up'
+                  " aria-hidden="true"></i>
                 <p class="drop-title">
                   <template v-if="isReading">Preparing your photos…</template>
-                  <template v-else-if="dragOver"
-                    >Drop your photos here</template
-                  >
+                  <template v-else-if="dragOver">Drop your photos here</template>
                   <template v-else>
                     Drag photos here, or
                     <span class="drop-link">browse files</span>
@@ -395,15 +379,8 @@ async function publish() {
                   JPG, PNG, or WebP · up to 500 KB each · max {{ MAX_PHOTOS }}
                 </p>
               </div>
-              <input
-                ref="fileInput"
-                type="file"
-                accept="image/jpeg,image/png,image/webp"
-                multiple
-                hidden
-                :disabled="isReading || isPublishing"
-                @change="onFileSelected"
-              />
+              <input ref="fileInput" type="file" accept="image/jpeg,image/png,image/webp" multiple hidden
+                :disabled="isReading || isPublishing" @change="onFileSelected" />
 
               <p class="form-text">
                 The first photo becomes the cover. Use the arrows to reorder.
@@ -415,47 +392,26 @@ async function publish() {
 
               <!-- Photo previews -->
               <div v-if="photos.length" class="row g-3 mt-1">
-                <div
-                  v-for="(photo, index) in photos"
-                  :key="photo.id"
-                  class="col-6 col-md-4"
-                >
+                <div v-for="(photo, index) in photos" :key="photo.id" class="col-6 col-md-4">
                   <div class="photo-preview">
                     <img :src="photo.src" :alt="`Photo ${index + 1}`" />
 
                     <span v-if="index === 0" class="cover-label">Cover</span>
 
-                    <button
-                      class="remove-photo"
-                      type="button"
-                      :aria-label="`Remove photo ${index + 1}`"
-                      :disabled="isReading || isPublishing"
-                      @click="removePhoto(photo.id)"
-                    >
+                    <button class="remove-photo" type="button" :aria-label="`Remove photo ${index + 1}`"
+                      :disabled="isReading || isPublishing" @click="removePhoto(photo.id)">
                       <i class="bi bi-x-lg" aria-hidden="true"></i>
                     </button>
 
                     <div class="reorder-controls">
-                      <button
-                        type="button"
-                        class="reorder-btn"
-                        :aria-label="`Move photo ${index + 1} left`"
-                        :disabled="index === 0 || isReading || isPublishing"
-                        @click="movePhoto(index, -1)"
-                      >
+                      <button type="button" class="reorder-btn" :aria-label="`Move photo ${index + 1} left`"
+                        :disabled="index === 0 || isReading || isPublishing" @click="movePhoto(index, -1)">
                         <i class="bi bi-arrow-left" aria-hidden="true"></i>
                       </button>
-                      <button
-                        type="button"
-                        class="reorder-btn"
-                        :aria-label="`Move photo ${index + 1} right`"
-                        :disabled="
-                          index === photos.length - 1 ||
-                          isReading ||
-                          isPublishing
-                        "
-                        @click="movePhoto(index, 1)"
-                      >
+                      <button type="button" class="reorder-btn" :aria-label="`Move photo ${index + 1} right`" :disabled="index === photos.length - 1 ||
+                        isReading ||
+                        isPublishing
+                        " @click="movePhoto(index, 1)">
                         <i class="bi bi-arrow-right" aria-hidden="true"></i>
                       </button>
                     </div>
@@ -476,35 +432,15 @@ async function publish() {
                 {{ field.label }}
               </label>
 
-              <textarea
-                v-if="field.multiline"
-                :id="`post-${field.name}`"
-                v-model="form[field.name]"
-                class="form-control"
-                :class="{ 'is-invalid': errors[field.name] }"
-                :placeholder="field.placeholder"
-                :maxlength="field.max"
-                rows="6"
-                required
-                :aria-invalid="Boolean(errors[field.name])"
-                :aria-describedby="`${field.name}-error`"
-                @input="clearError(field.name)"
-              ></textarea>
+              <textarea v-if="field.multiline" :id="`post-${field.name}`" v-model="form[field.name]"
+                class="form-control" :class="{ 'is-invalid': errors[field.name] }" :placeholder="field.placeholder"
+                :maxlength="field.max" rows="6" required :aria-invalid="Boolean(errors[field.name])"
+                :aria-describedby="`${field.name}-error`" @input="clearError(field.name)"></textarea>
 
-              <input
-                v-else
-                :id="`post-${field.name}`"
-                v-model="form[field.name]"
-                class="form-control"
-                :class="{ 'is-invalid': errors[field.name] }"
-                :placeholder="field.placeholder"
-                :maxlength="field.max"
-                type="text"
-                required
-                :aria-invalid="Boolean(errors[field.name])"
-                :aria-describedby="`${field.name}-error`"
-                @input="clearError(field.name)"
-              />
+              <input v-else :id="`post-${field.name}`" v-model="form[field.name]" class="form-control"
+                :class="{ 'is-invalid': errors[field.name] }" :placeholder="field.placeholder" :maxlength="field.max"
+                type="text" required :aria-invalid="Boolean(errors[field.name])"
+                :aria-describedby="`${field.name}-error`" @input="clearError(field.name)" />
 
               <p :id="`${field.name}-error`" class="field-error">
                 {{ errors[field.name] }}
@@ -517,16 +453,9 @@ async function publish() {
             <div class="row g-3">
               <div class="col-12 col-md-4">
                 <label for="post-location" class="form-label">Location</label>
-                <select
-                  id="post-location"
-                  v-model="form.location"
-                  class="form-select"
-                  :class="{ 'is-invalid': errors.location }"
-                  required
-                  :aria-invalid="Boolean(errors.location)"
-                  aria-describedby="location-error"
-                  @change="clearError('location')"
-                >
+                <select id="post-location" v-model="form.location" class="form-select"
+                  :class="{ 'is-invalid': errors.location }" required :aria-invalid="Boolean(errors.location)"
+                  aria-describedby="location-error" @change="clearError('location')">
                   <option disabled value="">Select location</option>
                   <option v-for="location in locations" :key="location">
                     {{ location }}
@@ -539,16 +468,9 @@ async function publish() {
 
               <div class="col-12 col-md-4">
                 <label for="post-cuisine" class="form-label">Cuisine</label>
-                <select
-                  id="post-cuisine"
-                  v-model="form.cuisine"
-                  class="form-select"
-                  :class="{ 'is-invalid': errors.cuisine }"
-                  required
-                  :aria-invalid="Boolean(errors.cuisine)"
-                  aria-describedby="cuisine-error"
-                  @change="clearError('cuisine')"
-                >
+                <select id="post-cuisine" v-model="form.cuisine" class="form-select"
+                  :class="{ 'is-invalid': errors.cuisine }" required :aria-invalid="Boolean(errors.cuisine)"
+                  aria-describedby="cuisine-error" @change="clearError('cuisine')">
                   <option disabled value="">Select cuisine</option>
                   <option v-for="cuisine in cuisines" :key="cuisine">
                     {{ cuisine }}
@@ -563,16 +485,9 @@ async function publish() {
                 <label for="post-priceRange" class="form-label">
                   Price range
                 </label>
-                <select
-                  id="post-priceRange"
-                  v-model="form.priceRange"
-                  class="form-select"
-                  :class="{ 'is-invalid': errors.priceRange }"
-                  required
-                  :aria-invalid="Boolean(errors.priceRange)"
-                  aria-describedby="price-error"
-                  @change="clearError('priceRange')"
-                >
+                <select id="post-priceRange" v-model="form.priceRange" class="form-select"
+                  :class="{ 'is-invalid': errors.priceRange }" required :aria-invalid="Boolean(errors.priceRange)"
+                  aria-describedby="price-error" @change="clearError('priceRange')">
                   <option disabled value="">Select budget</option>
                   <option value="$">$ — Under RM 15</option>
                   <option value="$$">$$ — RM 15–50</option>
@@ -585,17 +500,19 @@ async function publish() {
             </div>
 
             <!-- ============================================
+                 Map with location picker
+                 ============================================ -->
+            <LocationPicker v-model:latitude="latitude" v-model:longitude="longitude" />
+
+            <p v-if="errors.location" class="field-error">{{ errors.location }}</p>
+
+            <!-- ============================================
                  ACTIONS
                  ============================================ -->
             <div class="form-actions">
               <RouterLink class="cancel-link" to="/">Cancel</RouterLink>
 
-              <AppButton
-                type="submit"
-                :disabled="isReading"
-                :loading="isPublishing"
-                loading-text="Publishing…"
-              >
+              <AppButton type="submit" :disabled="isReading" :loading="isPublishing" loading-text="Publishing…">
                 Publish post
               </AppButton>
             </div>
