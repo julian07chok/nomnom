@@ -5,6 +5,7 @@ import { usePosts } from "../services/posts";
 import { getDistanceKm, formatDistance } from "../utils/geo";
 import PostCard from "../components/post/PostCard.vue";
 import PaginationControls from "../components/common/Pagination.vue";
+import SearchBar from "../components/common/SearchBar.vue";
 import "../assets/css/home.css";
 
 const router = useRouter();
@@ -25,8 +26,17 @@ const isLocating = ref(false);
 const locationError = ref("");
 
 const cuisines = [
-  "All", "Malaysian", "Chinese", "Indian", "Japanese", 
-  "Korean", "Thai", "Vietnamese", "Western", "Cafe", "Dessert",
+  "All",
+  "Malaysian",
+  "Chinese",
+  "Indian",
+  "Japanese",
+  "Korean",
+  "Thai",
+  "Vietnamese",
+  "Western",
+  "Cafe",
+  "Dessert",
 ];
 
 const toggleNearMe = () => {
@@ -65,7 +75,8 @@ const toggleNearMe = () => {
 
       switch (error.code) {
         case error.PERMISSION_DENIED:
-          locationError.value = "Location permission denied. Please allow it to use Near Me.";
+          locationError.value =
+            "Location permission denied. Please allow it to use Near Me.";
           break;
         case error.POSITION_UNAVAILABLE:
           locationError.value = "Location information is unavailable.";
@@ -77,7 +88,7 @@ const toggleNearMe = () => {
           locationError.value = "An unknown error occurred.";
       }
     },
-    { timeout: 10000, enableHighAccuracy: true }
+    { timeout: 10000, enableHighAccuracy: true },
   );
 };
 
@@ -92,18 +103,20 @@ const filteredPosts = computed(() => {
 
   // 2. Filter by distance (Near Me)
   if (isNearMeActive.value && userLocation.value) {
-    result = result.map((post) => {
-      const dist = getDistanceKm(
-        userLocation.value.lat,
-        userLocation.value.lng,
-        post.latitude,
-        post.longitude
-      );
-      return { ...post, distanceKm: dist };
-    }).filter((post) => {
-      // Only keep posts within the radius (50km)
-      return post.distanceKm !== null && post.distanceKm <= radiusKm;
-    });
+    result = result
+      .map((post) => {
+        const dist = getDistanceKm(
+          userLocation.value.lat,
+          userLocation.value.lng,
+          post.latitude,
+          post.longitude,
+        );
+        return { ...post, distanceKm: dist };
+      })
+      .filter((post) => {
+        // Only keep posts within the radius (50km)
+        return post.distanceKm !== null && post.distanceKm <= radiusKm;
+      });
   }
 
   // 3. Sort
@@ -120,7 +133,7 @@ const filteredPosts = computed(() => {
 });
 
 const totalPages = computed(() =>
-  Math.max(1, Math.ceil(filteredPosts.value.length / POSTS_PER_PAGE))
+  Math.max(1, Math.ceil(filteredPosts.value.length / POSTS_PER_PAGE)),
 );
 
 const paginatedPosts = computed(() => {
@@ -145,8 +158,12 @@ function clearFilters() {
 
 function onSearch() {
   const q = searchQuery.value.trim();
-  if (q) router.push({ name: "search", query: { q } });
-  else router.push({ name: "search" });
+
+  if (q) {
+    router.push({ name: "search", query: { q } });
+  } else {
+    router.push({ name: "search" });
+  }
 }
 </script>
 
@@ -166,17 +183,12 @@ function onSearch() {
             across Malaysia.
           </p>
 
-          <form class="home-hero-search" role="search" @submit.prevent="onSearch">
-            <i class="bi bi-search search-icon" aria-hidden="true"></i>
-            <input
-              v-model="searchQuery"
-              type="search"
-              class="home-search-input"
-              placeholder="Search dishes, restaurants, or locations…"
-              aria-label="Search posts"
-            />
-            <button type="submit" class="home-search-btn">Search</button>
-          </form>
+          <SearchBar
+            v-model="searchQuery"
+            variant="home"
+            placeholder="Search dishes, restaurants, or locations…"
+            @submit="onSearch"
+          />
         </div>
       </div>
     </section>
@@ -184,7 +196,11 @@ function onSearch() {
     <!-- Cuisine categories -->
     <section class="home-categories-section">
       <div class="container">
-        <ul class="home-category-list" role="tablist" aria-label="Cuisine categories">
+        <ul
+          class="home-category-list"
+          role="tablist"
+          aria-label="Cuisine categories"
+        >
           <li v-for="cuisine in cuisines" :key="cuisine">
             <button
               type="button"
@@ -207,19 +223,23 @@ function onSearch() {
         <header class="home-feed-header">
           <div>
             <h2 id="home-feed-title" class="home-feed-title">
-              {{ activeCuisine === "All" ? "Latest discoveries" : activeCuisine }}
+              {{
+                activeCuisine === "All" ? "Latest discoveries" : activeCuisine
+              }}
             </h2>
             <p class="home-feed-count">
               {{ filteredPosts.length }}
               {{ filteredPosts.length === 1 ? "post" : "posts" }}
-              <span v-if="isNearMeActive" class="text-success"> · within {{ radiusKm }}km</span>
+              <span v-if="isNearMeActive" class="text-success">
+                · within {{ radiusKm }}km</span
+              >
             </p>
           </div>
 
           <div class="home-feed-controls">
             <!-- TOGGLE NEAR ME BUTTON -->
-            <button 
-              type="button" 
+            <button
+              type="button"
               class="near-me-btn"
               :class="{ 'is-active': isNearMeActive }"
               :disabled="isLocating"
@@ -228,11 +248,15 @@ function onSearch() {
               <template v-if="isNearMeActive">
                 <i class="bi bi-geo-alt-fill me-1" aria-hidden="true"></i>
                 Near Me
-                <i class="bi bi-x-circle-fill ms-1" aria-hidden="true" title="Clear Near Me filter"></i>
+                <i
+                  class="bi bi-x-circle-fill ms-1"
+                  aria-hidden="true"
+                  title="Clear Near Me filter"
+                ></i>
               </template>
               <template v-else>
                 <i class="bi bi-geo-alt me-1" aria-hidden="true"></i>
-                {{ isLocating ? 'Locating…' : 'Near Me' }}
+                {{ isLocating ? "Locating…" : "Near Me" }}
               </template>
             </button>
 
@@ -246,7 +270,11 @@ function onSearch() {
         </header>
 
         <!-- Location error -->
-        <div v-if="locationError" class="alert alert-warning d-flex align-items-center mb-4" role="alert">
+        <div
+          v-if="locationError"
+          class="alert alert-warning d-flex align-items-center mb-4"
+          role="alert"
+        >
           <i class="bi bi-exclamation-triangle-fill me-2"></i>
           {{ locationError }}
         </div>
@@ -256,11 +284,10 @@ function onSearch() {
           <p class="home-empty-emoji" aria-hidden="true">🍽️</p>
           <h3>No posts found</h3>
           <p v-if="isNearMeActive">
-            There are no food discoveries within {{ radiusKm }}km of your location.
+            There are no food discoveries within {{ radiusKm }}km of your
+            location.
           </p>
-          <p v-else>
-            Try a different search or explore another cuisine.
-          </p>
+          <p v-else>Try a different search or explore another cuisine.</p>
           <button type="button" class="home-empty-btn" @click="clearFilters">
             Clear filters
           </button>

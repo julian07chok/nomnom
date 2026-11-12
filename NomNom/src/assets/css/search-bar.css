@@ -1,0 +1,109 @@
+.nomnom-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  border: 2px solid var(--text);
+  border-radius: 999px;
+  background: var(--background);
+  color: var(--text);
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.nomnom-search--home {
+  max-width: 620px;
+  padding: 8px;
+  box-shadow: 0 8px 24px rgb(72 57 52 / 10%);
+}
+
+.nomnom-search--explore {
+  max-width: 720px;
+  padding: 8px 14px;
+}
+
+.nomnom-search__icon {
+  flex-shrink: 0;
+  font-size: 1.1rem;
+}
+
+.nomnom-search--home .nomnom-search__icon {
+  margin-left: 12px;
+}
+
+.nomnom-search__input {
+  flex: 1;
+  min-width: 0;
+  padding: 12px 4px;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 1rem;
+}
+
+.nomnom-search--home .nomnom-search__input {
+  padding-inline: 8px;
+}
+
+.nomnom-search__input::placeholder {
+  color: rgb(72 57 52 / 55%);
+}
+
+.nomnom-search__input:focus,
+.nomnom-search__input:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
+.nomnom-search:has(:focus-visible) {
+  border-color: var(--red);
+  box-shadow: 0 0 0 3px rgb(205 70 57 / 20%);
+}
+
+/* Use our clear button instead of the browser's clear button. */
+.nomnom-search__input::-webkit-search-cancel-button,
+.nomnom-search__input::-webkit-search-decoration,
+.nomnom-search__input::-webkit-search-results-button,
+.nomnom-search__input::-webkit-search-results-decoration {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.nomnom-search__clear {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: var(--light-yellow);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.nomnom-search__clear:hover {
+  background: var(--yellow);
+}
+
+.nomnom-search__submit {
+  flex-shrink: 0;
+  padding: 12px 26px;
+  border: none;
+  border-radius: 999px;
+  background: var(--text);
+  color: var(--background);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.nomnom-search__submit:hover {
+  background: var(--red);
+}
+
+.nomnom-search__clear:focus-visible,
+.nomnom-search__submit:focus-visible {
+  outline: 3px solid var(--red);
+  outline-offset: 3px;
+}

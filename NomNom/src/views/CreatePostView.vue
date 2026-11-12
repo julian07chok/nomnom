@@ -390,17 +390,6 @@ async function publish() {
                 </p>
               </div>
 
-              <!-- Visible file input -->
-              <input
-                ref="fileInput"
-                type="file"
-                accept="image/jpeg,image/png,image/webp"
-                multiple
-                class="form-control mt-2"
-                :disabled="isReading || isPublishing"
-                @change="onFileSelected"
-              />
-
               <p class="form-text">
                 The first photo becomes the cover. Use the arrows to reorder.
               </p>

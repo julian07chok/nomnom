@@ -6,6 +6,7 @@ import { usePosts } from "../services/posts";
 import PostCard from "../components/post/PostCard.vue";
 import PostFilters from "../components/post/PostFilters.vue";
 import Pagination from "../components/common/Pagination.vue";
+import SearchBar from "../components/common/SearchBar.vue";
 import "../assets/css/search.css";
 
 const route = useRoute();
@@ -249,25 +250,12 @@ watch(
       <!-- Search bar -->
       <section class="search-header">
         <h1 class="search-title">Explore</h1>
-        <form class="search-bar" role="search" @submit.prevent>
-          <i class="bi bi-search" aria-hidden="true"></i>
-          <input
-            v-model="searchQuery"
-            type="search"
-            class="search-input"
-            placeholder="Search dishes, restaurants, locations…"
-            aria-label="Search"
-          />
-          <button
-            v-if="searchQuery"
-            type="button"
-            class="search-clear"
-            aria-label="Clear search"
-            @click="searchQuery = ''"
-          >
-            <i class="bi bi-x-lg" aria-hidden="true"></i>
-          </button>
-        </form>
+        <SearchBar
+          v-model="searchQuery"
+          variant="explore"
+          :show-submit="false"
+          clearable
+        />
       </section>
 
       <!-- Layout: filters sidebar + results -->

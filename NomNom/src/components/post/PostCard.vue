@@ -16,7 +16,12 @@ const { profileLinkFor } = useAuth();
 <template>
   <article class="post-card">
     <RouterLink :to="`/posts/${post.id}`" class="post-cover-link">
-      <UserAvatar :src="post.authorAvatar" :size="28" />
+      <img
+        :src="post.coverImage"
+        :alt="post.title"
+        class="post-cover"
+        loading="lazy"
+      />
       <span class="price-badge">{{ post.priceRange }}</span>
     </RouterLink>
 
@@ -40,11 +45,7 @@ const { profileLinkFor } = useAuth();
 
       <footer class="post-footer">
         <RouterLink :to="profileLinkFor(post.authorName)" class="post-author">
-          <img
-            :src="post.authorAvatar"
-            :alt="post.authorName"
-            class="author-avatar"
-          />
+          <UserAvatar :src="post.authorAvatar" :size="28" />
           <span>{{ post.authorDisplayName || post.authorName }}</span>
         </RouterLink>
 
