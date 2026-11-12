@@ -25,40 +25,42 @@ function update(key, value) {
 
 <template>
   <aside class="post-filters" aria-label="Search filters">
-    <div class="filter-group">
-      <label class="filter-label" for="filter-cuisine">Cuisine</label>
-      <select
-        id="filter-cuisine"
-        class="filter-select"
-        :value="modelValue.cuisine"
-        @change="update('cuisine', $event.target.value)"
-      >
-        <option v-for="c in cuisines" :key="c" :value="c">{{ c }}</option>
-      </select>
-    </div>
+    <div class="post-filters-row">
+      <div class="filter-group">
+        <label class="filter-label" for="filter-cuisine">Cuisine</label>
+        <select
+          id="filter-cuisine"
+          class="filter-select"
+          :value="modelValue.cuisine"
+          @change="update('cuisine', $event.target.value)"
+        >
+          <option v-for="c in cuisines" :key="c" :value="c">{{ c }}</option>
+        </select>
+      </div>
 
-    <div class="filter-group">
-      <label class="filter-label" for="filter-location">Location</label>
-      <select
-        id="filter-location"
-        class="filter-select"
-        :value="modelValue.location"
-        @change="update('location', $event.target.value)"
-      >
-        <option v-for="l in locations" :key="l" :value="l">{{ l }}</option>
-      </select>
-    </div>
+      <div class="filter-group">
+        <label class="filter-label" for="filter-location">Location</label>
+        <select
+          id="filter-location"
+          class="filter-select"
+          :value="modelValue.location"
+          @change="update('location', $event.target.value)"
+        >
+          <option v-for="l in locations" :key="l" :value="l">{{ l }}</option>
+        </select>
+      </div>
 
-    <div class="filter-group">
-      <label class="filter-label" for="filter-price">Price range</label>
-      <select
-        id="filter-price"
-        class="filter-select"
-        :value="modelValue.priceRange"
-        @change="update('priceRange', $event.target.value)"
-      >
-        <option v-for="p in priceRanges" :key="p" :value="p">{{ p }}</option>
-      </select>
+      <div class="filter-group">
+        <label class="filter-label" for="filter-price">Price range</label>
+        <select
+          id="filter-price"
+          class="filter-select"
+          :value="modelValue.priceRange"
+          @change="update('priceRange', $event.target.value)"
+        >
+          <option v-for="p in priceRanges" :key="p" :value="p">{{ p }}</option>
+        </select>
+      </div>
     </div>
 
     <button

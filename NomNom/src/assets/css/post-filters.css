@@ -10,28 +10,43 @@
   background: #f4f2c2;
 }
 
+/* ─── Mobile-first: three dropdowns in one row ──────────── */
+.post-filters-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  align-items: end;
+}
+
 .filter-group {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  min-width: 0; /* prevents grid children from overflowing */
 }
 
 .filter-label {
   color: #483934;
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .filter-select {
-  padding: 10px 14px;
+  width: 100%;
+  padding: 8px 10px;
   border: 1px solid rgb(72 57 52 / 20%);
-  border-radius: 12px;
+  border-radius: 10px;
   background: #fffcf3;
   color: #483934;
   font-weight: 600;
+  font-size: 0.85rem;
   cursor: pointer;
+  min-width: 0;
 }
 
 .filter-select:focus-visible {
@@ -42,24 +57,80 @@
 .filter-clear {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
   gap: 6px;
-  margin-top: 8px;
-  padding: 10px;
-  border: 1px solid rgb(205 70 57 / 40%);
-  border-radius: 999px;
+  align-self: flex-end;
+  margin-top: 4px;
+  padding: 4px 0;
+  border: none;
   background: none;
-  color: #cd4639;
-  font-weight: 700;
+  color: #483934;
+  font-weight: 600;
+  font-size: 0.85rem;
   cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  transition: color 150ms ease;
 }
 
 .filter-clear:hover {
-  background: #cd4639;
-  color: #fffcf3;
+  color: #cd4639;
+  background: none;
 }
 
+.filter-clear:focus-visible {
+  outline: 3px solid #cd4639;
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+.filter-clear i {
+  font-size: 0.9em;
+  opacity: 0.75;
+}
+
+/* ─── Tablet: still one row, slightly more breathing room ─ */
+@media (min-width: 576px) {
+  .post-filters-row {
+    gap: 12px;
+  }
+
+  .filter-label {
+    font-size: 0.8rem;
+  }
+
+  .filter-select {
+    padding: 10px 14px;
+    font-size: 0.9rem;
+  }
+}
+
+/* ─── Desktop: back to vertical stacking (sidebar layout) ─ */
 @media (min-width: 992px) {
+  .post-filters-row {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    align-items: stretch;
+  }
+
+  .filter-label {
+    font-size: 0.85rem;
+    white-space: normal;
+    overflow: visible;
+  }
+
+  .filter-select {
+    padding: 10px 14px;
+    font-size: 1rem;
+    border-radius: 12px;
+  }
+
+  .filter-clear {
+    align-self: stretch;
+    margin-top: 8px;
+  }
+
+  /* Sticky sidebar (was already there) */
   .post-filters {
     position: sticky;
     top: 24px;

@@ -211,7 +211,7 @@ watch(
 // Page changed → sync URL
 watch(currentPage, syncUrl);
 
-// ─── Sync URL → state (Back/Forward, pasted links) ─────────
+// ─── Sync URL → state (Back/Forward, pasted linksx) ─────────
 watch(
   () => route.query,
   (q) => {
@@ -250,12 +250,7 @@ watch(
       <!-- Search bar -->
       <section class="search-header">
         <h1 class="search-title">Explore</h1>
-        <SearchBar
-          v-model="searchQuery"
-          variant="explore"
-          :show-submit="false"
-          clearable
-        />
+        <SearchBar v-model="searchQuery" variant="explore" :show-submit="false" clearable />
       </section>
 
       <!-- Layout: filters sidebar + results -->
@@ -269,35 +264,25 @@ watch(
         <div class="col-12 col-lg-9">
           <!-- Results header -->
           <header class="results-header">
-            <div class="d-flex flex-wrap align-items-center gap-3">
-              <p class="results-count mb-0">
+            <div class="results-left">
+              <p class="results-count">
                 <strong>{{ filteredPosts.length }}</strong>
                 {{ filteredPosts.length === 1 ? "result" : "results" }}
                 <span v-if="searchQuery">for "{{ searchQuery }}"</span>
-                <span v-if="isNearMeActive" class="text-success">
-                  · within {{ radiusKm }}km</span
-                >
+                <span v-if="isNearMeActive" class="near-badge">
+                  · within {{ radiusKm }}km
+                </span>
               </p>
 
-              <!-- NEAR ME BUTTON -->
-              <button
-                type="button"
-                class="near-me-btn"
-                :class="{ 'is-active': isNearMeActive }"
-                :disabled="isLocating"
-                @click="toggleNearMe"
-              >
+              <button type="button" class="near-me-btn" :class="{ 'is-active': isNearMeActive }" :disabled="isLocating"
+                @click="toggleNearMe">
                 <template v-if="isNearMeActive">
-                  <i class="bi bi-geo-alt-fill me-1" aria-hidden="true"></i>
+                  <i class="bi bi-geo-alt-fill" aria-hidden="true"></i>
                   Near Me
-                  <i
-                    class="bi bi-x-circle-fill ms-1"
-                    aria-hidden="true"
-                    title="Clear Near Me"
-                  ></i>
+                  <i class="bi bi-x-circle-fill" aria-hidden="true" title="Clear Near Me"></i>
                 </template>
                 <template v-else>
-                  <i class="bi bi-geo-alt me-1" aria-hidden="true"></i>
+                  <i class="bi bi-geo-alt" aria-hidden="true"></i>
                   {{ isLocating ? "Locating…" : "Near Me" }}
                 </template>
               </button>
@@ -315,11 +300,7 @@ watch(
           </header>
 
           <!-- Location error -->
-          <div
-            v-if="locationError"
-            class="alert alert-warning mb-3"
-            role="alert"
-          >
+          <div v-if="locationError" class="alert alert-warning mb-3" role="alert">
             <i class="bi bi-exclamation-triangle-fill me-2"></i>
             {{ locationError }}
           </div>
@@ -336,25 +317,13 @@ watch(
 
           <!-- Grid -->
           <div v-else class="row g-3 g-md-4">
-            <div
-              v-for="post in paginatedPosts"
-              :key="post.id"
-              class="col-6 col-xl-4"
-            >
-              <PostCard
-                :post="post"
-                :distance="
-                  post.distanceKm ? formatDistance(post.distanceKm) : null
-                "
-              />
+            <div v-for="post in paginatedPosts" :key="post.id" class="col-6 col-xl-4">
+              <PostCard :post="post" :distance="post.distanceKm ? formatDistance(post.distanceKm) : null
+                " />
             </div>
           </div>
 
-          <Pagination
-            v-if="totalPages > 1"
-            v-model:currentPage="currentPage"
-            :total-pages="totalPages"
-          />
+          <Pagination v-if="totalPages > 1" v-model:currentPage="currentPage" :total-pages="totalPages" />
         </div>
       </div>
     </div>

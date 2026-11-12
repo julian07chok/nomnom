@@ -17,6 +17,7 @@
   letter-spacing: -0.5px;
 }
 
+/* ── Results header ───────────────────────────────────── */
 .results-header {
   display: flex;
   flex-wrap: wrap;
@@ -26,71 +27,73 @@
   margin-bottom: 20px;
 }
 
+.results-left {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
 .results-count {
   margin: 0;
   color: #483934;
   font-size: 0.95rem;
+  white-space: nowrap;
+}
+
+.results-count .near-badge {
+  color: #2b8a3e;
+  font-weight: 600;
 }
 
 .results-sort {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-shrink: 0;
 }
 
 .sort-label {
   color: #483934;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   font-weight: 600;
+  white-space: nowrap;
 }
 
 .sort-select {
-  padding: 8px 14px;
+  padding: 8px 12px;
   border: 1px solid rgb(72 57 52 / 20%);
-  border-radius: 12px;
+  border-radius: 10px;
   background: #fffcf3;
   color: #483934;
   font-weight: 600;
+  font-size: 0.85rem;
   cursor: pointer;
 }
 
-.results-empty {
-  padding: 64px 24px;
-  border-radius: 20px;
-  background: #f4f2c2;
-  text-align: center;
+.sort-select:focus-visible {
+  outline: 3px solid #cd4639;
+  outline-offset: 2px;
 }
 
-.empty-emoji {
-  margin: 0 0 12px;
-  font-size: 3rem;
-}
-
-.results-empty h2 {
-  margin: 0 0 8px;
-  color: #483934;
-}
-
-.results-empty p {
-  margin: 0;
-  color: #483934;
-  opacity: 0.75;
-}
-
-/* ── Near Me Button (Explore Page) ────────────────────── */
+/* ── Near Me Button ───────────────────────────────────── */
 .near-me-btn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 14px;
+  padding: 8px 12px;
   border: 1px solid #483934;
-  border-radius: 12px;
+  border-radius: 10px;
   background: #fffcf3;
   color: #483934;
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
+  white-space: nowrap;
   cursor: pointer;
-  transition: all 150ms ease;
+  transition: background-color 150ms ease, color 150ms ease,
+    border-color 150ms ease;
 }
 
 .near-me-btn:hover:not(:disabled) {
@@ -116,7 +119,68 @@
 .near-me-btn .bi-x-circle-fill {
   font-size: 0.9em;
   opacity: 0.8;
+  margin-left: 2px;
 }
+
 .near-me-btn:hover .bi-x-circle-fill {
   opacity: 1;
+}
+
+.near-me-btn:focus-visible {
+  outline: 3px solid #cd4639;
+  outline-offset: 2px;
+}
+
+/* ── Empty state ─────────────────────────────────────── */
+.results-empty {
+  padding: 64px 24px;
+  border-radius: 20px;
+  background: #f4f2c2;
+  text-align: center;
+}
+
+.empty-emoji {
+  margin: 0 0 12px;
+  font-size: 3rem;
+}
+
+.results-empty h2 {
+  margin: 0 0 8px;
+  color: #483934;
+}
+
+.results-empty p {
+  margin: 0;
+  color: #483934;
+  opacity: 0.75;
+}
+
+/* ── Mobile (≤575px): 2-row layout ─────────────────────── */
+@media (max-width: 575.98px) {
+  .results-header {
+    gap: 10px;
+  }
+
+  /* Flatten the left wrapper so its children become
+     direct flex items of .results-header */
+  .results-left {
+    display: contents;
+  }
+
+  /* Count takes its own line */
+  .results-count {
+    flex-basis: 100%;
+    white-space: normal; /* allow long queries to wrap */
+  }
+
+  /* Near Me + Sort share the second line */
+  .results-sort {
+    margin-left: auto;
+  }
+
+  .near-me-btn,
+  .sort-select {
+    font-size: 0.8rem;
+    padding: 7px 10px;
+  }
 }
