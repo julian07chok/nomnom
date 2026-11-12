@@ -135,3 +135,23 @@
   outline: 3px solid #cd4639;
   outline-offset: 3px;
 }
+
+.comment-list .comment-body {
+  display: flex;
+  flex-direction: column;
+}
+
+.comment-list .comment-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 8px;
+}
+
+.comment-list .comment-actions .app-button {
+  min-height: 36px;
+  padding: 6px 14px;
+  font-size: 0.8rem;
+}

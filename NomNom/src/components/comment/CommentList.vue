@@ -2,6 +2,7 @@
 import { ref } from "vue";
 import { useAuth } from "../../services/auth";
 import UserAvatar from "../user/UserAvatar.vue";
+import AppButton from "../common/AppButton.vue";
 import "../../assets/css/comment-list.css";
 
 const props = defineProps({
@@ -125,23 +126,23 @@ async function remove(comment) {
               Attached photos will be kept.
             </p>
 
-            <div class="d-flex gap-2 mt-2">
-              <button
-                class="btn btn-sm btn-dark"
+            <div class="comment-actions">
+              <AppButton
                 type="submit"
                 :disabled="busyId !== null"
+                :loading="busyId === comment.id"
+                loading-text="Saving…"
               >
-                {{ busyId === comment.id ? "Saving…" : "Save" }}
-              </button>
+                Save
+              </AppButton>
 
-              <button
-                class="btn btn-sm btn-outline-dark"
-                type="button"
+              <AppButton
+                variant="secondary"
                 :disabled="busyId !== null"
                 @click="editingId = null"
               >
                 Cancel
-              </button>
+              </AppButton>
             </div>
           </form>
 
@@ -157,24 +158,25 @@ async function remove(comment) {
             </li>
           </ul>
 
-          <div v-if="isOwn(comment)" class="d-flex gap-2 mt-2">
-            <button
-              class="btn btn-sm btn-outline-dark"
-              type="button"
+          <div
+            v-if="isOwn(comment) && editingId !== comment.id"
+            class="comment-actions"
+          >
+            <AppButton
+              variant="secondary"
               :disabled="busyId !== null"
               @click="beginEdit(comment)"
             >
               Edit
-            </button>
+            </AppButton>
 
-            <button
-              class="btn btn-sm btn-outline-danger"
-              type="button"
+            <AppButton
+              variant="danger"
               :disabled="busyId !== null"
               @click="remove(comment)"
             >
               Delete
-            </button>
+            </AppButton>
           </div>
         </div>
       </li>
