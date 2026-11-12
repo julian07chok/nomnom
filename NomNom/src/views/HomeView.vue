@@ -1,30 +1,29 @@
 <script setup>
-import { computed, ref } from "vue";
+import { computed, onBeforeUnmount, ref } from "vue";
 import { useRouter } from "vue-router";
-import { usePosts } from "../services/posts";
-import { getDistanceKm, formatDistance } from "../utils/geo";
+import { useDiscoverFeed } from "../composables/useDiscoverFeed";
+import { formatDistance } from "../utils/geo";
+
+import AppButton from "../components/common/AppButton.vue";
 import PostCard from "../components/post/PostCard.vue";
-import PaginationControls from "../components/common/Pagination.vue";
 import SearchBar from "../components/common/SearchBar.vue";
 import PostMap from "../components/post/PostMap.vue";
+
 import "../assets/css/home.css";
 
 const router = useRouter();
-const { posts } = usePosts();
-
-const POSTS_PER_PAGE = 6;
-const radiusKm = 50; // Only show posts within 50km when Near Me is active
+const radiusKm = 50;
 
 const searchQuery = ref("");
 const activeCuisine = ref("All");
 const sortBy = ref("newest");
-const currentPage = ref(1);
 
-// ── Near Me State ──────────────────────────────────────────
 const userLocation = ref(null);
 const isNearMeActive = ref(false);
 const isLocating = ref(false);
 const locationError = ref("");
+
+let locationRequest = 0;
 
 const cuisines = [
   "All",
@@ -35,13 +34,37 @@ const cuisines = [
   "Korean",
   "Thai",
   "Vietnamese",
+  "Italian",
   "Western",
   "Cafe",
   "Dessert",
+  "Fusion",
+  "Middle Eastern",
 ];
 
-const toggleNearMe = () => {
-  // If already active, turn it off
+const feedFilters = computed(() => ({
+  cuisine: activeCuisine.value,
+  sort: sortBy.value,
+  lat: isNearMeActive.value ? (userLocation.value?.lat ?? null) : null,
+  lng: isNearMeActive.value ? (userLocation.value?.lng ?? null) : null,
+}));
+
+const {
+  posts,
+  loading: feedLoading,
+  error: feedError,
+  hasMore,
+  sentinel,
+  loadMore,
+} = useDiscoverFeed(feedFilters);
+
+function selectCuisine(cuisine) {
+  activeCuisine.value = cuisine;
+}
+
+function toggleNearMe() {
+  if (isLocating.value) return;
+
   if (isNearMeActive.value) {
     isNearMeActive.value = false;
     userLocation.value = null;
@@ -49,109 +72,49 @@ const toggleNearMe = () => {
     return;
   }
 
-  // Otherwise, locate user
-  locationError.value = "";
-
   if (!navigator.geolocation) {
     locationError.value = "Geolocation is not supported by your browser.";
     return;
   }
 
+  const request = ++locationRequest;
   isLocating.value = true;
+  locationError.value = "";
 
   navigator.geolocation.getCurrentPosition(
     (position) => {
+      if (request !== locationRequest) return;
+
       userLocation.value = {
         lat: position.coords.latitude,
         lng: position.coords.longitude,
       };
+
       isNearMeActive.value = true;
       isLocating.value = false;
-      currentPage.value = 1;
     },
     (error) => {
-      isLocating.value = false;
-      userLocation.value = null;
-      isNearMeActive.value = false;
+      if (request !== locationRequest) return;
 
-      switch (error.code) {
-        case error.PERMISSION_DENIED:
-          locationError.value =
-            "Location permission denied. Please allow it to use Near Me.";
-          break;
-        case error.POSITION_UNAVAILABLE:
-          locationError.value = "Location information is unavailable.";
-          break;
-        case error.TIMEOUT:
-          locationError.value = "Location request timed out.";
-          break;
-        default:
-          locationError.value = "An unknown error occurred.";
-      }
+      isLocating.value = false;
+      isNearMeActive.value = false;
+      userLocation.value = null;
+
+      locationError.value =
+        error.code === error.PERMISSION_DENIED
+          ? "Location permission denied. Allow it to use Near Me."
+          : "Unable to find your location. Please try again.";
     },
     { timeout: 10000, enableHighAccuracy: true },
   );
-};
-
-// ── Filtering + Sorting ────────────────────────────────────
-const filteredPosts = computed(() => {
-  let result = [...posts.value];
-
-  // 1. Filter by cuisine
-  if (activeCuisine.value !== "All") {
-    result = result.filter((post) => post.cuisine === activeCuisine.value);
-  }
-
-  // 2. Filter by distance (Near Me)
-  if (isNearMeActive.value && userLocation.value) {
-    result = result
-      .map((post) => {
-        const dist = getDistanceKm(
-          userLocation.value.lat,
-          userLocation.value.lng,
-          post.latitude,
-          post.longitude,
-        );
-        return { ...post, distanceKm: dist };
-      })
-      .filter((post) => {
-        // Only keep posts within the radius (50km)
-        return post.distanceKm !== null && post.distanceKm <= radiusKm;
-      });
-  }
-
-  // 3. Sort
-  if (sortBy.value === "newest") {
-    result.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-  } else if (sortBy.value === "most-liked") {
-    result.sort((a, b) => b.likes - a.likes);
-  } else if (sortBy.value === "near-me") {
-    // Just in case you want a distance sort option later
-    result.sort((a, b) => (a.distanceKm || 0) - (b.distanceKm || 0));
-  }
-
-  return result;
-});
-
-const totalPages = computed(() =>
-  Math.max(1, Math.ceil(filteredPosts.value.length / POSTS_PER_PAGE)),
-);
-
-const paginatedPosts = computed(() => {
-  const start = (currentPage.value - 1) * POSTS_PER_PAGE;
-  return filteredPosts.value.slice(start, start + POSTS_PER_PAGE);
-});
-
-function selectCuisine(cuisine) {
-  activeCuisine.value = cuisine;
-  currentPage.value = 1;
 }
 
 function clearFilters() {
+  locationRequest++;
+  isLocating.value = false;
   searchQuery.value = "";
   activeCuisine.value = "All";
   sortBy.value = "newest";
-  currentPage.value = 1;
   locationError.value = "";
   isNearMeActive.value = false;
   userLocation.value = null;
@@ -160,12 +123,15 @@ function clearFilters() {
 function onSearch() {
   const q = searchQuery.value.trim();
 
-  if (q) {
-    router.push({ name: "search", query: { q } });
-  } else {
-    router.push({ name: "search" });
-  }
+  router.push({
+    name: "search",
+    query: q ? { q } : {},
+  });
 }
+
+onBeforeUnmount(() => {
+  locationRequest++;
+});
 </script>
 
 <template>
@@ -174,7 +140,6 @@ function onSearch() {
     <section class="home-hero">
       <div class="container">
         <div class="row align-items-center g-4 g-lg-5">
-
           <!-- Left column: title, subtitle, search bar -->
           <div class="col-12 col-lg-6">
             <div class="home-hero-content">
@@ -184,12 +149,16 @@ function onSearch() {
                 <span class="home-hero-title-accent">favourite bite</span>
               </h1>
               <p class="home-hero-subtitle">
-                Real reviews, honest photos, and hidden gems — shared by food lovers
-                across Malaysia.
+                Real reviews, honest photos, and hidden gems — shared by food
+                lovers across Malaysia.
               </p>
 
-              <SearchBar v-model="searchQuery" variant="home" placeholder="Search dishes, restaurants, or locations…"
-                @submit="onSearch" />
+              <SearchBar
+                v-model="searchQuery"
+                variant="home"
+                placeholder="Search dishes, restaurants, or locations…"
+                @submit="onSearch"
+              />
             </div>
           </div>
 
@@ -197,7 +166,6 @@ function onSearch() {
           <div class="col-12 col-lg-6">
             <PostMap :posts="posts" />
           </div>
-
         </div>
       </div>
     </section>
@@ -205,10 +173,20 @@ function onSearch() {
     <!-- Cuisine categories -->
     <section class="home-categories-section">
       <div class="container">
-        <ul class="home-category-list" role="tablist" aria-label="Cuisine categories">
+        <ul
+          class="home-category-list"
+          role="tablist"
+          aria-label="Cuisine categories"
+        >
           <li v-for="cuisine in cuisines" :key="cuisine">
-            <button type="button" class="home-category-chip" :class="{ 'is-active': activeCuisine === cuisine }"
-              role="tab" :aria-selected="activeCuisine === cuisine" @click="selectCuisine(cuisine)">
+            <button
+              type="button"
+              class="home-category-chip"
+              :class="{ 'is-active': activeCuisine === cuisine }"
+              role="tab"
+              :aria-selected="activeCuisine === cuisine"
+              @click="selectCuisine(cuisine)"
+            >
               {{ cuisine }}
             </button>
           </li>
@@ -227,21 +205,34 @@ function onSearch() {
               }}
             </h2>
             <p class="home-feed-count">
-              {{ filteredPosts.length }}
-              {{ filteredPosts.length === 1 ? "post" : "posts" }}
+              {{ posts.length }}
+              {{
+                posts.length === 1 ? "discovery loaded" : "discoveries loaded"
+              }}
+
               <span v-if="isNearMeActive" class="text-success">
-                · within {{ radiusKm }}km</span>
+                · within {{ radiusKm }}km
+              </span>
             </p>
           </div>
 
           <div class="home-feed-controls">
             <!-- TOGGLE NEAR ME BUTTON -->
-            <button type="button" class="near-me-btn" :class="{ 'is-active': isNearMeActive }" :disabled="isLocating"
-              @click="toggleNearMe">
+            <button
+              type="button"
+              class="near-me-btn"
+              :class="{ 'is-active': isNearMeActive }"
+              :disabled="isLocating"
+              @click="toggleNearMe"
+            >
               <template v-if="isNearMeActive">
                 <i class="bi bi-geo-alt-fill me-1" aria-hidden="true"></i>
                 Near Me
-                <i class="bi bi-x-circle-fill ms-1" aria-hidden="true" title="Clear Near Me filter"></i>
+                <i
+                  class="bi bi-x-circle-fill ms-1"
+                  aria-hidden="true"
+                  title="Clear Near Me filter"
+                ></i>
               </template>
               <template v-else>
                 <i class="bi bi-geo-alt me-1" aria-hidden="true"></i>
@@ -259,13 +250,20 @@ function onSearch() {
         </header>
 
         <!-- Location error -->
-        <div v-if="locationError" class="alert alert-warning d-flex align-items-center mb-4" role="alert">
+        <div
+          v-if="locationError"
+          class="alert alert-warning d-flex align-items-center mb-4"
+          role="alert"
+        >
           <i class="bi bi-exclamation-triangle-fill me-2"></i>
           {{ locationError }}
         </div>
 
         <!-- Empty state -->
-        <div v-if="paginatedPosts.length === 0" class="home-empty-state">
+        <div
+          v-if="!feedLoading && !feedError && posts.length === 0"
+          class="home-empty-state"
+        >
           <p class="home-empty-emoji" aria-hidden="true">🍽️</p>
           <h3>No posts found</h3>
           <p v-if="isNearMeActive">
@@ -279,16 +277,39 @@ function onSearch() {
         </div>
 
         <!-- Post grid -->
-        <div v-else class="row g-3 g-md-4">
-          <div v-for="post in paginatedPosts" :key="post.id" class="col-6 col-lg-4">
-            <PostCard :post="post" :distance="post.distanceKm ? formatDistance(post.distanceKm) : null
-              " />
+        <div v-if="posts.length" class="row g-3 g-md-4">
+          <div v-for="post in posts" :key="post.id" class="col-6 col-lg-4">
+            <PostCard
+              :post="post"
+              :distance="
+                post.distanceKm ? formatDistance(post.distanceKm) : null
+              "
+            />
           </div>
         </div>
 
-        <!-- Pagination -->
-        <PaginationControls v-if="totalPages > 1" v-model:currentPage="currentPage" :total-pages="totalPages"
-          :total-items="filteredPosts.length" :per-page="POSTS_PER_PAGE" scroll-target-id="home-feed-top" />
+        <!-- Always keep the observer target mounted. -->
+        <div ref="sentinel" class="home-feed-sentinel" aria-hidden="true"></div>
+
+        <div class="text-center mt-4" aria-live="polite">
+          <p v-if="feedLoading" role="status">Loading discoveries…</p>
+
+          <template v-else-if="feedError">
+            <p class="text-danger" role="alert">{{ feedError }}</p>
+
+            <AppButton variant="secondary" @click="loadMore">
+              Try again
+            </AppButton>
+          </template>
+
+          <AppButton v-else-if="hasMore" variant="secondary" @click="loadMore">
+            Load more
+          </AppButton>
+
+          <p v-else-if="posts.length" class="text-secondary">
+            You’ve reached the end of these discoveries.
+          </p>
+        </div>
       </div>
     </section>
   </main>

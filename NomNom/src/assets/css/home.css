@@ -258,6 +258,10 @@ select:focus-visible {
   scroll-margin-top: 24px;
 }
 
+.home-feed-sentinel {
+  height: 1px;
+}
+
 /* Responsive — mobile-first breakpoints */
 @media (max-width: 575.98px) {
   .home-category-list {
