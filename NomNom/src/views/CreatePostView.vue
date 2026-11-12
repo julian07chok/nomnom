@@ -139,9 +139,8 @@ function readPhoto(file) {
 
 // ── File picker ────────────────────────────────────────────
 function pickFile() {
-  if (fileInput.value) {
-    fileInput.value.click();
-  }
+  if (isReading.value || isPublishing.value) return;
+  fileInput.value?.click();
 }
 
 // ── Drag-and-drop ──────────────────────────────────────────
@@ -366,6 +365,12 @@ async function publish() {
                 @dragenter.prevent="onDragOver"
                 @dragleave.prevent="onDragLeave"
                 @drop.prevent="onDrop"
+                role="button"
+                tabindex="0"
+                aria-label="Choose photos or drag them here"
+                :aria-disabled="isReading || isPublishing"
+                @keydown.enter.prevent="pickFile"
+                @keydown.space.prevent="pickFile"
               >
                 <i
                   :class="
@@ -389,6 +394,15 @@ async function publish() {
                   JPG, PNG, or WebP · up to 500 KB each · max {{ MAX_PHOTOS }}
                 </p>
               </div>
+              <input
+                ref="fileInput"
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                multiple
+                hidden
+                :disabled="isReading || isPublishing"
+                @change="onFileSelected"
+              />
 
               <p class="form-text">
                 The first photo becomes the cover. Use the arrows to reorder.
