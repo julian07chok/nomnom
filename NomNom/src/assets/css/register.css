@@ -131,26 +131,6 @@
   font-weight: 600;
 }
 
-.submit-button {
-  width: 100%;
-  min-height: 48px;
-  padding: 12px 20px;
-  border: none;
-  border-radius: 999px;
-  background: var(--text);
-  color: var(--background);
-  font-weight: 700;
-}
-
-.submit-button:hover {
-  background: var(--red);
-}
-
-.submit-button:disabled {
-  opacity: 0.65;
-  cursor: wait;
-}
-
 .login-prompt {
   margin: 24px 0 0;
   text-align: center;
