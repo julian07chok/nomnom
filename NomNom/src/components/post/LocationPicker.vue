@@ -82,7 +82,10 @@ function setMarker(lat, lng, { recenter = true } = {}) {
   }
 
   if (recenter) {
-    mapRef.value.setView([numericLat, numericLng], mapRef.value.getZoom() < 13 ? 15 : mapRef.value.getZoom())
+    mapRef.value.setView(
+      [numericLat, numericLng],
+      mapRef.value.getZoom() < 13 ? 15 : mapRef.value.getZoom(),
+    )
   }
 }
 
@@ -151,6 +154,26 @@ onBeforeUnmount(() => {
     mapRef.value = null
   }
 })
+
+// ─── React to external coordinate changes (geocoding) ──────
+// When the parent updates latitude/longitude (e.g., from an
+// address geocode), move the marker to the new position.
+watch(
+  () => [props.latitude, props.longitude],
+  ([lat, lng]) => {
+    const numericLat = Number(lat)
+    const numericLng = Number(lng)
+
+    if (
+      lat != null &&
+      lng != null &&
+      isValidLat(numericLat) &&
+      isValidLng(numericLng)
+    ) {
+      setMarker(numericLat, numericLng, { recenter: true })
+    }
+  },
+)
 
 // Manual lat/lng input handlers
 function onLatBlur() {

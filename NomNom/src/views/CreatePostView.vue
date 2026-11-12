@@ -1,8 +1,9 @@
 <script setup>
-import { reactive, ref } from "vue";
+import { nextTick, reactive, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useAuth } from "../services/auth";
 import { usePosts } from "../services/posts";
+import { geocodeAddress } from "../utils/geo";
 import LocationPicker from "../components/post/LocationPicker.vue";
 import AppButton from "../components/common/AppButton.vue";
 import ConfirmDialog from "../components/common/ConfirmDialog.vue";
@@ -23,6 +24,11 @@ const dragOver = ref(false);
 const latitude = ref(null);
 const longitude = ref(null);
 const feedbackDialog = ref(null);
+const isGeocoding = ref(false);
+const geocodeError = ref("");
+const mapSection = ref(null);
+const findOnMapBtn = ref(null);
+let geocodeErrorEl = null;
 
 const MAX_PHOTOS = 5;
 const MAX_FILE_SIZE = 500 * 1024;
@@ -54,18 +60,6 @@ const locations = [
   "Melaka",
   "Ipoh",
 ];
-
-// // Approximate coordinates for Malaysian cities to support the "Near Me" feature
-// const locationCoordinates = {
-//   "Kuala Lumpur": { lat: 3.139, lng: 101.6869 },
-//   "Petaling Jaya": { lat: 3.1073, lng: 101.6068 },
-//   "Subang Jaya": { lat: 3.0567, lng: 101.5851 },
-//   Cyberjaya: { lat: 2.9181, lng: 101.6547 },
-//   Penang: { lat: 5.4141, lng: 100.3288 },
-//   "Johor Bahru": { lat: 1.4927, lng: 103.7414 },
-//   Melaka: { lat: 2.1896, lng: 102.2501 },
-//   Ipoh: { lat: 4.5975, lng: 101.0901 },
-// };
 
 const fields = [
   {
@@ -106,6 +100,16 @@ const form = reactive({
 });
 
 const errors = reactive({});
+
+// ── Auto-clear geocode error when address changes ──────────
+watch(
+  () => form.address,
+  () => {
+    if (geocodeError.value) {
+      geocodeError.value = "";
+    }
+  },
+);
 
 // ── Unique id (browser-safe) ────────────────────────────────
 function uid() {
@@ -165,14 +169,8 @@ function onDrop(event) {
 
 // ── File input change ──────────────────────────────────────
 function onFileSelected(event) {
-  // IMPORTANT: copy the FileList into a real Array FIRST.
-  // event.target.files is a "live" view — resetting .value
-  // below would empty it before addFiles could read it.
   const files = Array.from(event.target.files || []);
-
-  // Now it's safe to reset the input (allows re-selecting the same file)
   event.target.value = "";
-
   addFiles(files);
 }
 
@@ -266,6 +264,58 @@ function validate() {
   }
 
   return Object.keys(errors).length === 0;
+}
+
+async function findAddressOnMap() {
+  if (isGeocoding.value) return;
+
+  const address = form.address.trim();
+  if (!address) return;
+
+  isGeocoding.value = true;
+  geocodeError.value = "";
+
+  try {
+    const result = await geocodeAddress(address);
+
+    if (!result) {
+      geocodeError.value =
+        "Couldn't find that address. Try adding a city or landmark.";
+
+      await nextTick();
+      geocodeErrorEl.value?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+      geocodeErrorEl.value?.focus?.({ preventScroll: true });
+      return;
+    }
+
+    latitude.value = Number(result.lat.toFixed(6));
+    longitude.value = Number(result.lng.toFixed(6));
+
+    await nextTick();
+
+    mapSection.value?.focus?.({ preventScroll: true });
+    mapSection.value?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  } catch (error) {
+    geocodeError.value =
+      error.message || "Address lookup failed. Please try again.";
+
+    await nextTick();
+    geocodeErrorEl.value?.scrollIntoView({
+      behavior: "smooth",
+      block: "center",
+    });
+    geocodeErrorEl.value?.focus?.({ preventScroll: true });
+  } finally {
+    setTimeout(() => {
+      isGeocoding.value = false;
+    }, 800);
+  }
 }
 
 // ── Publish ────────────────────────────────────────────────
@@ -435,8 +485,8 @@ async function publish() {
             </section>
 
             <!-- ============================================
-                 TEXT FIELDS
-                 ============================================ -->
+     TEXT FIELDS
+     ============================================ -->
             <div v-for="field in fields" :key="field.name" class="mb-4">
               <label :for="`post-${field.name}`" class="form-label">
                 {{ field.label }}
@@ -452,9 +502,30 @@ async function publish() {
                 type="text" required :aria-invalid="Boolean(errors[field.name])"
                 :aria-describedby="`${field.name}-error`" @input="clearError(field.name)" />
 
+              <!-- Address-only: Find on map button + geocode error -->
+              <template v-if="field.name === 'address'">
+                <button ref="findOnMapBtn" type="button" class="find-on-map-btn"
+                  :disabled="isGeocoding || !form.address.trim()" @click="findAddressOnMap">
+                  <i :class="isGeocoding ? 'bi bi-arrow-repeat spin' : 'bi bi-geo-alt'" aria-hidden="true"></i>
+                  {{ isGeocoding ? "Finding…" : "Find on map" }}
+                </button>
+
+                <p v-if="geocodeError" :ref="(el) => (geocodeErrorEl = el)" class="field-error geocode-error"
+                  role="alert">
+                  {{ geocodeError }}
+                </p>
+              </template>
+
               <p :id="`${field.name}-error`" class="field-error">
                 {{ errors[field.name] }}
               </p>
+            </div>
+
+            <!-- ============================================
+     MAP + LAT/LNG
+     ============================================ -->
+            <div id="create-map-section" ref="mapSection" class="create-map-section" tabindex="-1">
+              <LocationPicker v-model:latitude="latitude" v-model:longitude="longitude" />
             </div>
 
             <!-- ============================================
@@ -508,13 +579,6 @@ async function publish() {
                 </p>
               </div>
             </div>
-
-            <!-- ============================================
-                 Map with location picker
-                 ============================================ -->
-            <LocationPicker v-model:latitude="latitude" v-model:longitude="longitude" />
-
-            <p v-if="errors.location" class="field-error">{{ errors.location }}</p>
 
             <!-- ============================================
                  ACTIONS
