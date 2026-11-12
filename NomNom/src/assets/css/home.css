@@ -184,13 +184,6 @@
   opacity: 1;
 }
 
-/* Grid */
-.home-post-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 24px;
-}
-
 /* Empty state */
 .home-empty-state {
   padding: 64px 24px;
@@ -243,11 +236,6 @@ select:focus-visible {
 }
 
 /* Responsive — mobile-first breakpoints */
-@media (min-width: 576px) {
-  .home-post-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
 
 @media (min-width: 768px) {
   .home-hero {
@@ -258,11 +246,5 @@ select:focus-visible {
     flex-direction: row;
     align-items: flex-end;
     justify-content: space-between;
-  }
-}
-
-@media (min-width: 992px) {
-  .home-post-grid {
-    grid-template-columns: repeat(3, 1fr);
   }
 }

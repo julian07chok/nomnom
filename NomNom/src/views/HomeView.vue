@@ -294,13 +294,19 @@ function onSearch() {
         </div>
 
         <!-- Post grid -->
-        <div v-else class="home-post-grid">
-          <PostCard
+        <div v-else class="row g-3 g-md-4">
+          <div
             v-for="post in paginatedPosts"
             :key="post.id"
-            :post="post"
-            :distance="post.distanceKm ? formatDistance(post.distanceKm) : null"
-          />
+            class="col-6 col-lg-4"
+          >
+            <PostCard
+              :post="post"
+              :distance="
+                post.distanceKm ? formatDistance(post.distanceKm) : null
+              "
+            />
+          </div>
         </div>
 
         <!-- Pagination -->

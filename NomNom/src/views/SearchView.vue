@@ -335,11 +335,11 @@ watch(
           </div>
 
           <!-- Grid -->
-          <div v-else class="row g-4">
+          <div v-else class="row g-3 g-md-4">
             <div
               v-for="post in paginatedPosts"
               :key="post.id"
-              class="col-12 col-sm-6 col-xl-4"
+              class="col-6 col-xl-4"
             >
               <PostCard
                 :post="post"
