@@ -4,6 +4,7 @@ import { useRoute, useRouter } from "vue-router";
 import { useAuth } from "../services/auth";
 import { usePosts } from "../services/posts";
 import AppButton from "../components/common/AppButton.vue";
+import ConfirmDialog from "../components/common/ConfirmDialog.vue";
 
 const route = useRoute();
 const router = useRouter();
@@ -23,6 +24,7 @@ const dragOver = ref(false);
 const notFound = ref(false);
 const notOwner = ref(false);
 const loaded = ref(false);
+const feedbackDialog = ref(null);
 
 const MAX_PHOTOS = 5;
 const MAX_FILE_SIZE = 500 * 1024;
@@ -325,6 +327,16 @@ async function save() {
     return;
   }
 
+  // Show success after PHP confirms the update.
+  const acknowledged = await feedbackDialog.value.open({
+    title: "Post updated",
+    message: "Your post changes have been saved successfully.",
+    confirmText: "View post",
+    showCancel: false,
+  });
+
+  if (acknowledged === null) return;
+
   await router.push({
     name: "post-detail",
     params: { id: route.params.id },
@@ -356,8 +368,17 @@ async function handleDelete() {
     return;
   }
 
-  isPublishing.value = false;
+  const acknowledged = await feedbackDialog.value.open({
+    title: "Post deleted",
+    message: "Your post has been deleted successfully.",
+    confirmText: "Back to Discover",
+    showCancel: false,
+  });
+
+  if (acknowledged === null) return;
+
   await router.push({ name: "home" });
+  isPublishing.value = false;
 }
 
 const headingTitle = computed(() =>
@@ -668,6 +689,7 @@ const headingSubtitle = computed(() =>
         </div>
       </div>
     </div>
+    <ConfirmDialog ref="feedbackDialog" />
   </main>
 </template>
 

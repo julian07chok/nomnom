@@ -4,6 +4,7 @@ import { useRouter } from "vue-router";
 import { useAuth } from "../services/auth";
 import AppButton from "../components/common/AppButton.vue";
 import UserAvatar from "../components/user/UserAvatar.vue";
+import ConfirmDialog from "../components/common/ConfirmDialog.vue";
 
 const router = useRouter();
 const { currentUser, updateProfile } = useAuth();
@@ -27,6 +28,7 @@ const fileError = ref("");
 const displayNameInput = ref(null);
 const bioInput = ref(null);
 const avatarUrlInput = ref(null);
+const feedbackDialog = ref(null);
 
 const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2 MB
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
@@ -160,6 +162,15 @@ async function handleSave() {
 
   savedSuccessfully.value = true;
 
+  const acknowledged = await feedbackDialog.value.open({
+    title: "Profile updated",
+    message: "Your profile changes have been saved successfully.",
+    confirmText: "View profile",
+    showCancel: false,
+  });
+
+  if (acknowledged === null) return;
+
   await router.push({ name: "my-profile" });
 
   isSaving.value = false;
@@ -189,10 +200,6 @@ function handleCancel() {
           >
             <div v-if="saveError" class="edit-error" role="alert">
               {{ saveError }}
-            </div>
-
-            <div v-if="savedSuccessfully" class="edit-success" role="status">
-              Profile updated.
             </div>
 
             <!-- ==========================================
@@ -385,6 +392,7 @@ function handleCancel() {
         </div>
       </div>
     </div>
+    <ConfirmDialog ref="feedbackDialog" />
   </main>
 </template>
 

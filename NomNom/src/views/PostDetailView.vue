@@ -16,6 +16,7 @@ import UserAvatar from "../components/user/UserAvatar.vue";
 import PostActions from "../components/post/PostActions.vue";
 import CommentForm from "../components/comment/CommentForm.vue";
 import CommentList from "../components/comment/CommentList.vue";
+import ConfirmDialog from "../components/common/ConfirmDialog.vue";
 
 import "../assets/css/post-detail.css";
 
@@ -25,6 +26,7 @@ const isDeleting = ref(false);
 const deleteError = ref("");
 const interactionBusy = ref(false);
 const interactionError = ref("");
+const feedbackDialog = ref(null);
 
 const {
   posts,
@@ -128,9 +130,16 @@ async function handleDelete() {
   )
     return;
 
-  if (!window.confirm("Delete this post? This cannot be undone.")) {
-    return;
-  }
+  const confirmed = await feedbackDialog.value.open({
+    title: "Delete this post?",
+    message:
+      "This will remove the post, its photos, comments, likes, and bookmarks. This cannot be undone.",
+    confirmText: "Delete post",
+    cancelText: "Keep post",
+    variant: "danger",
+  });
+
+  if (!confirmed) return;
 
   isDeleting.value = true;
   deleteError.value = "";
@@ -142,6 +151,15 @@ async function handleDelete() {
     isDeleting.value = false;
     return;
   }
+
+  const acknowledged = await feedbackDialog.value.open({
+    title: "Post deleted",
+    message: "Your post has been deleted successfully.",
+    confirmText: "Back to Discover",
+    showCancel: false,
+  });
+
+  if (acknowledged === null) return;
 
   await router.push({ name: "home" });
   isDeleting.value = false;
@@ -306,5 +324,6 @@ async function handleInteraction(type) {
         </section>
       </article>
     </div>
+    <ConfirmDialog ref="feedbackDialog" />
   </main>
 </template>
