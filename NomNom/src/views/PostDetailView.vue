@@ -212,6 +212,16 @@ async function handleInteraction(type) {
     interactionBusy.value = false;
   }
 }
+
+const priceRangeLabel = computed(() => {
+  const labels = {
+    $: "$ — Under RM 15",
+    $$: "$$ — RM 15–50",
+    $$$: "$$$ — Above RM 50",
+  };
+
+  return labels[post.value?.priceRange] ?? "Not specified";
+});
 </script>
 
 <template>
@@ -269,22 +279,29 @@ async function handleInteraction(type) {
         </p>
 
         <section class="post-info">
-          <h2 class="post-restaurant">
-            <i class="bi bi-shop" aria-hidden="true"></i>
-            {{ post.restaurantName }}
-          </h2>
+          <div class="post-place-line">
+            <h2 class="post-restaurant">
+              <i class="bi bi-shop" aria-hidden="true"></i>
+              <span>{{ post.restaurantName }}</span>
+            </h2>
+
+            <span class="post-place-divider" aria-hidden="true"> | </span>
+
+            <p class="post-address">
+              <i class="bi bi-geo-alt" aria-hidden="true"></i>
+              <span>{{ post.address }}</span>
+            </p>
+          </div>
+
           <ul class="post-meta">
             <li>
-              <i class="bi bi-geo-alt" aria-hidden="true"></i>
-              {{ post.address }}
+              <i class="bi bi-cash-stack" aria-hidden="true"></i>
+              <span>Price range: {{ priceRangeLabel }}</span>
             </li>
-            <li>
-              <i class="bi bi-currency-dollar" aria-hidden="true"></i>
-              {{ post.priceRange }}
-            </li>
+
             <li>
               <i class="bi bi-tag" aria-hidden="true"></i>
-              {{ post.location }}
+              <span>{{ post.location }}</span>
             </li>
           </ul>
         </section>

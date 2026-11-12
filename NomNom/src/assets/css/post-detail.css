@@ -66,14 +66,48 @@
   background: #f4f2c2;
 }
 
-.post-restaurant {
+.post-detail .post-place-line {
   display: flex;
-  align-items: center;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px 12px;
+  margin-bottom: 12px;
+  text-align: left;
+}
+
+.post-detail .post-restaurant {
+  display: inline-flex;
+  align-items: baseline;
   gap: 8px;
-  margin: 0 0 10px;
+  margin: 0;
   color: #483934;
   font-size: 1.1rem;
   font-weight: 800;
+}
+
+.post-detail .post-place-divider {
+  color: #80736b;
+}
+
+.post-detail .post-address {
+  display: flex;
+  align-items: baseline;
+  flex: 1 1 220px;
+  gap: 8px;
+  min-width: 0;
+  margin: 0;
+  color: #483934;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.post-detail .post-address span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.post-detail .post-place-line i {
+  flex-shrink: 0;
 }
 
 .post-meta {
@@ -129,6 +163,22 @@
 
 .not-found-link:hover {
   background: #cd4639;
+}
+
+.post-detail .post-meta {
+  align-items: flex-start;
+  text-align: left;
+}
+
+/* Let the address sit below the name on small screens. */
+@media (max-width: 575.98px) {
+  .post-detail .post-place-divider {
+    display: none;
+  }
+
+  .post-detail .post-address {
+    flex-basis: 100%;
+  }
 }
 
 @media (min-width: 768px) {
