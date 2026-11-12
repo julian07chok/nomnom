@@ -2,6 +2,7 @@
 import { computed, nextTick, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useAuth } from "../services/auth";
+import AppButton from "../components/common/AppButton.vue";
 
 const route = useRoute();
 const router = useRouter();
@@ -397,13 +398,14 @@ async function handleRegister() {
                 </p>
               </div>
 
-              <button
-                class="submit-button"
+              <AppButton
                 type="submit"
-                :disabled="isSubmitting"
+                block
+                :loading="isSubmitting"
+                loading-text="Creating account…"
               >
-                {{ isSubmitting ? "Creating account…" : "Create account" }}
-              </button>
+                Create account
+              </AppButton>
             </form>
 
             <p class="login-prompt">

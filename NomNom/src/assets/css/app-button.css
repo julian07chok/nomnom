@@ -1,0 +1,86 @@
+.app-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 12px 22px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.2;
+  text-align: center;
+  cursor: pointer;
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease,
+    color 150ms ease;
+}
+
+.app-button--primary {
+  background: var(--text);
+  color: var(--background);
+}
+
+.app-button--primary:hover:not(:disabled) {
+  background: var(--red);
+}
+
+.app-button--secondary {
+  border-color: rgb(72 57 52 / 30%);
+  background: transparent;
+  color: var(--text);
+}
+
+.app-button--secondary:hover:not(:disabled) {
+  background: var(--light-yellow);
+}
+
+.app-button--danger {
+  border-color: rgb(205 70 57 / 40%);
+  background: transparent;
+  color: var(--red);
+}
+
+.app-button--danger:hover:not(:disabled) {
+  background: var(--red);
+  color: var(--background);
+}
+
+.app-button--block {
+  width: 100%;
+}
+
+.app-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.app-button[aria-busy="true"] {
+  cursor: wait;
+}
+
+.app-button:focus-visible {
+  outline: 3px solid var(--red);
+  outline-offset: 3px;
+}
+
+@media (max-width: 575.98px) {
+  .app-button {
+    min-height: 40px;
+    padding: 8px 16px;
+    font-size: 0.85rem;
+  }
+
+  .app-button--mobile-block {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-button {
+    transition: none;
+  }
+}

@@ -2,6 +2,7 @@
 import { computed, nextTick, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useAuth } from "../services/auth";
+import AppButton from "../components/common/AppButton.vue";
 
 const route = useRoute();
 const router = useRouter();
@@ -198,13 +199,14 @@ async function handleLogin() {
                 </p>
               </div>
 
-              <button
-                class="submit-button"
+              <AppButton
                 type="submit"
-                :disabled="isSubmitting"
+                block
+                :loading="isSubmitting"
+                loading-text="Logging in…"
               >
-                {{ isSubmitting ? "Logging in…" : "Log in" }}
-              </button>
+                Log in
+              </AppButton>
             </form>
 
             <p class="register-prompt">
@@ -338,26 +340,6 @@ async function handleLogin() {
   color: var(--red);
 }
 
-.submit-button {
-  width: 100%;
-  min-height: 48px;
-  padding: 12px 20px;
-  border: none;
-  border-radius: 999px;
-  background: var(--text);
-  color: var(--background);
-  font-weight: 700;
-}
-
-.submit-button:hover {
-  background: var(--red);
-}
-
-.submit-button:disabled {
-  opacity: 0.65;
-  cursor: wait;
-}
-
 .register-prompt {
   margin: 24px 0;
   text-align: center;
@@ -372,14 +354,6 @@ button:focus-visible,
 a:focus-visible {
   outline: 3px solid var(--red);
   outline-offset: 3px;
-}
-@media (max-width: 575.98px) {
-  .submit-button {
-    min-height: 40px;
-    padding: 8px 16px;
-    font-size: 0.85rem;
-    line-height: 1.2;
-  }
 }
 
 @media (min-width: 768px) {

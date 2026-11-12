@@ -3,6 +3,7 @@ import { reactive, ref } from "vue";
 import { useRouter } from "vue-router";
 import { useAuth } from "../services/auth";
 import { usePosts } from "../services/posts";
+import AppButton from "../components/common/AppButton.vue";
 
 const router = useRouter();
 const { currentUser } = useAuth();
@@ -589,13 +590,14 @@ async function publish() {
             <div class="form-actions">
               <RouterLink class="cancel-link" to="/">Cancel</RouterLink>
 
-              <button
-                class="publish-button"
+              <AppButton
                 type="submit"
-                :disabled="isReading || isPublishing"
+                :disabled="isReading"
+                :loading="isPublishing"
+                loading-text="Publishing…"
               >
-                {{ isPublishing ? "Publishing…" : "Publish post" }}
-              </button>
+                Publish post
+              </AppButton>
             </div>
           </form>
         </div>

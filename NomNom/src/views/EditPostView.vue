@@ -3,6 +3,7 @@ import { computed, reactive, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useAuth } from "../services/auth";
 import { usePosts } from "../services/posts";
+import AppButton from "../components/common/AppButton.vue";
 
 const route = useRoute();
 const router = useRouter();
@@ -633,15 +634,15 @@ const headingSubtitle = computed(() =>
 
               <!-- Actions -->
               <div class="form-actions edit-actions">
-                <button
-                  type="button"
-                  class="delete-button"
-                  :disabled="isPublishing"
+                <AppButton
+                  variant="danger"
+                  mobile-block
+                  :disabled="isPublishing || isReading"
                   @click="handleDelete"
                 >
                   <i class="bi bi-trash" aria-hidden="true"></i>
                   Delete post
-                </button>
+                </AppButton>
 
                 <div class="edit-actions-right">
                   <RouterLink
@@ -651,13 +652,15 @@ const headingSubtitle = computed(() =>
                     Cancel
                   </RouterLink>
 
-                  <button
-                    class="publish-button"
+                  <AppButton
                     type="submit"
-                    :disabled="isReading || isPublishing"
+                    mobile-block
+                    :disabled="isReading"
+                    :loading="isPublishing"
+                    loading-text="Saving…"
                   >
-                    {{ isPublishing ? "Saving…" : "Save changes" }}
-                  </button>
+                    Save changes
+                  </AppButton>
                 </div>
               </div>
             </form>
@@ -713,38 +716,6 @@ const headingSubtitle = computed(() =>
   margin-left: auto;
 }
 
-.delete-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  min-height: 48px;
-  padding: 12px 20px;
-  border: 1px solid rgb(205 70 57 / 40%);
-  border-radius: 999px;
-  background: transparent;
-  color: var(--red);
-  font-weight: 700;
-  cursor: pointer;
-  transition:
-    background-color 150ms ease,
-    color 150ms ease;
-}
-
-.delete-button:hover:not(:disabled) {
-  background: var(--red);
-  color: var(--background);
-}
-
-.delete-button:disabled {
-  opacity: 0.6;
-  cursor: wait;
-}
-
-.delete-button:focus-visible {
-  outline: 3px solid var(--red);
-  outline-offset: 3px;
-}
-
 @media (max-width: 575.98px) {
   .edit-actions {
     flex-direction: column-reverse;
@@ -760,19 +731,6 @@ const headingSubtitle = computed(() =>
 
   .edit-actions-right .cancel-link {
     text-align: center;
-  }
-
-  .delete-button,
-  .edit-actions-right .publish-button {
-    width: 100%;
-    justify-content: center;
-  }
-
-  .delete-button {
-    min-height: 40px;
-    padding: 8px 16px;
-    font-size: 0.85rem;
-    line-height: 1.2;
   }
 }
 </style>

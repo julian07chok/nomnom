@@ -2,7 +2,7 @@
 import { computed, nextTick, ref } from "vue";
 import { useRouter } from "vue-router";
 import { useAuth } from "../services/auth";
-
+import AppButton from "../components/common/AppButton.vue";
 import UserAvatar from "../components/user/UserAvatar.vue";
 
 const router = useRouter();
@@ -362,21 +362,24 @@ function handleCancel() {
 
             <!-- Actions -->
             <div class="form-actions">
-              <button
-                type="button"
-                class="btn-cancel"
+              <AppButton
+                variant="secondary"
+                mobile-block
                 :disabled="isSaving || isReadingFile"
                 @click="handleCancel"
               >
                 Cancel
-              </button>
-              <button
+              </AppButton>
+
+              <AppButton
                 type="submit"
-                class="btn-save"
-                :disabled="isSaving || isReadingFile"
+                mobile-block
+                :disabled="isReadingFile"
+                :loading="isSaving"
+                loading-text="Saving…"
               >
-                {{ isSaving ? "Saving…" : "Save changes" }}
-              </button>
+                Save changes
+              </AppButton>
             </div>
           </form>
         </div>
@@ -636,41 +639,6 @@ function handleCancel() {
   border-top: 1px solid rgb(72 57 52 / 12%);
 }
 
-.btn-cancel,
-.btn-save {
-  min-height: 48px;
-  padding: 12px 20px;
-  border-radius: 999px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.btn-cancel {
-  border: 1px solid rgb(72 57 52 / 30%);
-  background: transparent;
-  color: var(--text);
-}
-
-.btn-cancel:hover {
-  background: var(--light-yellow);
-}
-
-.btn-save {
-  border: none;
-  background: var(--text);
-  color: var(--background);
-}
-
-.btn-save:hover {
-  background: var(--red);
-}
-
-.btn-save:disabled,
-.btn-cancel:disabled {
-  opacity: 0.6;
-  cursor: wait;
-}
-
 button:focus-visible,
 input:focus-visible,
 textarea:focus-visible,
@@ -685,14 +653,6 @@ textarea:focus-visible,
   .form-actions {
     flex-direction: row;
     justify-content: flex-end;
-  }
-
-  .btn-save,
-  .btn-cancel {
-    min-height: 40px;
-    padding: 8px 16px;
-    font-size: 0.85rem;
-    line-height: 1.2;
   }
 }
 
