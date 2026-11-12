@@ -36,6 +36,10 @@ const savedPosts = computed(() =>
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)),
 );
 
+const totalLikesReceived = computed(() =>
+  myPosts.value.reduce((total, post) => total + (Number(post.likes) || 0), 0),
+);
+
 // ==========================================
 // 3. PROFILE INFORMATION
 // ==========================================
@@ -112,56 +116,64 @@ async function handleLogout() {
         <div class="profile-cover"></div>
 
         <div class="profile-content">
-          <!-- Avatar and User Information -->
           <div class="profile-info">
             <UserAvatar :src="currentUser.avatar" :size="100" />
 
             <div class="profile-details">
-              <h1 class="profile-name">
-                {{ currentUser.displayName || currentUser.username }}
-              </h1>
+              <div class="profile-heading-row">
+                <h1 class="profile-name">
+                  {{ currentUser.displayName || currentUser.username }}
+                </h1>
+
+                <div class="profile-actions">
+                  <RouterLink to="/profile/edit" class="profile-button primary">
+                    <i class="bi bi-pencil-square" aria-hidden="true"></i>
+                    Edit Profile
+                  </RouterLink>
+
+                  <button
+                    type="button"
+                    class="profile-button logout"
+                    @click="handleLogout"
+                  >
+                    <i class="bi bi-box-arrow-right" aria-hidden="true"></i>
+                    Logout
+                  </button>
+                </div>
+              </div>
 
               <p class="profile-username">@{{ currentUser.username }}</p>
 
-              <p class="profile-bio">
-                {{ currentUser.bio || "No bio added yet." }}
-              </p>
+              <div class="profile-summary-row">
+                <div class="profile-summary">
+                  <p class="profile-bio">
+                    {{ currentUser.bio || "No bio added yet." }}
+                  </p>
 
-              <p class="profile-joined">
-                <i class="bi bi-calendar3" aria-hidden="true"></i>
-                Joined {{ joinedDate }}
-              </p>
+                  <p class="profile-joined">
+                    <i class="bi bi-calendar3" aria-hidden="true"></i>
+                    Joined {{ joinedDate }}
+                  </p>
+                </div>
+
+                <div class="profile-stats">
+                  <div class="profile-stat">
+                    <span>Posts Published</span>
+                    <strong>{{ myPosts.length }}</strong>
+                  </div>
+
+                  <div class="profile-stat">
+                    <span>Posts Saved</span>
+                    <strong>{{ savedPosts.length }}</strong>
+                  </div>
+
+                  <div class="profile-stat">
+                    <span>Likes Received</span>
+                    <strong>{{ totalLikesReceived }}</strong>
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
-
-          <!-- Profile Statistics -->
-          <div class="profile-stats mt-4">
-            <div class="stat-item">
-              <strong>{{ myPosts.length }}</strong>
-              <span>Posts Published</span>
-            </div>
-
-            <div class="stat-item">
-              <strong>{{ savedPosts.length }}</strong>
-              <span>Posts Saved</span>
-            </div>
-          </div>
-
-          <!-- Profile Actions -->
-          <div class="profile-actions mt-4">
-            <RouterLink to="/profile/edit" class="profile-button primary">
-              <i class="bi bi-pencil-square" aria-hidden="true"></i>
-              Edit Profile
-            </RouterLink>
-
-            <button
-              type="button"
-              class="profile-button logout"
-              @click="handleLogout"
-            >
-              <i class="bi bi-box-arrow-right" aria-hidden="true"></i>
-              Logout
-            </button>
           </div>
         </div>
       </section>
