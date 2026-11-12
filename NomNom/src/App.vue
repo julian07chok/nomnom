@@ -27,7 +27,7 @@ const needsPosts = computed(() =>
     <AppNavbar />
 
     <div class="page-content">
-      <div v-if="isLoading" class="container py-5" role="status">
+      <div v-if="needsPosts && isLoading" class="container py-5" role="status">
         Loading discoveries…
       </div>
 

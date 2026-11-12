@@ -99,9 +99,6 @@ async function createPost(data) {
     body,
   });
 
-  // ── NEW: refresh the cached list so Home/Search/Map see the new post ──
-  await loadPosts();
-
   return { id: Number(result.postId) };
 }
 
