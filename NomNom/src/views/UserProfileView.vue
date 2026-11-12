@@ -26,6 +26,10 @@ const userPosts = computed(() => {
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 });
 
+const totalLikesReceived = computed(() =>
+  userPosts.value.reduce((total, post) => total + (Number(post.likes) || 0), 0),
+);
+
 // Pagination
 const currentPage = ref(1);
 const perPage = 6;
@@ -103,33 +107,42 @@ const joinedDate = computed(() => {
         <section class="profile-card mb-5">
           <div class="profile-cover"></div>
 
-          <div class="p-4">
-            <div class="d-flex flex-column flex-sm-row gap-3">
-              <UserAvatar :src="profile.avatar" :size="96" />
+          <div class="profile-content">
+            <div class="profile-info">
+              <UserAvatar :src="profile.avatar" :size="100" />
 
-              <div>
-                <h1 class="h2 fw-bold mb-1">
+              <div class="profile-details">
+                <h1 class="profile-name">
                   {{ profile.displayName || profile.username }}
                 </h1>
 
-                <p class="text-secondary mb-2">
-                  {{ "@" + profile.username }}
-                </p>
+                <p class="profile-username">@{{ profile.username }}</p>
 
-                <p class="mb-2">
-                  {{ profile.bio || "No bio added yet." }}
-                </p>
+                <div class="profile-summary-row">
+                  <div class="profile-summary">
+                    <p class="profile-bio">
+                      {{ profile.bio || "No bio added yet." }}
+                    </p>
 
-                <p class="text-secondary small mb-0">
-                  <i class="bi bi-calendar3 me-1"></i>
-                  Joined {{ joinedDate }}
-                </p>
+                    <p class="profile-joined">
+                      <i class="bi bi-calendar3" aria-hidden="true"></i>
+                      Joined {{ joinedDate }}
+                    </p>
+                  </div>
+
+                  <div class="profile-stats">
+                    <div class="profile-stat">
+                      <span>Posts Published</span>
+                      <strong>{{ userPosts.length }}</strong>
+                    </div>
+
+                    <div class="profile-stat">
+                      <span>Likes Received</span>
+                      <strong>{{ totalLikesReceived }}</strong>
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
-
-            <div class="profile-stats mt-4">
-              <strong>{{ userPosts.length }}</strong>
-              <span>Published Posts</span>
             </div>
           </div>
         </section>
