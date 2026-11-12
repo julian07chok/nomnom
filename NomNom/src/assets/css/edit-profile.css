@@ -258,10 +258,15 @@ textarea:focus-visible,
 
 /* ── Responsive ───────────────────────────────────────── */
 
-@media (min-width: 576px) {
-  .form-actions {
+@media (max-width: 575.98px) {
+  .edit-profile-page .form-actions {
     flex-direction: row;
-    justify-content: flex-end;
+    gap: 10px;
+  }
+
+  .edit-profile-page .form-actions > .app-button {
+    flex: 1;
+    min-width: 0;
   }
 }
 

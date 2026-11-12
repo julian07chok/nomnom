@@ -371,7 +371,6 @@ function handleCancel() {
             <div class="form-actions">
               <AppButton
                 variant="secondary"
-                mobile-block
                 :disabled="isSaving || isReadingFile"
                 @click="handleCancel"
               >
@@ -380,7 +379,6 @@ function handleCancel() {
 
               <AppButton
                 type="submit"
-                mobile-block
                 :disabled="isReadingFile"
                 :loading="isSaving"
                 loading-text="Saving…"

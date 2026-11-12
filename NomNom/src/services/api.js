@@ -9,7 +9,10 @@ export function setCsrfToken(token) {
   csrfToken = token || "";
 }
 
-export async function apiRequest(endpoint, { method = "GET", body } = {}) {
+export async function apiRequest(
+  endpoint,
+  { method = "GET", body, signal } = {},
+) {
   const isFormData = body instanceof FormData;
   const headers = {
     Accept: "application/json",
@@ -37,7 +40,9 @@ export async function apiRequest(endpoint, { method = "GET", body } = {}) {
             ? body
             : JSON.stringify(body),
     });
-  } catch {
+  } catch (error) {
+    if (error.name === "AbortError") throw error;
+
     throw new Error(
       "Cannot reach the server. Check that XAMPP and Vite are running.",
     );

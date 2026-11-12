@@ -165,6 +165,15 @@ async function handleDelete() {
   isDeleting.value = false;
 }
 
+function goEdit() {
+  if (!post.value || interactionBusy.value || isDeleting.value) return;
+
+  router.push({
+    name: "edit-post",
+    params: { id: post.value.id },
+  });
+}
+
 async function handleInteraction(type) {
   if (!post.value || interactionBusy.value || isDeleting.value) return;
 
@@ -229,35 +238,19 @@ async function handleInteraction(type) {
           :likes="post.likes"
           :liked="post.likedByMe"
           :saved="post.savedByMe"
+          :is-owner="isOwner"
           :is-logged-in="isLoggedIn"
           :busy="interactionBusy || isDeleting"
+          :deleting="isDeleting"
           @toggle-like="handleInteraction('like')"
           @toggle-save="handleInteraction('save')"
+          @edit="goEdit"
+          @delete="handleDelete"
         />
 
         <p v-if="interactionError" class="alert alert-danger" role="alert">
           {{ interactionError }}
         </p>
-
-        <div v-if="isOwner" class="d-flex flex-wrap gap-2 mb-4">
-          <RouterLink
-            v-if="!isDeleting && !interactionBusy"
-            class="btn btn-outline-dark"
-            :to="{ name: 'edit-post', params: { id: post.id } }"
-          >
-            <i class="bi bi-pencil-square me-1" aria-hidden="true"></i>
-            Edit post
-          </RouterLink>
-
-          <button
-            class="btn btn-outline-danger"
-            type="button"
-            :disabled="isDeleting || interactionBusy"
-            @click="handleDelete"
-          >
-            {{ isDeleting ? "Deleting…" : "Delete post" }}
-          </button>
-        </div>
 
         <p v-if="deleteError" class="alert alert-danger" role="alert">
           {{ deleteError }}

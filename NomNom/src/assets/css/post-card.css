@@ -83,14 +83,6 @@
   font-size: 0.8rem;
 }
 
-.cuisine-pill {
-  padding: 4px 10px;
-  border-radius: 999px;
-  background: #dce9fc;
-  color: #483934;
-  font-weight: 700;
-}
-
 .location {
   display: inline-flex;
   align-items: center;
