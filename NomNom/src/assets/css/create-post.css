@@ -99,6 +99,24 @@
   opacity: 0.7;
 }
 
+.geocode-error {
+  margin-top: 8px;
+}
+
+/* Give the map wrapper a scroll offset so it doesn't hug the top */
+.create-map-section {
+  scroll-margin-top: 20px;
+  outline: none;
+}
+
+/* Optional: a subtle outline on focus-visible so keyboard users
+   know where they are */
+.create-map-section:focus-visible {
+  outline: 3px solid #cd4639;
+  outline-offset: 4px;
+  border-radius: 22px;
+}
+
 /* ==========================================
    DRAG-AND-DROP ZONE
    ========================================== */
@@ -178,6 +196,41 @@
   font-size: 0.85rem;
   font-weight: 600;
   text-align: center;
+}
+
+.find-on-map-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  padding: 8px 14px;
+  border: 1px solid #483934;
+  border-radius: 10px;
+  background: #fffcf3;
+  color: #483934;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background-color 150ms ease, color 150ms ease;
+}
+
+.find-on-map-btn:hover:not(:disabled) {
+  background: #f4f2c2;
+}
+
+.find-on-map-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.find-on-map-btn .spin {
+  animation: find-spin 800ms linear infinite;
+}
+
+@keyframes find-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* ==========================================
