@@ -66,7 +66,18 @@ const isProfileActive = () =>
       <span>Discover</span>
     </RouterLink>
 
-    <!-- 2. Create Post -->
+    <!-- 2. Explore (was Search, moved up) -->
+    <RouterLink
+      to="/search"
+      class="mobile-bottom-link"
+      :class="{ 'is-active': route.name === 'search' }"
+      :aria-current="route.name === 'search' ? 'page' : undefined"
+    >
+      <i class="bi bi-search" aria-hidden="true"></i>
+      <span>Explore</span>
+    </RouterLink>
+
+    <!-- 3. Create (was 2nd, now 3rd) -->
     <RouterLink
       to="/create"
       class="mobile-bottom-link"
@@ -77,18 +88,7 @@ const isProfileActive = () =>
       <span>Create</span>
     </RouterLink>
 
-    <!-- 3. Search -->
-    <RouterLink
-      to="/search"
-      class="mobile-bottom-link"
-      :class="{ 'is-active': route.name === 'search' }"
-      :aria-current="route.name === 'search' ? 'page' : undefined"
-    >
-      <i class="bi bi-search" aria-hidden="true"></i>
-      <span>Search</span>
-    </RouterLink>
-
-    <!-- 4. My Profile -->
+    <!-- 4. Profile (unchanged) -->
     <RouterLink
       to="/profile"
       class="mobile-bottom-link"
