@@ -18,7 +18,9 @@ export function useDiscoverFeed(filters) {
   function resolveUrl(url) {
     if (typeof url !== "string") return "";
 
-    return url.startsWith("api/") ? `${import.meta.env.BASE_URL}${url}` : url;
+    return url.startsWith("api/")
+      ? `${import.meta.env.BASE_URL}${url}`
+      : url;
   }
 
   async function loadMore() {
@@ -38,9 +40,18 @@ export function useDiscoverFeed(filters) {
       sort: filters.value.sort,
     });
 
-    if (filters.value.lat !== null && filters.value.lng !== null) {
+    // ── Near Me (Haversine) parameters ─────────────────────
+    // When the user has allowed geolocation and Near Me is on,
+    // these parameters tell the backend to compute distances
+    // in SQL and filter / sort by proximity.
+    if (filters.value.lat != null && filters.value.lng != null) {
       query.set("lat", String(filters.value.lat));
       query.set("lng", String(filters.value.lng));
+
+      // Default 50km if not specified by the caller.
+      const radius =
+        filters.value.radiusKm != null ? filters.value.radiusKm : 50;
+      query.set("radius", String(radius));
     }
 
     try {
@@ -67,6 +78,14 @@ export function useDiscoverFeed(filters) {
           ...post,
           coverImage: resolveUrl(post.coverImage),
           authorAvatar: resolveUrl(post.authorAvatar),
+
+          // distanceKm comes from PHP when Near Me is active
+          // (rounded to 2 dp server-side). Leave as-is for
+          // simple consumption by formatDistance().
+          distanceKm:
+            post.distanceKm === null || post.distanceKm === undefined
+              ? null
+              : Number(post.distanceKm),
         }));
 
       posts.value.push(...batch);

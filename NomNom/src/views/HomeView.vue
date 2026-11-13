@@ -63,8 +63,8 @@ const feedFilters = computed(() => ({
   viewerId: currentUser.value?.id ?? null,
 
   lat: isNearMeActive.value ? (userLocation.value?.lat ?? null) : null,
-
   lng: isNearMeActive.value ? (userLocation.value?.lng ?? null) : null,
+  radiusKm: radiusKm,
 }));
 
 const {
@@ -170,11 +170,9 @@ const feedTitle = computed(() => {
 
 <template>
   <main class="home-page">
-    <!-- Hero + Map -->
     <section class="home-hero">
       <div class="container">
         <div class="row align-items-center g-4 g-lg-5">
-          <!-- Left column: title, subtitle, search bar -->
           <div class="col-12 col-lg-6">
             <div class="home-hero-content">
               <p class="home-hero-eyebrow">🍜 Community food journal</p>
@@ -196,7 +194,6 @@ const feedTitle = computed(() => {
             </div>
           </div>
 
-          <!-- Right column: interactive map (desktop only) -->
           <div class="col-12 col-lg-6">
             <PostMap :posts="posts" />
           </div>
@@ -204,7 +201,6 @@ const feedTitle = computed(() => {
       </div>
     </section>
 
-    <!-- Cuisine categories -->
     <section class="home-categories-section">
       <div class="container">
         <ul
@@ -228,7 +224,6 @@ const feedTitle = computed(() => {
       </div>
     </section>
 
-    <!-- Feed -->
     <section id="home-feed-top" class="home-feed-section">
       <div class="container">
         <header class="home-feed-header">
@@ -249,7 +244,6 @@ const feedTitle = computed(() => {
           </div>
 
           <div class="home-feed-controls">
-            <!-- TOGGLE NEAR ME BUTTON -->
             <button
               type="button"
               class="near-me-btn"
@@ -272,19 +266,15 @@ const feedTitle = computed(() => {
               </template>
             </button>
 
-            <!-- SORTING -->
             <label for="sort" class="home-sort-label">Sort by</label>
             <select id="sort" v-model="sortBy" class="home-sort-select">
               <option v-if="isLoggedIn" value="recommended">For you</option>
-
               <option value="newest">Newest</option>
-
               <option value="most-liked">Most liked</option>
             </select>
           </div>
         </header>
 
-        <!-- Location error -->
         <div
           v-if="locationError"
           class="alert alert-warning d-flex align-items-center mb-4"
@@ -294,7 +284,6 @@ const feedTitle = computed(() => {
           {{ locationError }}
         </div>
 
-        <!-- Empty state -->
         <div
           v-if="!feedLoading && !feedError && posts.length === 0"
           class="home-empty-state"
@@ -311,7 +300,6 @@ const feedTitle = computed(() => {
           </button>
         </div>
 
-        <!-- Post grid -->
         <div v-if="posts.length" class="row g-3 g-md-4">
           <div v-for="post in posts" :key="post.id" class="col-6 col-lg-4">
             <PostCard
@@ -323,7 +311,6 @@ const feedTitle = computed(() => {
           </div>
         </div>
 
-        <!-- Always keep the observer target mounted. -->
         <div ref="sentinel" class="home-feed-sentinel" aria-hidden="true"></div>
 
         <div class="text-center mt-4" aria-live="polite">

@@ -39,31 +39,16 @@ $cuisine = isset($_GET['cuisine']) ? $_GET['cuisine'] : 'All';
 $sort = isset($_GET['sort']) ? $_GET['sort'] : 'newest';
 
 $cuisines = array(
-    'All',
-    'Malaysian',
-    'Chinese',
-    'Indian',
-    'Japanese',
-    'Korean',
-    'Thai',
-    'Vietnamese',
-    'Italian',
-    'Western',
-    'Cafe',
-    'Dessert',
-    'Fusion',
-    'Middle Eastern',
+    'All', 'Malaysian', 'Chinese', 'Indian', 'Japanese',
+    'Korean', 'Thai', 'Vietnamese', 'Italian', 'Western',
+    'Cafe', 'Dessert', 'Fusion', 'Middle Eastern',
 );
 
 $sortOptions = array(
-    'newest' =>
-    'feed.created_at DESC, feed.id DESC',
-
-    'most-liked' =>
-    'feed.like_count DESC, feed.created_at DESC, feed.id DESC',
-
-    'recommended' =>
-    'feed.recommendation_score DESC, feed.created_at DESC, feed.id DESC',
+    'newest' => 'feed.created_at DESC, feed.id DESC',
+    'most-liked' => 'feed.like_count DESC, feed.created_at DESC, feed.id DESC',
+    'recommended' => 'feed.recommendation_score DESC, feed.created_at DESC, feed.id DESC',
+    'near-me' => 'feed.distance_km ASC, feed.created_at DESC, feed.id DESC',
 );
 
 if (!is_string($cuisine) || !in_array($cuisine, $cuisines, true)) {
@@ -76,7 +61,6 @@ if (!is_string($sort) || !isset($sortOptions[$sort])) {
 
 $viewerId = isset($_SESSION['user_id']) ? (int) $_SESSION['user_id'] : 0;
 
-// Guests receive the newest feed.
 if ($sort === 'recommended' && $viewerId === 0) {
     $sort = 'newest';
 }
@@ -84,35 +68,46 @@ if ($sort === 'recommended' && $viewerId === 0) {
 $recommendationScores = array();
 
 if ($sort === 'recommended') {
-    $recommendationScores = getRecommendationScores(
-        $pdo,
-        $viewerId
-    );
+    $recommendationScores = getRecommendationScores($pdo, $viewerId);
 }
 
 $parameters = array($viewerId, $viewerId);
 
+// ─── Near Me parameters ──────────────────────────────────────
 $distanceSql = 'NULL';
-$nearMe = isset($_GET['lat']) || isset($_GET['lng']);
+$nearMe = false;
+$radiusKm = 50.0;
 
-if ($nearMe) {
-    $lat = isset($_GET['lat']) ? $_GET['lat'] : null;
-    $lng = isset($_GET['lng']) ? $_GET['lng'] : null;
+if (isset($_GET['lat']) && isset($_GET['lng'])) {
+    $lat = $_GET['lat'];
+    $lng = $_GET['lng'];
 
     if (
-        !is_string($lat)
-        || !is_string($lng)
-        || !is_numeric($lat)
-        || !is_numeric($lng)
-        || !is_finite((float) $lat)
-        || !is_finite((float) $lng)
-        || (float) $lat < -90
-        || (float) $lat > 90
-        || (float) $lng < -180
-        || (float) $lng > 180
+        !is_string($lat) || !is_string($lng)
+        || !is_numeric($lat) || !is_numeric($lng)
+        || !is_finite((float) $lat) || !is_finite((float) $lng)
+        || (float) $lat < -90 || (float) $lat > 90
+        || (float) $lng < -180 || (float) $lng > 180
     ) {
         respond(array('ok' => false, 'message' => 'Invalid coordinates.'), 400);
     }
+
+    // Optional radius (defaults to 50km).
+    if (isset($_GET['radius'])) {
+        $rawRadius = $_GET['radius'];
+
+        if (
+            is_string($rawRadius)
+            && is_numeric($rawRadius)
+            && is_finite((float) $rawRadius)
+            && (float) $rawRadius > 0
+            && (float) $rawRadius <= 500
+        ) {
+            $radiusKm = (float) $rawRadius;
+        }
+    }
+
+    $nearMe = true;
 
     $distanceSql = '
         CASE
@@ -145,8 +140,7 @@ if ($recommendationScores) {
         $parameters[] = $preferredCuisine;
     }
 
-    $recommendationSql =
-        'CASE p.cuisine '
+    $recommendationSql = 'CASE p.cuisine '
         . implode(' ', $cases)
         . ' ELSE 0 END';
 }
@@ -202,14 +196,19 @@ if ($cuisine !== 'All') {
 
 if ($nearMe) {
     $conditions[] = 'feed.distance_km IS NOT NULL';
-    $conditions[] = 'feed.distance_km <= 50';
+    $conditions[] = 'feed.distance_km <= ?';
+    $parameters[] = $radiusKm;
 }
 
 if ($conditions) {
     $sql .= ' WHERE ' . implode(' AND ', $conditions);
 }
 
-$sql .= ' ORDER BY ' . $sortOptions[$sort];
+// When Near Me is active, sort by proximity instead of the
+// user-selected sort. Otherwise, respect the sort parameter.
+$effectiveSort = $nearMe ? 'near-me' : $sort;
+
+$sql .= ' ORDER BY ' . $sortOptions[$effectiveSort];
 
 $fetchLimit = $limit + 1;
 $sql .= " LIMIT $fetchLimit OFFSET $offset";
@@ -239,15 +238,14 @@ foreach ($rows as $row) {
         'longitude' => $row['longitude'] === null
             ? null : (float) $row['longitude'],
         'distanceKm' => $row['distance_km'] === null
-            ? null : (float) $row['distance_km'],
+            ? null : round((float) $row['distance_km'], 2),
         'authorId' => (int) $row['author_id'],
         'authorName' => $row['author_name'],
         'authorDisplayName' => $row['author_display_name'],
         'authorAvatar' => isset($row['author_avatar']) ? $row['author_avatar'] : '',
         'coverImage' => isset($row['cover_image']) ? $row['cover_image'] : '',
         'likes' => (int) $row['like_count'],
-        'recommendationScore' =>
-        (int) $row['recommendation_score'],
+        'recommendationScore' => (int) $row['recommendation_score'],
         'likedByMe' => (bool) $row['liked_by_me'],
         'savedByMe' => (bool) $row['saved_by_me'],
         'createdAt' => str_replace(' ', 'T', $row['created_at']) . 'Z',

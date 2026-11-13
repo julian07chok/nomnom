@@ -12,15 +12,11 @@ let pendingRequest = null;
 function resolveImageUrl(url) {
   if (typeof url !== "string" || url === "") return "";
 
-  // If it's a nomnom-api or api path, prefix it with the app base
-  // so the URL is absolute from the domain root.
   if (url.startsWith("api/") || url.startsWith("nomnom-api/")) {
-    // Normalize old api/ prefix to nomnom-api/
     const cleaned = url.startsWith("api/")
       ? url.replace(/^api\//, "nomnom-api/")
       : url;
 
-    // Ensure the leading slash so it's absolute
     const base = import.meta.env.BASE_URL.endsWith("/")
       ? import.meta.env.BASE_URL
       : import.meta.env.BASE_URL + "/";
@@ -28,20 +24,40 @@ function resolveImageUrl(url) {
     return `${base}${cleaned}`;
   }
 
-  // External URLs (http, https, data:) pass through unchanged
   return url;
 }
 
-function loadPosts() {
-  // Share an existing request if another component is loading posts.
+/**
+ * Load posts.
+ *
+ * @param {Object} options
+ * @param {number} [options.latitude]  – When both lat/lng are
+ * @param {number} [options.longitude]    provided, the PHP backend
+ * @param {number} [options.radiusKm]     filters by Haversine distance
+ *                                        and sorts closest-first.
+ */
+function loadPosts(options = {}) {
   if (pendingRequest) return pendingRequest;
+
+  const params = new URLSearchParams();
+
+  if (options.latitude != null && options.longitude != null) {
+    params.set("lat", options.latitude);
+    params.set("lng", options.longitude);
+    if (options.radiusKm != null) {
+      params.set("radius", options.radiusKm);
+    }
+  }
+
+  const queryString = params.toString();
+  const endpoint = queryString ? `posts.php?${queryString}` : "posts.php";
 
   pendingRequest = (async () => {
     isLoading.value = true;
     postError.value = "";
 
     try {
-      const data = await apiRequest("posts.php");
+      const data = await apiRequest(endpoint);
 
       if (!Array.isArray(data.posts)) {
         throw new Error("The server returned an invalid post list.");
@@ -99,7 +115,6 @@ async function createPost(data) {
     body.append(field, data[field]);
   }
 
-  // Coordinates
   body.append("latitude", data.latitude);
   body.append("longitude", data.longitude);
 
@@ -176,7 +191,6 @@ async function changePostInteraction(id, type, active) {
     },
   );
 
-  // Don't apply another account's flags if login changed mid-request.
   if (currentUser.value?.id === viewerId) {
     postList.value = postList.value.map((post) =>
       String(post.id) === String(result.post.id)

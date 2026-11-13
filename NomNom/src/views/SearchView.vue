@@ -1,7 +1,7 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { getDistanceKm, formatDistance } from "../utils/geo";
+import { formatDistance } from "../utils/geo";
 import { usePosts } from "../services/posts";
 import { useAuth } from "../services/auth";
 import { recordSearch } from "../services/recommendation";
@@ -13,12 +13,12 @@ import "../assets/css/search.css";
 
 const route = useRoute();
 const router = useRouter();
-const { posts } = usePosts();
+const { posts, loadPosts } = usePosts();
 const { currentUser } = useAuth();
 
 const laptopScreen = window.matchMedia("(min-width: 992px)");
 const perPage = ref(laptopScreen.matches ? 6 : 4);
-const radiusKm = 50; // Radius in kilometers for Near Me
+const radiusKm = 50;
 
 // ─── Local state (initialised from URL) ────────────────────
 const searchQuery = ref(String(route.query.q || ""));
@@ -37,7 +37,6 @@ const isNearMeActive = ref(route.query.near === "true");
 const isLocating = ref(false);
 const locationError = ref("");
 
-// If arriving via URL with near=true, try to get location immediately
 if (isNearMeActive.value) {
   requestLocation();
 }
@@ -86,22 +85,35 @@ function requestLocation() {
 
 function toggleNearMe() {
   if (isNearMeActive.value) {
-    // Turn off
     isNearMeActive.value = false;
     userLocation.value = null;
     locationError.value = "";
   } else {
-    // Turn on
     isNearMeActive.value = true;
     requestLocation();
   }
 }
 
-// ─── Computed: filtered + sorted posts ─────────────────────
+// ─── Reload posts from the API when Near Me toggles ────────
+watch(
+  [isNearMeActive, userLocation],
+  ([active, loc]) => {
+    if (active && loc) {
+      loadPosts({
+        latitude: loc.lat,
+        longitude: loc.lng,
+        radiusKm: radiusKm,
+      });
+    } else if (!active) {
+      loadPosts();
+    }
+  },
+);
+
+// ─── Filtering + sorting (client-side, NOT distance) ──────
 const filteredPosts = computed(() => {
   let result = [...posts.value];
 
-  // 1. Keyword
   const q = searchQuery.value.trim().toLowerCase();
   if (q) {
     result = result.filter(
@@ -114,37 +126,20 @@ const filteredPosts = computed(() => {
     );
   }
 
-  // 2. Cuisine
   if (filters.value.cuisine !== "All") {
     result = result.filter((p) => p.cuisine === filters.value.cuisine);
   }
 
-  // 3. Location (Dropdown filter)
   if (filters.value.location !== "All") {
     result = result.filter((p) => p.location === filters.value.location);
   }
 
-  // 4. Price
   if (filters.value.priceRange !== "All") {
     result = result.filter((p) => p.priceRange === filters.value.priceRange);
   }
 
-  // 5. Near Me (Distance Filter)
-  if (isNearMeActive.value && userLocation.value) {
-    result = result
-      .map((p) => {
-        const dist = getDistanceKm(
-          userLocation.value.lat,
-          userLocation.value.lng,
-          p.latitude,
-          p.longitude,
-        );
-        return { ...p, distanceKm: dist };
-      })
-      .filter((p) => p.distanceKm !== null && p.distanceKm <= radiusKm);
-  }
-
-  // 6. Sort
+  // NOTE: distance filtering & sorting are in PHP.
+  // Only non-distance sorts are applied here.
   if (sortBy.value === "newest") {
     result.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
   } else if (sortBy.value === "oldest") {
@@ -176,9 +171,9 @@ watch(
 
 const paginatedPosts = computed(() => {
   const start = (currentPage.value - 1) * perPage.value;
-
   return filteredPosts.value.slice(start, start + perPage.value);
 });
+
 // ─── Sync state → URL ──────────────────────────────────────
 let isSyncingFromSelf = false;
 
@@ -202,7 +197,6 @@ function syncUrl() {
   });
 }
 
-// Filters changed → reset to page 1, then sync URL
 watch(
   [searchQuery, filters, sortBy, isNearMeActive],
   () => {
@@ -212,10 +206,8 @@ watch(
   { deep: true },
 );
 
-// Page changed → sync URL
 watch(currentPage, syncUrl);
 
-// ─── Sync URL → state (Back/Forward, pasted linksx) ─────────
 watch(
   () => route.query,
   (q) => {
@@ -256,13 +248,10 @@ watch(
 
     const length = Array.from(query).length;
 
-    if (!userId || length < 2 || length > 100) {
-      return;
-    }
+    if (!userId || length < 2 || length > 100) return;
 
     searchHistoryTimer = setTimeout(() => {
       if (currentUser.value?.id !== userId) return;
-
       void recordSearch(query).catch((error) => {
         console.warn("Unable to record search:", error.message);
       });
@@ -292,7 +281,6 @@ onBeforeUnmount(() => {
 <template>
   <main class="search-page">
     <div class="container search-inner">
-      <!-- Search bar -->
       <section class="search-header">
         <h1 class="search-title">Explore</h1>
         <SearchBar
@@ -303,16 +291,12 @@ onBeforeUnmount(() => {
         />
       </section>
 
-      <!-- Layout: filters sidebar + results -->
       <div class="row g-4 mt-1">
-        <!-- Filters -->
         <div class="col-12 col-lg-3">
           <PostFilters v-model="filters" />
         </div>
 
-        <!-- Results -->
         <div class="col-12 col-lg-9">
-          <!-- Results header -->
           <header class="results-header">
             <div class="results-left">
               <p class="results-count">
@@ -358,7 +342,6 @@ onBeforeUnmount(() => {
             </div>
           </header>
 
-          <!-- Location error -->
           <div
             v-if="locationError"
             class="alert alert-warning mb-3"
@@ -368,7 +351,6 @@ onBeforeUnmount(() => {
             {{ locationError }}
           </div>
 
-          <!-- Empty -->
           <div v-if="paginatedPosts.length === 0" class="results-empty">
             <p class="empty-emoji" aria-hidden="true">🔍</p>
             <h2>No results</h2>
@@ -378,7 +360,6 @@ onBeforeUnmount(() => {
             <p v-else>Try different keywords or clear the filters.</p>
           </div>
 
-          <!-- Grid -->
           <div v-else class="row g-3 g-md-4">
             <div
               v-for="post in paginatedPosts"
