@@ -1,4 +1,7 @@
 <?php
+ini_set('display_errors', '1');
+ini_set('display_startup_errors', '1');
+error_reporting(E_ALL);
 
 // ═══════════════════════════════════════════════════════════
 // PHP 5.4 COMPATIBILITY LAYER
@@ -114,6 +117,70 @@ if (!function_exists('mb_strtolower')) {
 if (!function_exists('mb_strlen')) {
     function mb_strlen($string, $encoding = 'UTF-8') {
         return strlen($string);
+    }
+}
+
+// PHP 5.4 polyfill: finfo class (fallback when fileinfo extension is missing)
+if (!class_exists('finfo')) {
+    if (!defined('FILEINFO_MIME_TYPE')) {
+        define('FILEINFO_MIME_TYPE', 0);
+    }
+
+    class finfo {
+        const FILEINFO_MIME_TYPE = 0;
+
+        public function __construct($flags = 0) {
+            // No-op
+        }
+
+        public function file($path) {
+            return $this->detect($path);
+        }
+
+        public function buffer($data) {
+            $tempFile = tempnam(sys_get_temp_dir(), 'mime');
+            file_put_contents($tempFile, $data);
+            $mime = $this->detect($tempFile);
+            @unlink($tempFile);
+            return $mime;
+        }
+
+        private function detect($path) {
+            if (!is_file($path)) {
+                return '';
+            }
+
+            // Try getimagesize first (works for JPEG/PNG/GIF/WEBP with GD)
+            if (function_exists('getimagesize')) {
+                $info = @getimagesize($path);
+                if ($info && isset($info['mime'])) {
+                    return $info['mime'];
+                }
+            }
+
+            // Fallback: extension-based guess
+            $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+            $map = array(
+                'jpg'  => 'image/jpeg',
+                'jpeg' => 'image/jpeg',
+                'png'  => 'image/png',
+                'webp' => 'image/webp',
+                'gif'  => 'image/gif',
+            );
+
+            return isset($map[$ext]) ? $map[$ext] : 'application/octet-stream';
+        }
+    }
+}
+
+// PHP 5.4 polyfill: getimagesizefromstring (fallback when GD missing)
+if (!function_exists('getimagesizefromstring')) {
+    function getimagesizefromstring($data) {
+        $tempFile = tempnam(sys_get_temp_dir(), 'img');
+        file_put_contents($tempFile, $data);
+        $info = @getimagesize($tempFile);
+        @unlink($tempFile);
+        return $info;
     }
 }
 
