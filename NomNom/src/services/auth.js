@@ -12,12 +12,24 @@ function normalizeProfile(user) {
 
   const avatar = typeof user.avatar === "string" ? user.avatar : "";
 
+  let resolvedAvatar = avatar;
+
+  if (avatar.startsWith("api/") || avatar.startsWith("nomnom-api/")) {
+    const cleaned = avatar.startsWith("api/")
+      ? avatar.replace(/^api\//, "nomnom-api/")
+      : avatar;
+
+    const base = import.meta.env.BASE_URL.endsWith("/")
+      ? import.meta.env.BASE_URL
+      : import.meta.env.BASE_URL + "/";
+
+    resolvedAvatar = `${base}${cleaned}`;
+  }
+
   return {
     ...user,
     displayName: user.displayName ?? user.username,
-    avatar: avatar.startsWith("api/")
-      ? `${import.meta.env.BASE_URL}${avatar}`
-      : avatar,
+    avatar: resolvedAvatar,
   };
 }
 
