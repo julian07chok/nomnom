@@ -114,7 +114,6 @@ router.beforeEach(async (to) => {
 });
 
 const postPageNames = [
-  "home",
   "search",
   "post-detail",
   "edit-post",
