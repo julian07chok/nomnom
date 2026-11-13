@@ -175,6 +175,12 @@ const paginatedPosts = computed(() => {
 let isSyncingFromSelf = false;
 
 function syncUrl() {
+
+  // temtorary guard
+  if (isSyncingFromSelf) {
+    console.log("[syncUrl] blocked — already syncing");
+    return;
+  }
   const query = {};
 
   if (searchQuery.value.trim()) query.q = searchQuery.value.trim();
