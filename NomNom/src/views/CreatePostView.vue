@@ -260,7 +260,7 @@ function validate() {
   }
 
   if (latitude.value == null || longitude.value == null) {
-    errors.location = "Please pin the restaurant's location on the map.";
+    errors.coordinates = "Please pin the restaurant's location on the map.";
   }
 
   return Object.keys(errors).length === 0;
@@ -526,6 +526,10 @@ async function publish() {
      ============================================ -->
             <div id="create-map-section" ref="mapSection" class="create-map-section" tabindex="-1">
               <LocationPicker v-model:latitude="latitude" v-model:longitude="longitude" />
+
+              <p v-if="errors.coordinates" class="field-error" role="alert">
+                {{ errors.coordinates }}
+              </p>
             </div>
 
             <!-- ============================================
