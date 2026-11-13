@@ -38,6 +38,9 @@ const isLocating = ref(false);
 const locationError = ref("");
 
 function requestLocation() {
+  // temp logging for debugging
+  console.log("[requestLocation] called");
+
   locationError.value = "";
 
   if (!navigator.geolocation) {
@@ -95,6 +98,9 @@ function toggleNearMe() {
 watch(
   [isNearMeActive, userLocation],
   ([active, loc]) => {
+    // temp logging for debugging
+    console.log("[watcher]", { active, lat: loc?.lat, lng: loc?.lng });
+    
     if (active && loc) {
       loadPosts({
         latitude: loc.lat,
