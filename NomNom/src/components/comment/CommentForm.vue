@@ -2,7 +2,7 @@
 <script setup>
 import { ref, nextTick} from "vue";
 import "../../assets/css/comment-form.css";
-import { scrollToFirstError } from "../utils/scrollToError";
+import { scrollToFirstError } from "../../utils/scrollToError";
 
 const props = defineProps({
   isLoggedIn: { type: Boolean, default: false },
