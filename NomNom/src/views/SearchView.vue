@@ -37,16 +37,11 @@ const isNearMeActive = ref(route.query.near === "true");
 const isLocating = ref(false);
 const locationError = ref("");
 
-if (isNearMeActive.value) {
-  requestLocation();
-}
-
 function requestLocation() {
   locationError.value = "";
 
   if (!navigator.geolocation) {
     locationError.value = "Geolocation is not supported by your browser.";
-    isNearMeActive.value = false;
     return;
   }
 
@@ -62,9 +57,11 @@ function requestLocation() {
     },
     (error) => {
       isLocating.value = false;
-      isNearMeActive.value = false;
       userLocation.value = null;
 
+      // Do NOT reset isNearMeActive here — that would trigger
+      // the watcher and cause a loop if the URL still has near=true.
+      // Instead, show the error and let the user toggle off manually.
       switch (error.code) {
         case error.PERMISSION_DENIED:
           locationError.value = "Location permission denied.";
@@ -138,7 +135,7 @@ const filteredPosts = computed(() => {
     result = result.filter((p) => p.priceRange === filters.value.priceRange);
   }
 
-  // NOTE: distance filtering & sorting are in PHP.
+  // NOTE: distance filtering & sorting are handled by PHP.
   // Only non-distance sorts are applied here.
   if (sortBy.value === "newest") {
     result.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
@@ -189,6 +186,32 @@ function syncUrl() {
   if (currentPage.value > 1) query.page = currentPage.value;
   if (isNearMeActive.value) query.near = "true";
 
+  // ── Skip if the URL already matches our state ──
+  const trackedKeys = [
+    "q",
+    "cuisine",
+    "location",
+    "priceRange",
+    "sort",
+    "page",
+    "near",
+  ];
+  const queryKeys = Object.keys(query);
+  const routeKeys = Object.keys(route.query).filter((k) =>
+    trackedKeys.includes(k),
+  );
+
+  if (queryKeys.length === routeKeys.length) {
+    let equal = true;
+    for (const key of queryKeys) {
+      if (String(query[key]) !== String(route.query[key])) {
+        equal = false;
+        break;
+      }
+    }
+    if (equal) return;
+  }
+
   isSyncingFromSelf = true;
   router.replace({ name: "search", query }).finally(() => {
     setTimeout(() => {
@@ -197,8 +220,9 @@ function syncUrl() {
   });
 }
 
+// Filter changes → reset page → sync URL
 watch(
-  [searchQuery, filters, sortBy, isNearMeActive],
+  [searchQuery, filters, sortBy],
   () => {
     if (currentPage.value !== 1) currentPage.value = 1;
     syncUrl();
@@ -206,8 +230,13 @@ watch(
   { deep: true },
 );
 
+// Near-me change → sync URL but don't reset page
+watch(isNearMeActive, syncUrl);
+
+// Page change → sync URL
 watch(currentPage, syncUrl);
 
+// URL → state (browser back/forward, pasted links)
 watch(
   () => route.query,
   (q) => {
@@ -224,7 +253,13 @@ watch(
 
     const newNear = q.near === "true";
     if (newNear !== isNearMeActive.value) {
+      // Guard the isNearMeActive watcher from calling syncUrl
+      isSyncingFromSelf = true;
       isNearMeActive.value = newNear;
+      setTimeout(() => {
+        isSyncingFromSelf = false;
+      }, 0);
+
       if (newNear && !userLocation.value) requestLocation();
     }
 
@@ -260,10 +295,6 @@ watch(
   { immediate: true },
 );
 
-onBeforeUnmount(() => {
-  clearTimeout(searchHistoryTimer);
-});
-
 function updatePageSize(event) {
   currentPage.value = 1;
   perPage.value = event.matches ? 6 : 4;
@@ -271,9 +302,17 @@ function updatePageSize(event) {
 
 onMounted(() => {
   laptopScreen.addEventListener("change", updatePageSize);
+
+  // ── Initial geolocation request moved here ──
+  // Running it in setup() caused the URL watcher to fire
+  // before the router had stabilised, leading to a loop.
+  if (isNearMeActive.value) {
+    requestLocation();
+  }
 });
 
 onBeforeUnmount(() => {
+  clearTimeout(searchHistoryTimer);
   laptopScreen.removeEventListener("change", updatePageSize);
 });
 </script>
