@@ -1,7 +1,4 @@
 <?php
-ini_set('display_errors', '1');
-ini_set('display_startup_errors', '1');
-error_reporting(E_ALL);
 
 // ═══════════════════════════════════════════════════════════
 // PHP 5.4 COMPATIBILITY LAYER
@@ -150,7 +147,6 @@ if (!class_exists('finfo')) {
                 return '';
             }
 
-            // Try getimagesize first (works for JPEG/PNG/GIF/WEBP with GD)
             if (function_exists('getimagesize')) {
                 $info = @getimagesize($path);
                 if ($info && isset($info['mime'])) {
@@ -158,7 +154,6 @@ if (!class_exists('finfo')) {
                 }
             }
 
-            // Fallback: extension-based guess
             $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
             $map = array(
                 'jpg'  => 'image/jpeg',
@@ -185,7 +180,7 @@ if (!function_exists('getimagesizefromstring')) {
 }
 
 // ═══════════════════════════════════════════════════════════
-// NOMNOM BOOTSTRAP (PHP 5.4 compatible)
+// NOMNOM BOOTSTRAP (PHP 5.4 compatible, production-ready)
 // ═══════════════════════════════════════════════════════════
 
 ini_set('display_errors', '0');
