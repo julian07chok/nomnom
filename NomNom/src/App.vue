@@ -11,7 +11,6 @@ const { isLoading, postError, loadPosts } = usePosts();
 
 const needsPosts = computed(() =>
   [
-    "home",
     "search",
     "post-detail",
     "edit-post",
