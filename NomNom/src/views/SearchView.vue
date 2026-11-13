@@ -38,9 +38,6 @@ const isLocating = ref(false);
 const locationError = ref("");
 
 function requestLocation() {
-  // temp logging for debugging
-  console.log("[requestLocation] called");
-
   locationError.value = "";
 
   if (!navigator.geolocation) {
@@ -57,14 +54,15 @@ function requestLocation() {
         lng: position.coords.longitude,
       };
       isLocating.value = false;
+
+      // Fetch the distance-filtered feed after location is confirmed
+      reloadPostsForNearMe();
     },
     (error) => {
       isLocating.value = false;
       userLocation.value = null;
 
-      // Do NOT reset isNearMeActive here — that would trigger
-      // the watcher and cause a loop if the URL still has near=true.
-      // Instead, show the error and let the user toggle off manually.
+      // Don't reset isNearMeActive — leave the URL and state in sync
       switch (error.code) {
         case error.PERMISSION_DENIED:
           locationError.value = "Location permission denied.";
@@ -88,30 +86,31 @@ function toggleNearMe() {
     isNearMeActive.value = false;
     userLocation.value = null;
     locationError.value = "";
+
+    // Restore the unfiltered feed
+    reloadPostsForNearMe();
   } else {
     isNearMeActive.value = true;
-    requestLocation();
+    requestLocation(); // reloadPostsForNearMe called on success
   }
 }
 
-// ─── Reload posts from the API when Near Me toggles ────────
-watch(
-  [isNearMeActive, userLocation],
-  ([active, loc]) => {
-    // temp logging for debugging
-    console.log("[watcher]", { active, lat: loc?.lat, lng: loc?.lng });
-    
-    if (active && loc) {
-      loadPosts({
-        latitude: loc.lat,
-        longitude: loc.lng,
-        radiusKm: radiusKm,
-      });
-    } else if (!active) {
-      loadPosts();
-    }
-  },
-);
+// ─── Fetch posts based on current Near Me state ────────────
+// Called explicitly from requestLocation (success),
+// toggleNearMe (off), and the URL-to-state watcher.
+// No watcher on userLocation — prevents the loop where
+// every geolocation refinement re-triggers loadPosts.
+function reloadPostsForNearMe() {
+  if (isNearMeActive.value && userLocation.value) {
+    loadPosts({
+      latitude: userLocation.value.lat,
+      longitude: userLocation.value.lng,
+      radiusKm: radiusKm,
+    });
+  } else {
+    loadPosts();
+  }
+}
 
 // ─── Filtering + sorting (client-side, NOT distance) ──────
 const filteredPosts = computed(() => {
@@ -141,7 +140,7 @@ const filteredPosts = computed(() => {
     result = result.filter((p) => p.priceRange === filters.value.priceRange);
   }
 
-  // NOTE: distance filtering & sorting are handled by PHP.
+  // Distance filtering & sorting are handled by PHP.
   // Only non-distance sorts are applied here.
   if (sortBy.value === "newest") {
     result.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
@@ -181,12 +180,8 @@ const paginatedPosts = computed(() => {
 let isSyncingFromSelf = false;
 
 function syncUrl() {
+  if (isSyncingFromSelf) return;
 
-  // temtorary guard
-  if (isSyncingFromSelf) {
-    console.log("[syncUrl] blocked — already syncing");
-    return;
-  }
   const query = {};
 
   if (searchQuery.value.trim()) query.q = searchQuery.value.trim();
@@ -198,7 +193,7 @@ function syncUrl() {
   if (currentPage.value > 1) query.page = currentPage.value;
   if (isNearMeActive.value) query.near = "true";
 
-  // ── Skip if the URL already matches our state ──
+  // Skip if the URL already matches our state
   const trackedKeys = [
     "q",
     "cuisine",
@@ -272,7 +267,11 @@ watch(
         isSyncingFromSelf = false;
       }, 0);
 
-      if (newNear && !userLocation.value) requestLocation();
+      if (newNear && !userLocation.value) {
+        requestLocation(); // will reload on success
+      } else {
+        reloadPostsForNearMe();
+      }
     }
 
     const newFilters = {
@@ -315,10 +314,9 @@ function updatePageSize(event) {
 onMounted(() => {
   laptopScreen.addEventListener("change", updatePageSize);
 
-  // ── Initial geolocation request moved here ──
-  // Running it in setup() caused the URL watcher to fire
-  // before the router had stabilised, leading to a loop.
-  if (isNearMeActive.value) {
+  // If arriving via a URL with ?near=true, trigger geolocation.
+  // Running this in setup() before mount caused the loop.
+  if (isNearMeActive.value && !userLocation.value) {
     requestLocation();
   }
 });

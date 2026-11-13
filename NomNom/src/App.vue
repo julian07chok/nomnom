@@ -7,16 +7,12 @@ import AppNavbar from "./components/layout/AppNavBar.vue";
 import AppFooter from "./components/layout/AppFooter.vue";
 
 const route = useRoute();
-const { isLoading, postError, loadPosts } = usePosts();
+const { isLoading, postError, loadPosts, postsLoaded } = usePosts(); // ← add postsLoaded
 
 const needsPosts = computed(() =>
   [
-    "search",
-    "post-detail",
-    "edit-post",
-    "my-profile",
-    "user-profile",
-    "saved",
+    "home", "search", "post-detail", "edit-post",
+    "my-profile", "user-profile", "saved",
   ].includes(route.name),
 );
 </script>
@@ -26,15 +22,22 @@ const needsPosts = computed(() =>
     <AppNavbar />
 
     <div class="page-content">
-      <div v-if="needsPosts && isLoading" class="container py-5" role="status">
+      <!-- Only show loading state on initial load, not on re-fetches -->
+      <div
+        v-if="isLoading && needsPosts && !postsLoaded"
+        class="container py-5"
+        role="status"
+      >
         Loading discoveries…
       </div>
 
-      <div v-else-if="needsPosts && postError" class="container py-5">
+      <div
+        v-else-if="needsPosts && postError && !postsLoaded"
+        class="container py-5"
+      >
         <div class="alert alert-danger" role="alert">
           {{ postError }}
         </div>
-
         <button class="btn btn-outline-dark" type="button" @click="loadPosts">
           Try again
         </button>
@@ -60,7 +63,6 @@ const needsPosts = computed(() =>
   min-width: 0;
 }
 
-/* Make room for the mobile bottom navigation */
 @media (max-width: 767.98px) {
   .page-content {
     padding-bottom: calc(80px + env(safe-area-inset-bottom));
