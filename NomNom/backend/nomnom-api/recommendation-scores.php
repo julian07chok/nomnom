@@ -56,7 +56,7 @@ function getRecommendationScores($pdo, $userId)
             WHERE views.user_id = ?
               AND p.author_id <> ?
               AND views.last_viewed_at >=
-                  DATE_SUB(UTC_TIMESTAMP(), INTERVAL 90 DAY)
+                  DATE_SUB(UTC_TIMESTAMP(), INTERVAL 7 DAY)
 
             GROUP BY p.cuisine
 
@@ -92,7 +92,7 @@ function getRecommendationScores($pdo, $userId)
 
                 WHERE history.user_id = ?
                   AND history.last_searched_at >=
-                      DATE_SUB(UTC_TIMESTAMP(), INTERVAL 90 DAY)
+                      DATE_SUB(UTC_TIMESTAMP(), INTERVAL 7 DAY)
             ) AS matches
 
             GROUP BY matches.cuisine
