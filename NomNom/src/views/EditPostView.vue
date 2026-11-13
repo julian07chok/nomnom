@@ -4,6 +4,7 @@ import { useRoute, useRouter } from "vue-router";
 import { useAuth } from "../services/auth";
 import { usePosts } from "../services/posts";
 import { geocodeAddress } from "../utils/geo";
+import { scrollToFirstError } from "../utils/scrollToError";
 import LocationPicker from "../components/post/LocationPicker.vue";
 import AppButton from "../components/common/AppButton.vue";
 
@@ -384,9 +385,23 @@ async function save() {
   publishError.value = "";
 
   if (!validate()) {
-    formElement.value
-      ?.querySelector(`[id="post-${Object.keys(errors)[0]}"]`)
-      ?.focus();
+    await nextTick();
+
+    scrollToFirstError(
+      formElement.value,
+      [
+        '#post-title',
+        '#post-description',
+        '#post-restaurantName',
+        '#post-address',
+        '#post-location',
+        '#post-cuisine',
+        '#post-priceRange',
+        '.drop-zone',
+        '#edit-map-section',
+      ],
+      { focus: true }
+    );
     return;
   }
 
@@ -410,6 +425,13 @@ async function save() {
   } catch (error) {
     publishError.value = error.message || "Unable to save changes.";
     isPublishing.value = false;
+
+    await nextTick();
+    scrollToFirstError(
+      formElement.value,
+      ['.alert-danger'],
+      { focus: false }
+    );
     return;
   }
 

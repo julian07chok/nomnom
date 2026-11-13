@@ -2,6 +2,7 @@
 import { computed, nextTick, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useAuth } from "../services/auth";
+import { scrollToFirstError } from "../utils/scrollToError";
 import AppButton from "../components/common/AppButton.vue";
 
 const route = useRoute();
@@ -136,17 +137,6 @@ function getDestination() {
   return destination.fullPath;
 }
 
-// ── Focus first invalid field ───────────────────────────────
-async function focusFirstError() {
-  await nextTick();
-
-  if (usernameError.value) usernameInput.value?.focus();
-  else if (emailError.value) emailInput.value?.focus();
-  else if (passwordError.value) passwordInput.value?.focus();
-  else if (confirmPasswordError.value) confirmInput.value?.focus();
-  else if (termsError.value) termsInput.value?.focus();
-}
-
 // ── Submit ──────────────────────────────────────────────────
 async function handleRegister() {
   if (isSubmitting.value) return;
@@ -155,7 +145,19 @@ async function handleRegister() {
   registerError.value = "";
 
   if (hasErrors.value) {
-    await focusFirstError();
+    await nextTick();
+
+    scrollToFirstError(
+      document.querySelector('.register-card'),
+      [
+        '#register-username',
+        '#register-email',
+        '#register-password',
+        '#register-confirm',
+        '#register-terms',
+      ],
+      { focus: true }
+    );
     return;
   }
 
@@ -173,11 +175,21 @@ async function handleRegister() {
     registerError.value =
       error.message || "Unable to create account. Please try again.";
 
-    // Send focus to the field the server complained about
     await nextTick();
-    if (/email/i.test(registerError.value)) emailInput.value?.focus();
-    else if (/username/i.test(registerError.value))
-      usernameInput.value?.focus();
+
+    // Scroll to the error banner first
+    scrollToFirstError(
+      document.querySelector('.register-card'),
+      ['.register-error'],
+      { focus: false }
+    );
+
+    // Then also focus the specific field the server complained about
+    if (/email/i.test(registerError.value)) {
+      setTimeout(() => emailInput.value?.focus?.({ preventScroll: true }), 300);
+    } else if (/username/i.test(registerError.value)) {
+      setTimeout(() => usernameInput.value?.focus?.({ preventScroll: true }), 300);
+    }
 
     isSubmitting.value = false;
     return;
@@ -206,11 +218,7 @@ async function handleRegister() {
             <h2 id="register-title">Create your account</h2>
             <p class="card-subtitle">It only takes a minute.</p>
 
-            <form
-              novalidate
-              :aria-busy="isSubmitting"
-              @submit.prevent="handleRegister"
-            >
+            <form novalidate :aria-busy="isSubmitting" @submit.prevent="handleRegister">
               <div v-if="registerError" class="register-error" role="alert">
                 {{ registerError }}
               </div>
@@ -220,23 +228,11 @@ async function handleRegister() {
                 <label for="register-username" class="form-label">
                   Username
                 </label>
-                <input
-                  id="register-username"
-                  ref="usernameInput"
-                  v-model="username"
-                  class="form-control"
-                  :class="{ 'is-invalid': usernameError }"
-                  type="text"
-                  autocomplete="username"
-                  placeholder="e.g. hungryfoodie"
-                  maxlength="20"
-                  required
-                  :aria-invalid="Boolean(usernameError)"
-                  :aria-describedby="
-                    usernameError ? 'username-error' : 'username-help'
-                  "
-                  @input="registerError = ''"
-                />
+                <input id="register-username" ref="usernameInput" v-model="username" class="form-control"
+                  :class="{ 'is-invalid': usernameError }" type="text" autocomplete="username"
+                  placeholder="e.g. hungryfoodie" maxlength="20" required :aria-invalid="Boolean(usernameError)"
+                  :aria-describedby="usernameError ? 'username-error' : 'username-help'
+                    " @input="registerError = ''" />
                 <p v-if="usernameError" id="username-error" class="field-error">
                   {{ usernameError }}
                 </p>
@@ -250,27 +246,11 @@ async function handleRegister() {
                 <label for="register-email" class="form-label">
                   Email address
                 </label>
-                <input
-                  id="register-email"
-                  ref="emailInput"
-                  v-model="email"
-                  class="form-control"
-                  :class="{ 'is-invalid': emailError }"
-                  type="email"
-                  autocomplete="email"
-                  placeholder="you@example.com"
-                  required
-                  :aria-invalid="Boolean(emailError)"
-                  :aria-describedby="
-                    emailError ? 'register-email-error' : undefined
-                  "
-                  @input="registerError = ''"
-                />
-                <p
-                  v-if="emailError"
-                  id="register-email-error"
-                  class="field-error"
-                >
+                <input id="register-email" ref="emailInput" v-model="email" class="form-control"
+                  :class="{ 'is-invalid': emailError }" type="email" autocomplete="email" placeholder="you@example.com"
+                  required :aria-invalid="Boolean(emailError)" :aria-describedby="emailError ? 'register-email-error' : undefined
+                    " @input="registerError = ''" />
+                <p v-if="emailError" id="register-email-error" class="field-error">
                   {{ emailError }}
                 </p>
               </div>
@@ -282,36 +262,14 @@ async function handleRegister() {
                 </label>
 
                 <div class="password-field">
-                  <input
-                    id="register-password"
-                    ref="passwordInput"
-                    v-model="password"
-                    class="form-control"
-                    :class="{ 'is-invalid': passwordError }"
-                    :type="showPassword ? 'text' : 'password'"
-                    autocomplete="new-password"
-                    placeholder="At least 8 characters"
-                    required
-                    :aria-invalid="Boolean(passwordError)"
-                    :aria-describedby="
-                      passwordError ? 'password-error' : 'password-help'
-                    "
-                    @input="registerError = ''"
-                  />
-                  <button
-                    class="password-toggle"
-                    type="button"
-                    aria-controls="register-password"
-                    :aria-label="
-                      showPassword ? 'Hide password' : 'Show password'
-                    "
-                    :aria-pressed="showPassword"
-                    @click="showPassword = !showPassword"
-                  >
-                    <i
-                      :class="showPassword ? 'bi bi-eye-slash' : 'bi bi-eye'"
-                      aria-hidden="true"
-                    ></i>
+                  <input id="register-password" ref="passwordInput" v-model="password" class="form-control"
+                    :class="{ 'is-invalid': passwordError }" :type="showPassword ? 'text' : 'password'"
+                    autocomplete="new-password" placeholder="At least 8 characters" required
+                    :aria-invalid="Boolean(passwordError)" :aria-describedby="passwordError ? 'password-error' : 'password-help'
+                      " @input="registerError = ''" />
+                  <button class="password-toggle" type="button" aria-controls="register-password" :aria-label="showPassword ? 'Hide password' : 'Show password'
+                    " :aria-pressed="showPassword" @click="showPassword = !showPassword">
+                    <i :class="showPassword ? 'bi bi-eye-slash' : 'bi bi-eye'" aria-hidden="true"></i>
                   </button>
                 </div>
 
@@ -330,63 +288,28 @@ async function handleRegister() {
                 </label>
 
                 <div class="password-field">
-                  <input
-                    id="register-confirm"
-                    ref="confirmInput"
-                    v-model="confirmPassword"
-                    class="form-control"
-                    :class="{ 'is-invalid': confirmPasswordError }"
-                    :type="showConfirmPassword ? 'text' : 'password'"
-                    autocomplete="new-password"
-                    placeholder="Re-enter your password"
-                    required
-                    :aria-invalid="Boolean(confirmPasswordError)"
-                    :aria-describedby="
-                      confirmPasswordError ? 'confirm-error' : undefined
-                    "
-                    @input="registerError = ''"
-                  />
-                  <button
-                    class="password-toggle"
-                    type="button"
-                    aria-controls="register-confirm"
-                    :aria-label="
-                      showConfirmPassword ? 'Hide password' : 'Show password'
-                    "
-                    :aria-pressed="showConfirmPassword"
-                    @click="showConfirmPassword = !showConfirmPassword"
-                  >
-                    <i
-                      :class="
-                        showConfirmPassword ? 'bi bi-eye-slash' : 'bi bi-eye'
-                      "
-                      aria-hidden="true"
-                    ></i>
+                  <input id="register-confirm" ref="confirmInput" v-model="confirmPassword" class="form-control"
+                    :class="{ 'is-invalid': confirmPasswordError }" :type="showConfirmPassword ? 'text' : 'password'"
+                    autocomplete="new-password" placeholder="Re-enter your password" required
+                    :aria-invalid="Boolean(confirmPasswordError)" :aria-describedby="confirmPasswordError ? 'confirm-error' : undefined
+                      " @input="registerError = ''" />
+                  <button class="password-toggle" type="button" aria-controls="register-confirm" :aria-label="showConfirmPassword ? 'Hide password' : 'Show password'
+                    " :aria-pressed="showConfirmPassword" @click="showConfirmPassword = !showConfirmPassword">
+                    <i :class="showConfirmPassword ? 'bi bi-eye-slash' : 'bi bi-eye'
+                      " aria-hidden="true"></i>
                   </button>
                 </div>
 
-                <p
-                  v-if="confirmPasswordError"
-                  id="confirm-error"
-                  class="field-error"
-                >
+                <p v-if="confirmPasswordError" id="confirm-error" class="field-error">
                   {{ confirmPasswordError }}
                 </p>
               </div>
 
               <!-- Terms -->
               <div class="form-check mb-4">
-                <input
-                  id="register-terms"
-                  ref="termsInput"
-                  v-model="acceptedTerms"
-                  class="form-check-input"
-                  :class="{ 'is-invalid': termsError }"
-                  type="checkbox"
-                  :aria-invalid="Boolean(termsError)"
-                  :aria-describedby="termsError ? 'terms-error' : undefined"
-                  @change="registerError = ''"
-                />
+                <input id="register-terms" ref="termsInput" v-model="acceptedTerms" class="form-check-input"
+                  :class="{ 'is-invalid': termsError }" type="checkbox" :aria-invalid="Boolean(termsError)"
+                  :aria-describedby="termsError ? 'terms-error' : undefined" @change="registerError = ''" />
                 <label for="register-terms" class="form-check-label">
                   I agree to the
                   <a href="#" @click.prevent>Terms of Service</a>
@@ -398,12 +321,7 @@ async function handleRegister() {
                 </p>
               </div>
 
-              <AppButton
-                type="submit"
-                block
-                :loading="isSubmitting"
-                loading-text="Creating account…"
-              >
+              <AppButton type="submit" block :loading="isSubmitting" loading-text="Creating account…">
                 Create account
               </AppButton>
             </form>

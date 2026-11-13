@@ -4,6 +4,7 @@ import { useRouter } from "vue-router";
 import { useAuth } from "../services/auth";
 import { usePosts } from "../services/posts";
 import { geocodeAddress } from "../utils/geo";
+import { scrollToFirstError } from "../utils/scrollToError";
 import LocationPicker from "../components/post/LocationPicker.vue";
 import AppButton from "../components/common/AppButton.vue";
 import ConfirmDialog from "../components/common/ConfirmDialog.vue";
@@ -235,7 +236,6 @@ function validate() {
 
   for (const field of fields) {
     const value = form[field.name].trim();
-
     if (!value) {
       errors[field.name] = `Please enter ${field.label.toLowerCase()}.`;
     } else if (value.length > field.max) {
@@ -246,19 +246,15 @@ function validate() {
   if (!locations.includes(form.location)) {
     errors.location = "Please select a location.";
   }
-
   if (!cuisines.includes(form.cuisine)) {
     errors.cuisine = "Please select a cuisine.";
   }
-
   if (!["$", "$$", "$$$"].includes(form.priceRange)) {
     errors.priceRange = "Please select a price range.";
   }
-
   if (!photos.value.length) {
     errors.photos = "Please add at least one photo.";
   }
-
   if (latitude.value == null || longitude.value == null) {
     errors.coordinates = "Please pin the restaurant's location on the map.";
   }
@@ -326,9 +322,25 @@ async function publish() {
   publishError.value = "";
 
   if (!validate()) {
-    formElement.value
-      ?.querySelector(`[id="post-${Object.keys(errors)[0]}"]`)
-      ?.focus();
+    // Wait for Vue to render the error messages in the DOM
+    await nextTick();
+
+    // Then scroll to the first error
+    scrollToFirstError(
+      formElement.value,
+      [
+        '#post-title',
+        '#post-description',
+        '#post-restaurantName',
+        '#post-address',
+        '#post-location',
+        '#post-cuisine',
+        '#post-priceRange',
+        '.drop-zone',
+        '#create-map-section',
+      ],
+      { focus: true }
+    );
     return;
   }
 
@@ -360,6 +372,14 @@ async function publish() {
   } catch (error) {
     publishError.value = error.message || "Unable to publish this post.";
     isPublishing.value = false;
+    
+    // Scroll to the error banner
+    await nextTick();
+    scrollToFirstError(
+      formElement.value,
+      ['.alert-danger'],
+      { focus: false }
+    );
     return;
   }
 

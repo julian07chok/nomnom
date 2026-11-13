@@ -1,7 +1,8 @@
 <!-- src/components/comment/CommentForm.vue -->
 <script setup>
-import { ref } from "vue";
+import { ref, nextTick} from "vue";
 import "../../assets/css/comment-form.css";
+import { scrollToFirstError } from "../utils/scrollToError";
 
 const props = defineProps({
   isLoggedIn: { type: Boolean, default: false },
@@ -136,7 +137,16 @@ function validate() {
 
 async function handleSubmit() {
   if (isReading.value || isSubmitting.value) return;
-  if (!validate()) return;
+  if (!validate()) {
+    await nextTick();
+
+    scrollToFirstError(
+      document.querySelector('.comment-form'),
+      ['#comment'],
+      { focus: true }
+    );
+    return;
+  }
 
   isSubmitting.value = true;
   error.value = "";

@@ -2,6 +2,7 @@
 import { computed, nextTick, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useAuth } from "../services/auth";
+import { scrollToFirstError } from "../utils/scrollToError";
 import AppButton from "../components/common/AppButton.vue";
 
 const route = useRoute();
@@ -79,12 +80,11 @@ async function handleLogin() {
   if (emailError.value || passwordError.value) {
     await nextTick();
 
-    if (emailError.value) {
-      emailInput.value?.focus();
-    } else {
-      passwordInput.value?.focus();
-    }
-
+    scrollToFirstError(
+      document.querySelector('.login-card'),
+      ['#login-email', '#login-password'],
+      { focus: true }
+    );
     return;
   }
 
@@ -96,6 +96,13 @@ async function handleLogin() {
   } catch (error) {
     loginError.value = error.message || "Unable to log in. Please try again.";
     isSubmitting.value = false;
+
+    await nextTick();
+    scrollToFirstError(
+      document.querySelector('.login-card'),
+      ['.login-error'],
+      { focus: false }
+    );
     return;
   }
 
@@ -122,11 +129,7 @@ async function handleLogin() {
             <h2 id="login-title">Welcome back</h2>
             <p class="card-subtitle">Log in to your NomNom account.</p>
 
-            <form
-              novalidate
-              :aria-busy="isSubmitting"
-              @submit.prevent="handleLogin"
-            >
+            <form novalidate :aria-busy="isSubmitting" @submit.prevent="handleLogin">
               <div v-if="loginError" class="login-error" role="alert">
                 {{ loginError }}
               </div>
@@ -135,20 +138,10 @@ async function handleLogin() {
                 <label for="login-email" class="form-label">
                   Email or Username
                 </label>
-                <input
-                  id="login-email"
-                  ref="emailInput"
-                  v-model="email"
-                  class="form-control"
-                  :class="{ 'is-invalid': emailError }"
-                  type="text"
-                  autocomplete="username"
-                  placeholder="you@example.com"
-                  required
-                  :aria-invalid="Boolean(emailError)"
-                  :aria-describedby="emailError ? 'email-error' : undefined"
-                  @input="loginError = ''"
-                />
+                <input id="login-email" ref="emailInput" v-model="email" class="form-control"
+                  :class="{ 'is-invalid': emailError }" type="text" autocomplete="username"
+                  placeholder="you@example.com" required :aria-invalid="Boolean(emailError)"
+                  :aria-describedby="emailError ? 'email-error' : undefined" @input="loginError = ''" />
                 <p v-if="emailError" id="email-error" class="field-error">
                   {{ emailError }}
                 </p>
@@ -160,37 +153,15 @@ async function handleLogin() {
                 </label>
 
                 <div class="password-field">
-                  <input
-                    id="login-password"
-                    ref="passwordInput"
-                    v-model="password"
-                    class="form-control"
-                    :class="{ 'is-invalid': passwordError }"
-                    :type="showPassword ? 'text' : 'password'"
-                    autocomplete="current-password"
-                    placeholder="Enter your password"
-                    required
-                    :aria-invalid="Boolean(passwordError)"
-                    :aria-describedby="
-                      passwordError ? 'password-error' : undefined
-                    "
-                    @input="loginError = ''"
-                  />
+                  <input id="login-password" ref="passwordInput" v-model="password" class="form-control"
+                    :class="{ 'is-invalid': passwordError }" :type="showPassword ? 'text' : 'password'"
+                    autocomplete="current-password" placeholder="Enter your password" required
+                    :aria-invalid="Boolean(passwordError)" :aria-describedby="passwordError ? 'password-error' : undefined
+                      " @input="loginError = ''" />
 
-                  <button
-                    class="password-toggle"
-                    type="button"
-                    aria-controls="login-password"
-                    :aria-label="
-                      showPassword ? 'Hide password' : 'Show password'
-                    "
-                    :aria-pressed="showPassword"
-                    @click="showPassword = !showPassword"
-                  >
-                    <i
-                      :class="showPassword ? 'bi bi-eye-slash' : 'bi bi-eye'"
-                      aria-hidden="true"
-                    ></i>
+                  <button class="password-toggle" type="button" aria-controls="login-password" :aria-label="showPassword ? 'Hide password' : 'Show password'
+                    " :aria-pressed="showPassword" @click="showPassword = !showPassword">
+                    <i :class="showPassword ? 'bi bi-eye-slash' : 'bi bi-eye'" aria-hidden="true"></i>
                   </button>
                 </div>
 
@@ -199,12 +170,7 @@ async function handleLogin() {
                 </p>
               </div>
 
-              <AppButton
-                type="submit"
-                block
-                :loading="isSubmitting"
-                loading-text="Logging in…"
-              >
+              <AppButton type="submit" block :loading="isSubmitting" loading-text="Logging in…">
                 Log in
               </AppButton>
             </form>

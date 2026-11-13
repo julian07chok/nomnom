@@ -47,3 +47,20 @@ img {
 html {
   scrollbar-gutter: stable;
 }
+
+/* Temporary highlight when scrolling to an error */
+.scroll-error-highlight {
+  animation: error-pulse 1.6s ease-out;
+  border-radius: 8px;
+}
+
+@keyframes error-pulse {
+  0%, 100% {
+    outline: 3px solid transparent;
+    outline-offset: 2px;
+  }
+  20%, 60% {
+    outline: 3px solid #cd4639;
+    outline-offset: 2px;
+  }
+}
