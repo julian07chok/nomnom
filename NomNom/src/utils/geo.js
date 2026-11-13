@@ -1,42 +1,11 @@
 /**
  * src/utils/geo.js
  *
- * Geospatial helpers:
- *   - getDistanceKm()   — Haversine distance between two coordinates
+ * Geospatial helpers (post-backend migration):
  *   - formatDistance()  — human-readable distance string
  *   - geocodeAddress()  — forward geocoding via OpenStreetMap Nominatim
- */
-
-/**
- * Calculates the great-circle distance between two points on Earth
- * using the Haversine formula.
  *
- * @param {number} lat1 - First point latitude
- * @param {number} lon1 - First point longitude
- * @param {number} lat2 - Second point latitude
- * @param {number} lon2 - Second point longitude
- * @returns {number|null} Distance in kilometres, or null if any input is invalid
  */
-export function getDistanceKm(lat1, lon1, lat2, lon2) {
-  if (!lat1 || !lon1 || !lat2 || !lon2) return null;
-
-  const toRad = (value) => (value * Math.PI) / 180;
-
-  const R = 6371; // Earth's radius in km
-  const dLat = toRad(lat2 - lat1);
-  const dLon = toRad(lon2 - lon1);
-
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(toRad(lat1)) *
-      Math.cos(toRad(lat2)) *
-      Math.sin(dLon / 2) *
-      Math.sin(dLon / 2);
-
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-  return R * c;
-}
 
 /**
  * Formats a raw distance number for UI display.
