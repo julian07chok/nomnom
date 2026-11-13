@@ -218,7 +218,7 @@ function applyPhotoPlan($pdo, $postId, $plan, &$newPaths)
 
         $insertNew->execute(array(
             $postId,
-            'api/image.php?name=' . $filename,
+            'nomnom-api/image.php?name=' . $filename,
             $order,
         ));
     }

@@ -204,7 +204,7 @@ try {
             throw new RuntimeException('Could not save the avatar.');
         }
 
-        $newAvatar = 'api/image.php?name=' . $filename;
+        $newAvatar = 'nomnom-api/image.php?name=' . $filename;
     }
 
     $statement = $pdo->prepare(
@@ -246,7 +246,7 @@ if ($error !== null) {
 if ($changeAvatar && $oldAvatar !== $newAvatar) {
     try {
         if (preg_match(
-            '/\Aapi\/image\.php\?name=([a-f0-9]{32}\.(?:jpg|png|webp))\z/',
+            '/\Anomnom-api\/image\.php\?name=([a-f0-9]{32}\.(?:jpg|png|webp))\z/',
             $oldAvatar,
             $matches
         )) {

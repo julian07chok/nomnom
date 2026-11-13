@@ -307,7 +307,7 @@ try {
 
                 $statement->execute(array(
                     $commentId,
-                    'api/image.php?name=' . $filename,
+                    'nomnom-api/image.php?name=' . $filename,
                     $order,
                 ));
             }

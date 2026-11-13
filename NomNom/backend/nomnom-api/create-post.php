@@ -250,9 +250,9 @@ try {
 
         $imageStatement->execute(array(
             $postId,
-            'api/image.php?name=' . $photo['filename'],
+            'nomnom-api/image.php?name=' . $photo['filename'],
             $order,
-        ));
+));
     }
 
     $pdo->commit();

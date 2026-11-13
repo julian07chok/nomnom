@@ -309,7 +309,7 @@ if (!empty($imageUrls)) {
 
         foreach (array_unique($imageUrls) as $url) {
             if (!preg_match(
-                '/\Aapi\/image\.php\?name=([a-f0-9]{32}\.(?:jpg|png|webp))\z/',
+                '/\Anomnom-api\/image\.php\?name=([a-f0-9]{32}\.(?:jpg|png|webp))\z/',
                 $url,
                 $matches
             )) {
