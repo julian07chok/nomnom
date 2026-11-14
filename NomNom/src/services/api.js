@@ -1,14 +1,15 @@
-// handle JSON requests, API errors, session cookies,
-// and the security token used by our upcoming registration/login endpoints.
+// Shared API requests, session cookies, and error handling
 
 const API_BASE = `${import.meta.env.BASE_URL}nomnom-api/`;
 
 let csrfToken = "";
 
+// Keep the latest security token for requests that change data
 export function setCsrfToken(token) {
   csrfToken = token || "";
 }
 
+// Send JSON or uploaded files to the PHP backend
 export async function apiRequest(
   endpoint,
   { method = "GET", body, signal } = {},
@@ -22,12 +23,14 @@ export async function apiRequest(
     headers["Content-Type"] = "application/json";
   }
 
+  // Attach the security token to write requests
   if (method !== "GET" && csrfToken) {
     headers["X-CSRF-Token"] = csrfToken;
   }
 
   let response;
 
+  // Include session cookies and allow callers to cancel requests
   try {
     response = await fetch(`${API_BASE}${endpoint}`, {
       method,
@@ -49,6 +52,7 @@ export async function apiRequest(
     );
   }
 
+  // Read the JSON response and report server errors to the caller
   let data;
 
   try {

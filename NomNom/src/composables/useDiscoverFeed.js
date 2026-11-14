@@ -3,12 +3,15 @@ import { nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { apiRequest } from "../services/api";
 
 export function useDiscoverFeed(filters) {
+  // Reactive feed data and loading feedback for the page
   const posts = ref([]);
   const loading = ref(false);
   const error = ref("");
   const hasMore = ref(true);
+  // The element near the bottom of the feed that the observer watches
   const sentinel = ref(null);
 
+  // Offset selects the next batch; generation identifies the current filter set
   let offset = 0;
   let generation = 0;
   let controller = null;
@@ -18,12 +21,11 @@ export function useDiscoverFeed(filters) {
   function resolveUrl(url) {
     if (typeof url !== "string") return "";
 
-    return url.startsWith("api/")
-      ? `${import.meta.env.BASE_URL}${url}`
-      : url;
+    return url.startsWith("api/") ? `${import.meta.env.BASE_URL}${url}` : url;
   }
 
   async function loadMore() {
+    // Avoid overlapping requests and stop when all posts have been loaded
     if (disposed || loading.value || !hasMore.value) return;
 
     const requestGeneration = generation;
@@ -33,6 +35,7 @@ export function useDiscoverFeed(filters) {
     error.value = "";
     controller = new AbortController();
 
+    // Request four posts at a time using the current filters
     const query = new URLSearchParams({
       offset: String(offset),
       limit: "4",
@@ -48,7 +51,7 @@ export function useDiscoverFeed(filters) {
       query.set("lat", String(filters.value.lat));
       query.set("lng", String(filters.value.lng));
 
-      // Default 50km if not specified by the caller.
+      // Default 50km if not specified by the caller
       const radius =
         filters.value.radiusKm != null ? filters.value.radiusKm : 50;
       query.set("radius", String(radius));
@@ -59,6 +62,7 @@ export function useDiscoverFeed(filters) {
         signal: controller.signal,
       });
 
+      // Ignore old responses after filters change or the page is unmounted
       if (disposed || requestGeneration !== generation) return;
 
       if (
@@ -70,6 +74,7 @@ export function useDiscoverFeed(filters) {
         throw new Error("The server returned an invalid feed batch.");
       }
 
+      // Skip posts already displayed in an earlier batch
       const existingIds = new Set(posts.value.map((post) => String(post.id)));
 
       const batch = data.posts
@@ -81,13 +86,14 @@ export function useDiscoverFeed(filters) {
 
           // distanceKm comes from PHP when Near Me is active
           // (rounded to 2 dp server-side). Leave as-is for
-          // simple consumption by formatDistance().
+          // simple consumption by formatDistance()
           distanceKm:
             post.distanceKm === null || post.distanceKm === undefined
               ? null
               : Number(post.distanceKm),
         }));
 
+      // Append the batch so Vue renders more cards without replacing existing ones
       posts.value.push(...batch);
       offset = data.nextOffset;
       hasMore.value = Boolean(data.hasMore);
@@ -107,6 +113,7 @@ export function useDiscoverFeed(filters) {
   }
 
   function resetFeed() {
+    // Cancel the previous request and restart from the first batch
     generation++;
     controller?.abort();
 
@@ -120,6 +127,7 @@ export function useDiscoverFeed(filters) {
   }
 
   async function fillVisibleSpace() {
+    // Wait for rendering, then load more if the screen is not yet filled
     await nextTick();
 
     if (
@@ -139,11 +147,14 @@ export function useDiscoverFeed(filters) {
     }
   }
 
+  // Load the first batch immediately and restart when filters change
   watch(filters, resetFeed, { immediate: true, deep: true });
 
+  // Recheck available space after loading finishes or posts are added
   watch([loading, () => posts.value.length], fillVisibleSpace);
 
   onMounted(() => {
+    // Load the next batch when the target comes within 200px of the viewport
     if ("IntersectionObserver" in window) {
       observer = new IntersectionObserver(
         (entries) => {
@@ -163,6 +174,7 @@ export function useDiscoverFeed(filters) {
   });
 
   onBeforeUnmount(() => {
+    // Cancel pending work and disconnect the observer when leaving the page
     disposed = true;
     generation++;
     controller?.abort();

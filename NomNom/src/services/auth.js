@@ -1,12 +1,14 @@
 import { computed, ref } from "vue";
 import { apiRequest, setCsrfToken } from "./api";
 
+// Shared account state used across pages
 const currentUser = ref(null);
 const isLoggedIn = computed(() => currentUser.value !== null);
 
 let sessionLoaded = false;
 let sessionRequest = null;
 
+// Prepare profile details and resolve uploaded avatar paths
 function normalizeProfile(user) {
   if (!user) return null;
 
@@ -33,12 +35,14 @@ function normalizeProfile(user) {
   };
 }
 
+// Update the current account and security token from PHP
 function applySession(data) {
   currentUser.value = normalizeProfile(data.user);
   setCsrfToken(data.csrfToken);
   sessionLoaded = true;
 }
 
+// Restore the session once and share any request already running
 async function initAuth() {
   if (sessionLoaded) return;
 
@@ -53,6 +57,7 @@ async function initAuth() {
   return sessionRequest;
 }
 
+// Load a public profile and return null when it does not exist
 export async function getUserByUsername(username) {
   if (!username) return null;
 
@@ -68,6 +73,7 @@ export async function getUserByUsername(username) {
   }
 }
 
+// Use My Profile for the current account and a public link for others
 export function profileLinkFor(username) {
   if (!username) return "/";
 
@@ -81,6 +87,7 @@ export function profileLinkFor(username) {
   return `/users/${encodeURIComponent(username)}`;
 }
 
+// Sign in using a username or email and apply the returned session
 async function login(identifier, password) {
   await initAuth();
 
@@ -96,6 +103,7 @@ async function login(identifier, password) {
   return currentUser.value;
 }
 
+// Create an account and apply the returned session
 async function register({
   username,
   email,
@@ -120,6 +128,7 @@ async function register({
   return currentUser.value;
 }
 
+// Save profile changes for the logged-in account
 async function updateProfile({ displayName, bio, avatar }) {
   await initAuth();
 
@@ -132,7 +141,7 @@ async function updateProfile({ displayName, bio, avatar }) {
     bio: bio.trim(),
   };
 
-  // Omit an unchanged avatar so PHP retains its original stored path.
+  // Keep the stored avatar path when the avatar has not changed
   const requestedAvatar = avatar.trim();
 
   if (requestedAvatar !== currentUser.value.avatar) {
@@ -148,6 +157,7 @@ async function updateProfile({ displayName, bio, avatar }) {
   return currentUser.value;
 }
 
+// End the login session and update shared account state
 async function logout() {
   await initAuth();
 
@@ -158,6 +168,7 @@ async function logout() {
   applySession(data);
 }
 
+// Expose reactive account data and authentication actions to views
 export function useAuth() {
   return {
     currentUser: computed(() => currentUser.value),

@@ -2,6 +2,7 @@ import { computed, ref } from "vue";
 import { apiRequest } from "./api";
 import { useAuth } from "./auth";
 
+// Shared post collection and loading feedback for views
 const postList = ref([]);
 const isLoading = ref(false);
 const postError = ref("");
@@ -9,6 +10,7 @@ const postsLoaded = ref(false);
 
 let pendingRequest = null;
 
+// Resolve uploaded image paths for the current app location
 function resolveImageUrl(url) {
   if (typeof url !== "string" || url === "") return "";
 
@@ -27,16 +29,9 @@ function resolveImageUrl(url) {
   return url;
 }
 
-/**
- * Load posts.
- *
- * @param {Object} options
- * @param {number} [options.latitude]  – When both lat/lng are
- * @param {number} [options.longitude]    provided, the PHP backend
- * @param {number} [options.radiusKm]     filters by Haversine distance
- *                                        and sorts closest-first.
- */
+// Load posts with optional nearby filtering and closest-first backend sorting
 function loadPosts(options = {}) {
+  // Reuse an existing request instead of loading twice
   if (pendingRequest) return pendingRequest;
 
   const params = new URLSearchParams();
@@ -63,6 +58,7 @@ function loadPosts(options = {}) {
         throw new Error("The server returned an invalid post list.");
       }
 
+      // Prepare image paths before storing the returned posts
       postList.value = data.posts.map((post) => ({
         ...post,
         authorAvatar: resolveImageUrl(post.authorAvatar),
@@ -90,6 +86,7 @@ function loadPosts(options = {}) {
   return pendingRequest;
 }
 
+// Publish post details and photo files using multipart form data
 async function createPost(data) {
   const { initAuth, isLoggedIn } = useAuth();
 
@@ -130,6 +127,7 @@ async function createPost(data) {
   return { id: Number(result.postId) };
 }
 
+// Send edited post details and the photo plan to PHP
 async function updatePost(id, data) {
   const { initAuth, isLoggedIn } = useAuth();
   await initAuth();
@@ -160,6 +158,7 @@ async function updatePost(id, data) {
   return { id: Number(result.postId) };
 }
 
+// Request deletion of an owned post
 async function deletePost(id) {
   const { initAuth, isLoggedIn } = useAuth();
   await initAuth();
@@ -173,6 +172,7 @@ async function deletePost(id) {
   });
 }
 
+// Add or remove a like or bookmark and use the confirmed backend result
 async function changePostInteraction(id, type, active) {
   const { initAuth, currentUser, isLoggedIn } = useAuth();
 
@@ -191,6 +191,7 @@ async function changePostInteraction(id, type, active) {
     },
   );
 
+  // Do not apply another account's result if the login changed during the request
   if (currentUser.value?.id === viewerId) {
     postList.value = postList.value.map((post) =>
       String(post.id) === String(result.post.id)
@@ -202,14 +203,17 @@ async function changePostInteraction(id, type, active) {
   return result.post;
 }
 
+// Set whether the current account likes this post
 function setLike(id, active) {
   return changePostInteraction(id, "like", active);
 }
 
+// Set whether the current account has bookmarked this post
 function setSaved(id, active) {
   return changePostInteraction(id, "save", active);
 }
 
+// Expose reactive post data and actions to views
 export function usePosts() {
   return {
     posts: computed(() => postList.value),

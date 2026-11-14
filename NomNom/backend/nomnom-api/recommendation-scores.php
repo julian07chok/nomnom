@@ -1,11 +1,16 @@
 <?php
 
+// Return one preference score per cuisine for the current account.
 function getRecommendationScores($pdo, $userId)
 {
+    // Guests have no personal interaction history to score.
     if ($userId < 1) {
         return array();
     }
 
+    // Combine the four interaction signals and total their points by cuisine.
+    // Likes, saves, and views exclude the user's own posts.
+    // View/search counts remain cumulative; only recently active records qualify.
     $sql = "
         SELECT
             preferences.cuisine,
@@ -44,7 +49,8 @@ function getRecommendationScores($pdo, $userId)
 
             UNION ALL
 
-            /* Views: maximum 5 points per cuisine. */
+            /* Views: 1 point per recorded post-view day, capped at 5 per cuisine.
+               Include records last viewed within seven days. */
             SELECT
                 p.cuisine,
                 LEAST(5, SUM(views.view_days)) AS points
@@ -62,12 +68,14 @@ function getRecommendationScores($pdo, $userId)
 
             UNION ALL
 
-            /* Searches: maximum 6 points per cuisine. */
+            /* Searches: 2 points per recorded search day, capped at 6 per cuisine.
+               Match keywords against post details to identify cuisines. */
             SELECT
                 matches.cuisine,
                 LEAST(3, SUM(matches.search_days)) * 2 AS points
 
             FROM (
+                /* Count a keyword once per cuisine, even if many posts match. */
                 SELECT DISTINCT
                     history.search_query,
                     history.search_days,
@@ -101,6 +109,7 @@ function getRecommendationScores($pdo, $userId)
         GROUP BY preferences.cuisine
     ";
 
+    // Bind the account ID to the placeholders in the four queries.
     $statement = $pdo->prepare($sql);
 
     $statement->execute(array(
@@ -113,6 +122,7 @@ function getRecommendationScores($pdo, $userId)
         $userId,
     ));
 
+    // Build a cuisine-to-score lookup for feed.php, for example Korean => 23.
     $scores = array();
 
     foreach ($statement->fetchAll() as $row) {

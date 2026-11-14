@@ -1,6 +1,7 @@
 import { apiRequest } from "./api";
 import { useAuth } from "./auth";
 
+// Record a post view for a logged-in account
 export async function recordPostView(postId) {
   const { currentUser } = useAuth();
   const id = Number(postId);
@@ -18,6 +19,7 @@ export async function recordPostView(postId) {
   });
 }
 
+// Clean and record a search keyword for recommendation scoring
 export async function recordSearch(query) {
   const { currentUser } = useAuth();
 
@@ -25,6 +27,7 @@ export async function recordSearch(query) {
 
   const length = Array.from(normalized).length;
 
+  // Skip guest activity and keywords outside the allowed length
   if (!currentUser.value || length < 2 || length > 100) {
     return;
   }

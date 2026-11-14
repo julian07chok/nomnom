@@ -12,6 +12,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     ), 405);
 }
 
+// Validate numeric batch parameters before using them in SQL.
 function feedInteger($name, $default, $minimum, $maximum)
 {
     $value = isset($_GET[$name]) ? $_GET[$name] : (string) $default;
@@ -32,6 +33,7 @@ function feedInteger($name, $default, $minimum, $maximum)
     return (int) $value;
 }
 
+// Offset is the number of posts to skip; limit is the requested batch size.
 $offset = feedInteger('offset', 0, 0, 1000000);
 $limit = feedInteger('limit', 6, 1, 12);
 
@@ -39,11 +41,23 @@ $cuisine = isset($_GET['cuisine']) ? $_GET['cuisine'] : 'All';
 $sort = isset($_GET['sort']) ? $_GET['sort'] : 'newest';
 
 $cuisines = array(
-    'All', 'Malaysian', 'Chinese', 'Indian', 'Japanese',
-    'Korean', 'Thai', 'Vietnamese', 'Italian', 'Western',
-    'Cafe', 'Dessert', 'Fusion', 'Middle Eastern',
+    'All',
+    'Malaysian',
+    'Chinese',
+    'Indian',
+    'Japanese',
+    'Korean',
+    'Thai',
+    'Vietnamese',
+    'Italian',
+    'Western',
+    'Cafe',
+    'Dessert',
+    'Fusion',
+    'Middle Eastern',
 );
 
+// Only allow predefined sorting expressions.
 $sortOptions = array(
     'newest' => 'feed.created_at DESC, feed.id DESC',
     'most-liked' => 'feed.like_count DESC, feed.created_at DESC, feed.id DESC',
@@ -61,12 +75,14 @@ if (!is_string($sort) || !isset($sortOptions[$sort])) {
 
 $viewerId = isset($_SESSION['user_id']) ? (int) $_SESSION['user_id'] : 0;
 
+// Guests use newest-first ordering instead of personalised scores.
 if ($sort === 'recommended' && $viewerId === 0) {
     $sort = 'newest';
 }
 
 $recommendationScores = array();
 
+// Calculate this account's cuisine scores for the For You feed.
 if ($sort === 'recommended') {
     $recommendationScores = getRecommendationScores($pdo, $viewerId);
 }
@@ -109,6 +125,7 @@ if (isset($_GET['lat']) && isset($_GET['lng'])) {
 
     $nearMe = true;
 
+    // Calculate distance in kilometres for posts with restaurant coordinates.
     $distanceSql = '
         CASE
             WHEN p.latitude IS NULL OR p.longitude IS NULL THEN NULL
@@ -130,6 +147,7 @@ if (isset($_GET['lat']) && isset($_GET['lng'])) {
     $parameters[] = (float) $lat;
 }
 
+// Assign each post its cuisine's score; unscored cuisines receive zero.
 $recommendationSql = '0';
 
 if ($recommendationScores) {
@@ -145,6 +163,7 @@ if ($recommendationScores) {
         . ' ELSE 0 END';
 }
 
+// Collect card details, interaction flags, scores, and the first photo.
 $baseSql = "
     SELECT
         p.id, p.title, p.restaurant_name, p.location,
@@ -186,6 +205,7 @@ $baseSql = "
     INNER JOIN nomnom_users u ON u.id = p.author_id
 ";
 
+// Apply cuisine and nearby filters before sorting and selecting a batch.
 $sql = "SELECT * FROM ($baseSql) AS feed";
 $conditions = array();
 
@@ -208,8 +228,10 @@ if ($conditions) {
 // user-selected sort. Otherwise, respect the sort parameter.
 $effectiveSort = $nearMe ? 'near-me' : $sort;
 
+// Rank all matching posts before applying LIMIT and OFFSET.
 $sql .= ' ORDER BY ' . $sortOptions[$effectiveSort];
 
+// Fetch one extra row to check whether another batch is available.
 $fetchLimit = $limit + 1;
 $sql .= " LIMIT $fetchLimit OFFSET $offset";
 
@@ -219,10 +241,12 @@ $rows = $statement->fetchAll();
 
 $hasMore = count($rows) > $limit;
 
+// The extra row is only a check, so leave it for the next request.
 if ($hasMore) {
     array_pop($rows);
 }
 
+// Convert database fields into the JSON format expected by Vue.
 $posts = array();
 
 foreach ($rows as $row) {
@@ -252,6 +276,7 @@ foreach ($rows as $row) {
     );
 }
 
+// Tell Vue where the next batch starts and whether loading should continue.
 respond(array(
     'ok' => true,
     'posts' => $posts,
