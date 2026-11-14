@@ -76,6 +76,92 @@
   border: none;
 }
 
+/* ── Current location marker (blue pulse) ─────────────── */
+
+.nomnom-user-marker {
+  background: transparent;
+  border: none;
+}
+
+.nomnom-user-marker-dot {
+  position: relative;
+  width: 20px;
+  height: 20px;
+  margin: 2px;
+  border-radius: 50%;
+  background: #0066ff;
+  border: 3px solid #ffffff;
+  box-shadow: 0 2px 8px rgb(0 102 255 / 40%);
+}
+
+/* Pulse ring that expands outward */
+.nomnom-user-marker-pulse {
+  position: absolute;
+  inset: -8px;
+  border-radius: 50%;
+  background: rgb(0 102 255 / 30%);
+  animation: user-location-pulse 2s ease-out infinite;
+  pointer-events: none;
+}
+
+@keyframes user-location-pulse {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.7;
+  }
+  70% {
+    transform: scale(1.8);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1.8);
+    opacity: 0;
+  }
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .nomnom-user-marker-pulse {
+    animation: none;
+    opacity: 0.4;
+  }
+}
+
+/* ── Legend below the map ──────────────────────────────── */
+
+.post-map-legend {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-top: 10px;
+  font-size: 0.8rem;
+  color: #483934;
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  opacity: 0.8;
+}
+
+.legend-dot {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.legend-dot-restaurant {
+  background: #cd4639;
+  border: 2px solid #fffcf3;
+}
+
+.legend-dot-user {
+  background: #0066ff;
+  border: 2px solid #ffffff;
+}
+
 /* ── Popup content ──────────────────────────────────────── */
 
 .nomnom-popup-wrapper .leaflet-popup-content-wrapper {

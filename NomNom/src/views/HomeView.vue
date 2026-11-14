@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onBeforeUnmount, ref, watch } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useAuth } from "../services/auth";
 import { useDiscoverFeed } from "../composables/useDiscoverFeed";
@@ -147,6 +147,26 @@ function onSearch() {
   });
 }
 
+// ─── Auto-request location on mount ─────────────────────────
+onMounted(() => {
+  if (!navigator.geolocation) return;
+
+  navigator.geolocation.getCurrentPosition(
+    (position) => {
+      userLocation.value = {
+        lat: position.coords.latitude,
+        lng: position.coords.longitude,
+      };
+    },
+    () => {
+      // Silent — user declined or unavailable.
+      // No marker shown, no error banner.
+    },
+    { timeout: 10000, enableHighAccuracy: false },
+  );
+});
+
+// ─── Cleanup ────────────────────────────────────────────────
 onBeforeUnmount(() => {
   locationRequest++;
 });
@@ -185,17 +205,13 @@ const feedTitle = computed(() => {
                 lovers across Malaysia.
               </p>
 
-              <SearchBar
-                v-model="searchQuery"
-                variant="home"
-                placeholder="Search dishes, restaurants, or locations…"
-                @submit="onSearch"
-              />
+              <SearchBar v-model="searchQuery" variant="home" placeholder="Search dishes, restaurants, or locations…"
+                @submit="onSearch" />
             </div>
           </div>
 
           <div class="col-12 col-lg-6">
-            <PostMap :posts="posts" />
+            <PostMap :posts="posts" :user-location="userLocation" />
           </div>
         </div>
       </div>
@@ -203,20 +219,10 @@ const feedTitle = computed(() => {
 
     <section class="home-categories-section">
       <div class="container">
-        <ul
-          class="home-category-list"
-          role="tablist"
-          aria-label="Cuisine categories"
-        >
+        <ul class="home-category-list" role="tablist" aria-label="Cuisine categories">
           <li v-for="cuisine in cuisines" :key="cuisine">
-            <button
-              type="button"
-              class="home-category-chip"
-              :class="{ 'is-active': activeCuisine === cuisine }"
-              role="tab"
-              :aria-selected="activeCuisine === cuisine"
-              @click="selectCuisine(cuisine)"
-            >
+            <button type="button" class="home-category-chip" :class="{ 'is-active': activeCuisine === cuisine }"
+              role="tab" :aria-selected="activeCuisine === cuisine" @click="selectCuisine(cuisine)">
               {{ cuisine }}
             </button>
           </li>
@@ -244,21 +250,12 @@ const feedTitle = computed(() => {
           </div>
 
           <div class="home-feed-controls">
-            <button
-              type="button"
-              class="near-me-btn"
-              :class="{ 'is-active': isNearMeActive }"
-              :disabled="isLocating"
-              @click="toggleNearMe"
-            >
+            <button type="button" class="near-me-btn" :class="{ 'is-active': isNearMeActive }" :disabled="isLocating"
+              @click="toggleNearMe">
               <template v-if="isNearMeActive">
                 <i class="bi bi-geo-alt-fill me-1" aria-hidden="true"></i>
                 Near Me
-                <i
-                  class="bi bi-x-circle-fill ms-1"
-                  aria-hidden="true"
-                  title="Clear Near Me filter"
-                ></i>
+                <i class="bi bi-x-circle-fill ms-1" aria-hidden="true" title="Clear Near Me filter"></i>
               </template>
               <template v-else>
                 <i class="bi bi-geo-alt me-1" aria-hidden="true"></i>
@@ -275,19 +272,12 @@ const feedTitle = computed(() => {
           </div>
         </header>
 
-        <div
-          v-if="locationError"
-          class="alert alert-warning d-flex align-items-center mb-4"
-          role="alert"
-        >
+        <div v-if="locationError" class="alert alert-warning d-flex align-items-center mb-4" role="alert">
           <i class="bi bi-exclamation-triangle-fill me-2"></i>
           {{ locationError }}
         </div>
 
-        <div
-          v-if="!feedLoading && !feedError && posts.length === 0"
-          class="home-empty-state"
-        >
+        <div v-if="!feedLoading && !feedError && posts.length === 0" class="home-empty-state">
           <p class="home-empty-emoji" aria-hidden="true">🍽️</p>
           <h3>No posts found</h3>
           <p v-if="isNearMeActive">
@@ -302,12 +292,8 @@ const feedTitle = computed(() => {
 
         <div v-if="posts.length" class="row g-3 g-md-4">
           <div v-for="post in posts" :key="post.id" class="col-6 col-lg-4">
-            <PostCard
-              :post="post"
-              :distance="
-                post.distanceKm ? formatDistance(post.distanceKm) : null
-              "
-            />
+            <PostCard :post="post" :distance="post.distanceKm ? formatDistance(post.distanceKm) : null
+              " />
           </div>
         </div>
 
