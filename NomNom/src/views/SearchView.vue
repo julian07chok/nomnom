@@ -37,16 +37,11 @@ const isNearMeActive = ref(route.query.near === "true");
 const isLocating = ref(false);
 const locationError = ref("");
 
-if (isNearMeActive.value) {
-  requestLocation();
-}
-
 function requestLocation() {
   locationError.value = "";
 
   if (!navigator.geolocation) {
     locationError.value = "Geolocation is not supported by your browser.";
-    isNearMeActive.value = false;
     return;
   }
 
@@ -59,12 +54,15 @@ function requestLocation() {
         lng: position.coords.longitude,
       };
       isLocating.value = false;
+
+      // Fetch the distance-filtered feed after location is confirmed
+      reloadPostsForNearMe();
     },
     (error) => {
       isLocating.value = false;
-      isNearMeActive.value = false;
       userLocation.value = null;
 
+      // Don't reset isNearMeActive — leave the URL and state in sync
       switch (error.code) {
         case error.PERMISSION_DENIED:
           locationError.value = "Location permission denied.";
@@ -88,27 +86,31 @@ function toggleNearMe() {
     isNearMeActive.value = false;
     userLocation.value = null;
     locationError.value = "";
+
+    // Restore the unfiltered feed
+    reloadPostsForNearMe();
   } else {
     isNearMeActive.value = true;
-    requestLocation();
+    requestLocation(); // reloadPostsForNearMe called on success
   }
 }
 
-// ─── Reload posts from the API when Near Me toggles ────────
-watch(
-  [isNearMeActive, userLocation],
-  ([active, loc]) => {
-    if (active && loc) {
-      loadPosts({
-        latitude: loc.lat,
-        longitude: loc.lng,
-        radiusKm: radiusKm,
-      });
-    } else if (!active) {
-      loadPosts();
-    }
-  },
-);
+// ─── Fetch posts based on current Near Me state ────────────
+// Called explicitly from requestLocation (success),
+// toggleNearMe (off), and the URL-to-state watcher.
+// No watcher on userLocation — prevents the loop where
+// every geolocation refinement re-triggers loadPosts.
+function reloadPostsForNearMe() {
+  if (isNearMeActive.value && userLocation.value) {
+    loadPosts({
+      latitude: userLocation.value.lat,
+      longitude: userLocation.value.lng,
+      radiusKm: radiusKm,
+    });
+  } else {
+    loadPosts();
+  }
+}
 
 // ─── Filtering + sorting (client-side, NOT distance) ──────
 const filteredPosts = computed(() => {
@@ -138,7 +140,7 @@ const filteredPosts = computed(() => {
     result = result.filter((p) => p.priceRange === filters.value.priceRange);
   }
 
-  // NOTE: distance filtering & sorting are in PHP.
+  // Distance filtering & sorting are handled by PHP.
   // Only non-distance sorts are applied here.
   if (sortBy.value === "newest") {
     result.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
@@ -178,6 +180,8 @@ const paginatedPosts = computed(() => {
 let isSyncingFromSelf = false;
 
 function syncUrl() {
+  if (isSyncingFromSelf) return;
+
   const query = {};
 
   if (searchQuery.value.trim()) query.q = searchQuery.value.trim();
@@ -189,6 +193,32 @@ function syncUrl() {
   if (currentPage.value > 1) query.page = currentPage.value;
   if (isNearMeActive.value) query.near = "true";
 
+  // Skip if the URL already matches our state
+  const trackedKeys = [
+    "q",
+    "cuisine",
+    "location",
+    "priceRange",
+    "sort",
+    "page",
+    "near",
+  ];
+  const queryKeys = Object.keys(query);
+  const routeKeys = Object.keys(route.query).filter((k) =>
+    trackedKeys.includes(k),
+  );
+
+  if (queryKeys.length === routeKeys.length) {
+    let equal = true;
+    for (const key of queryKeys) {
+      if (String(query[key]) !== String(route.query[key])) {
+        equal = false;
+        break;
+      }
+    }
+    if (equal) return;
+  }
+
   isSyncingFromSelf = true;
   router.replace({ name: "search", query }).finally(() => {
     setTimeout(() => {
@@ -197,8 +227,9 @@ function syncUrl() {
   });
 }
 
+// Filter changes → reset page → sync URL
 watch(
-  [searchQuery, filters, sortBy, isNearMeActive],
+  [searchQuery, filters, sortBy],
   () => {
     if (currentPage.value !== 1) currentPage.value = 1;
     syncUrl();
@@ -206,8 +237,13 @@ watch(
   { deep: true },
 );
 
+// Near-me change → sync URL but don't reset page
+watch(isNearMeActive, syncUrl);
+
+// Page change → sync URL
 watch(currentPage, syncUrl);
 
+// URL → state (browser back/forward, pasted links)
 watch(
   () => route.query,
   (q) => {
@@ -224,8 +260,18 @@ watch(
 
     const newNear = q.near === "true";
     if (newNear !== isNearMeActive.value) {
+      // Guard the isNearMeActive watcher from calling syncUrl
+      isSyncingFromSelf = true;
       isNearMeActive.value = newNear;
-      if (newNear && !userLocation.value) requestLocation();
+      setTimeout(() => {
+        isSyncingFromSelf = false;
+      }, 0);
+
+      if (newNear && !userLocation.value) {
+        requestLocation(); // will reload on success
+      } else {
+        reloadPostsForNearMe();
+      }
     }
 
     const newFilters = {
@@ -260,10 +306,6 @@ watch(
   { immediate: true },
 );
 
-onBeforeUnmount(() => {
-  clearTimeout(searchHistoryTimer);
-});
-
 function updatePageSize(event) {
   currentPage.value = 1;
   perPage.value = event.matches ? 6 : 4;
@@ -271,9 +313,16 @@ function updatePageSize(event) {
 
 onMounted(() => {
   laptopScreen.addEventListener("change", updatePageSize);
+
+  // If arriving via a URL with ?near=true, trigger geolocation.
+  // Running this in setup() before mount caused the loop.
+  if (isNearMeActive.value && !userLocation.value) {
+    requestLocation();
+  }
 });
 
 onBeforeUnmount(() => {
+  clearTimeout(searchHistoryTimer);
   laptopScreen.removeEventListener("change", updatePageSize);
 });
 </script>

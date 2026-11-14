@@ -1,28 +1,59 @@
 <script setup>
+import { ref, watch } from "vue";
 import "../../assets/css/post-card.css";
 import { useAuth } from "../../services/auth";
 import UserAvatar from "../user/UserAvatar.vue";
 import PostCuisineBadge from "./PostCuisineBadge.vue";
 
-defineProps({
+const props = defineProps({
   post: {
     type: Object,
     required: true,
   },
+  distance: {
+    type: String,
+    default: null,
+  },
 });
 
 const { profileLinkFor } = useAuth();
+
+// Tracks whether the current cover image has failed to load.
+const coverFailed = ref(false);
+
+watch(
+  () => props.post.coverImage,
+  () => {
+    coverFailed.value = false;
+  },
+);
+
+function onCoverError() {
+  coverFailed.value = true;
+}
 </script>
 
 <template>
   <article class="post-card">
     <RouterLink :to="`/posts/${post.id}`" class="post-cover-link">
       <img
+        v-if="post.coverImage && !coverFailed"
         :src="post.coverImage"
         :alt="post.title"
         class="post-cover"
         loading="lazy"
+        @error="onCoverError"
       />
+      <div v-else class="post-cover-fallback" aria-hidden="true">
+        <i class="bi bi-image"></i>
+      </div>
+
+      <!-- Distance badge (only shown when Near Me is active) -->
+      <span v-if="distance" class="distance-badge">
+        <i class="bi bi-geo-alt-fill" aria-hidden="true"></i>
+        {{ distance }}
+      </span>
+
       <PostCuisineBadge :cuisine="post.cuisine" />
     </RouterLink>
 

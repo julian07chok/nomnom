@@ -29,6 +29,18 @@
   transition: transform 320ms ease;
 }
 
+/* Placeholder shown when the cover image fails to load */
+.post-cover-fallback {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  background: #f4f2c2;
+  color: #483934;
+  font-size: 2rem;
+  opacity: 0.55;
+}
+
 .post-card:hover .post-cover {
   transform: scale(1.05);
 }
