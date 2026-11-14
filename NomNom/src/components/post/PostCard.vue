@@ -10,13 +10,15 @@ const props = defineProps({
     type: Object,
     required: true,
   },
+  distance: {
+    type: String,
+    default: null,
+  },
 });
 
 const { profileLinkFor } = useAuth();
 
 // Tracks whether the current cover image has failed to load.
-// Reset whenever the post changes so a different post's image
-// gets a fresh chance to load.
 const coverFailed = ref(false);
 
 watch(
@@ -45,6 +47,13 @@ function onCoverError() {
       <div v-else class="post-cover-fallback" aria-hidden="true">
         <i class="bi bi-image"></i>
       </div>
+
+      <!-- Distance badge (only shown when Near Me is active) -->
+      <span v-if="distance" class="distance-badge">
+        <i class="bi bi-geo-alt-fill" aria-hidden="true"></i>
+        {{ distance }}
+      </span>
+
       <PostCuisineBadge :cuisine="post.cuisine" />
     </RouterLink>
 
